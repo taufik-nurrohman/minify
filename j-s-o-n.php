@@ -1,30 +1,30 @@
 <?php
 
 namespace x\minify {
-    function j_s_o_n(?string $content, callable $step = null): ?string {
-        if ("" === ($content = \trim($content ?? ""))) {
+    function j_s_o_n(?string $from, callable $step = null): ?string {
+        if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
-        $chops = [];
-        while (false !== ($chop = \strpbrk($content, '",:[]{}'))) {
-            if ("" !== ($v = \substr($content, 0, \strlen($content) - \strlen($chop)))) {
-                $chops[] = $v;
-                $content = \substr($content, \strlen($v));
+        $to = "";
+        while (false !== ($chop = \strpbrk($from, '",:[]{}'))) {
+            if ("" !== ($v = \substr($from, 0, \strlen($from) - \strlen($chop)))) {
+                $to .= $step ? \call_user_func($step, $v, $to) : $v;
+                $from = \substr($from, \strlen($v));
             }
             if ('"' === $chop[0] && \preg_match('/^"(?>\\"|[^"])*"/', $chop, $m)) {
-                $chops[] = $m[0];
-                $content = \substr($content, \strlen($m[0]));
+                $to .= $step ? \call_user_func($step, $m[0], $to) : $m[0];
+                $from = \substr($from, \strlen($m[0]));
                 continue;
             }
-            if ("" === ($chop = \trim($chop))) {
+            if ("" === ($v = \trim($chop))) {
                 continue;
             }
-            $chops[] = $chop;
-            $content = \substr($content, \strlen($chop));
+            $to .= $step ? \call_user_func($step, $v, $to) : $v;
+            $from = \substr($from, \strlen($chop));
         }
-        if ("" !== $content) {
-            $chops[] = $content;
+        if ("" !== $from) {
+            $to .= $step ? \call_user_func($step, $from, $to);
         }
-        return "" !== ($content = \implode("", $chops)) ? $content : null;
+        return "" !== $to ? $to : null;
     }
 }
