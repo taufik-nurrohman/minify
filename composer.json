@@ -1,0 +1,51 @@
+{
+  "authors": [
+    {
+      "homepage": "https://github.com/taufik-nurrohman",
+      "name": "Taufik Nurrohman",
+      "role": "Developer"
+    }
+  ],
+  "autoload": {
+    "files": [
+      "c-s-s.php",
+      "h-t-m-l.php",
+      "j-s-o-n.php",
+      "j-s.php",
+      "p-h-p.php",
+      "x-m-l.php"
+    ]
+  },
+  "description": "Reduce CSS, HTML/XML, JavaScript, JSON, and PHP code on the server side.",
+  "funding": [
+    {
+      "type": "other",
+      "url": "https://paypal.me/tatautaufik"
+    }
+  ],
+  "homepage": "https://github.com/taufik-nurrohman/minify",
+  "keywords": [
+    "compress",
+    "converter",
+    "css",
+    "html",
+    "javascript",
+    "js",
+    "json",
+    "minify",
+    "parser",
+    "reduce",
+    "uglify",
+    "xml"
+  ],
+  "license": "MIT",
+  "name": "taufik-nurrohman/minify",
+  "require": {
+    "php": ">=7.1"
+  },
+  "support": {
+    "docs": "https://github.com/taufik-nurrohman/minify#readme",
+    "issues": "https://github.com/taufik-nurrohman/minify/issues"
+  },
+  "type": "library"
+}
