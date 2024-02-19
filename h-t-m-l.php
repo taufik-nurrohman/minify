@@ -9,36 +9,48 @@ namespace x\minify {
         while (false !== ($chop = \strpbrk($from, '<&'))) {
             if ("" !== ($v = \substr($from, 0, \strlen($from) - \strlen($chop)))) {
                 $from = \substr($from, \strlen($v));
+                if ('>' === \substr($to, -1) && \preg_match('/<[a-z\d][a-z\d:-]*(?>"[^"]*"|\'[^\']*\'|[^\/>])*>$/', $to)) {
+                    $v = \ltrim($v);
+                }
+                if ('</' === \substr($from, 0, 2)) {
+                    $v = \rtrim($v);
+                }
+                $v = \preg_replace('/^\s{2,}|\s{2,}$/', "", $v);
+                $v = \preg_replace('/\s+/', ' ', $v);
                 $to .= $v;
             }
-            // `< …`
+            // `<…`
             if ('<' === $chop[0]) {
-                // `<!-- …`
-                if (0 === \strpos($chop, '<!--')) {
-                    // <https://spec.commonmark.org/0.31.2#html-comment>
-                    // `<!-->`
-                    if (0 === \strpos($chop, '<!-->')) {
-                        $from = \substr($from, 5);
+                // <https://html.spec.whatwg.org/multipage/syntax.html#comments>
+                // `<!--…`
+                if (0 === \strpos($chop, '<!--') && false !== ($n = \strpos($chop, '-->'))) {
+                    $from = \substr($from, \strlen($chop = \substr($chop, 0, $n + 3)));
+                    // <https://en.wikipedia.org/wiki/Conditional_comment>
+                    if ('<![endif]-->' === \substr($chop, -12)) {
+                        $to .= $chop;
+                    }
+                    if (' ' !== \strpos($to, -1) && ' ' !== $from[0]) {
                         continue;
                     }
-                    // `<!--->`
-                    if (0 === \strpos($chop, '<!--->')) {
-                        $from = \substr($from, 6);
-                        continue;
-                    }
-                    if (\preg_match('/^<!--[\s\S]*?-->/', $chop, $m)) {
-                        $from = \substr($from, \strlen($m[0]));
-                        // <https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/compatibility/ms537512(v=vs.85)>
-                        if ('<![endif]-->' === \substr($m[0], -12)) {
-                            $to .= $m[0];
-                        }
-                    }
+                    $from = \ltrim($from);
+                    $to = \rtrim($to) . ' ';
                     continue;
                 }
-                if (0 === \strpos($chop, '<![CDATA[')) {}
-                if (0 === \strpos($chop, '<!')) {}
+                // <https://html.spec.whatwg.org/multipage/syntax.html#cdata-sections>
+                // `<![CDATA[…`
+                if (0 === \strpos($chop, '<![CDATA[') && false !== ($n = \strpos($chop, ']]>'))) {
+                    $from = \substr($from, \strlen($chop = \substr($chop, 0, $n + 3)));
+                    $to .= $chop;
+                    continue;
+                }
                 if (\preg_match('/^<(?>"[^"]*"|\'[\']*\'|[^>])+>/', $chop, $m)) {
                     $from = \substr($from, \strlen($m[0]));
+                    $m[0] = h_t_m_l\e($m[0]);
+                    // `<!DOCTYPE…`
+                    if ('!' === $m[0][1]) {
+                        $to .= $m[0];
+                        continue;
+                    }
                     if (0 === \strpos($m[0], '</')) {}
                     $to .= $m[0];
                     continue;
@@ -61,8 +73,27 @@ namespace x\minify {
             $to .= $chop;
         }
         if ("" !== $from) {
+            if ('>' === \substr($to, -1) && \preg_match('/<[a-z\d][a-z\d:-]*(?>"[^"]*"|\'[^\']*\'|[^\/>])*>$/', $to)) {
+                $from = \ltrim($from);
+            }
+            $from = \preg_replace('/^\s{2,}|\s{2,}$/', "", $from);
+            $from = \preg_replace('/\s+/', ' ', $from);
             $to .= $from;
         }
         return "" !== $to ? $to : null;
+    }
+}
+
+namespace x\minify\h_t_m_l {
+    function e(string $from): string {
+        $to = "";
+        foreach (\preg_split('/("[^"]*"|\'[^\']*\'|[\/<=>])/', $from, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+            if ("" === ($v = \trim($v))) {
+                $to .= ' ';
+                continue;
+            }
+            $to .= $v;
+        }
+        return $to;
     }
 }
