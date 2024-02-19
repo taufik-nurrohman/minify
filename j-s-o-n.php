@@ -1,29 +1,34 @@
 <?php
 
 namespace x\minify {
-    function j_s_o_n(?string $from, callable $step = null): ?string {
+    function j_s_o_n(?string $from): ?string {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
+        }
+        if ('""' === $from || '[]' === $from || 'false' === $from || 'null' === $from || 'true' === $from || '{}' === $from || \is_numeric($from)) {
+            return $from;
         }
         $to = "";
         while (false !== ($chop = \strpbrk($from, '",:[]{}'))) {
             if ("" !== ($v = \substr($from, 0, \strlen($from) - \strlen($chop)))) {
-                $to .= $step ? \call_user_func($step, $v, $to) : $v;
                 $from = \substr($from, \strlen($v));
+                $to .= \trim($v);
             }
-            if ('"' === $chop[0] && \preg_match('/^"(?>\\"|[^"])*"/', $chop, $m)) {
-                $to .= $step ? \call_user_func($step, $m[0], $to) : $m[0];
+            if (false !== \strpos(',:[]{}', $chop[0])) {
+                $from = \substr($from, 1);
+                $to .= $chop[0];
+                continue;
+            }
+            if ('"' === $chop[0] && \preg_match('/^"(?>\\\\"|[^"])*"/', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
+                $to .= $m[0];
                 continue;
             }
-            if ("" === ($v = \trim($chop))) {
-                continue;
-            }
-            $to .= $step ? \call_user_func($step, $v, $to) : $v;
             $from = \substr($from, \strlen($chop));
+            $to .= $chop;
         }
         if ("" !== $from) {
-            $to .= $step ? \call_user_func($step, $from, $to);
+            $to .= $from;
         }
         return "" !== $to ? $to : null;
     }
