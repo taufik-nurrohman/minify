@@ -1,10 +1,10 @@
 <?php
 
 namespace x\minify {
-    function p_h_p(?string $content, callable $step = null): ?string {
-        if ("" === ($content = \trim($content ?? ""))) {
+    function p_h_p(?string $from): ?string {
+        if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
-        return "" !== $content ? $content : null;
+        return "" !== $to ? $to : null;
     }
 }

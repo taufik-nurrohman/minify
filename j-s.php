@@ -1,10 +1,11 @@
 <?php
 
 namespace x\minify {
-    function j_s(?string $content, callable $step = null): ?string {
-        if ("" === ($content = \trim($content ?? ""))) {
+    function j_s(?string $from): ?string {
+        if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
-        return "" !== $content ? $content : null;
+        $to = "";
+        return "" !== $to ? $to : null;
     }
 }
