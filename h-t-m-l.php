@@ -10,14 +10,16 @@ namespace x\minify {
             if ("" !== ($v = \substr($from, 0, \strlen($from) - \strlen($chop)))) {
                 $from = \substr($from, \strlen($v));
                 if ('>' === \substr($to, -1) && \preg_match('/<[a-z\d][a-z\d:-]*(?>"[^"]*"|\'[^\']*\'|[^\/>])*>$/', $to)) {
+                    if (' ' === $v && '</' === \substr($from, 0, 2)) {
+                        $to .= $v;
+                        continue;
+                    }
                     $v = \ltrim($v);
                 }
                 if ('</' === \substr($from, 0, 2)) {
                     $v = \rtrim($v);
                 }
-                $v = \preg_replace('/^\s{2,}|\s{2,}$/', "", $v);
-                $v = \preg_replace('/\s+/', ' ', $v);
-                $to .= $v;
+                $to .= \preg_replace(['/^\s{2,}|\s{2,}$/', '/\s+/'], ["", ' '], $v);
             }
             // `<…`
             if ('<' === $chop[0]) {
@@ -73,12 +75,7 @@ namespace x\minify {
             $to .= $chop;
         }
         if ("" !== $from) {
-            if ('>' === \substr($to, -1) && \preg_match('/<[a-z\d][a-z\d:-]*(?>"[^"]*"|\'[^\']*\'|[^\/>])*>$/', $to)) {
-                $from = \ltrim($from);
-            }
-            $from = \preg_replace('/^\s{2,}|\s{2,}$/', "", $from);
-            $from = \preg_replace('/\s+/', ' ', $from);
-            $to .= $from;
+            $to .= \preg_replace(['/^\s{2,}/', '/\s+/'], ["", ' '], $from);
         }
         return "" !== $to ? $to : null;
     }
