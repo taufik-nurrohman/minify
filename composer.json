@@ -8,12 +8,7 @@
   ],
   "autoload": {
     "files": [
-      "c-s-s.php",
-      "h-t-m-l.php",
-      "j-s-o-n.php",
-      "j-s.php",
-      "p-h-p.php",
-      "x-m-l.php"
+      "index.php"
     ]
   },
   "description": "Reduce CSS, HTML/XML, JavaScript, JSON, and PHP code on the server side.",

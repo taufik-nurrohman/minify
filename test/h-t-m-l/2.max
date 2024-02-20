@@ -8,4 +8,4 @@ drop space(s) before void tag if it is not the only space  <asdf />
 
 drop space before close tag </asdf>
 
-drop space(s) before close tag  <asdf>
+drop space(s) before close tag  </asdf>

@@ -19,10 +19,17 @@ namespace x\minify {
                 $to .= $chop[0];
                 continue;
             }
-            if ('"' === $chop[0] && \preg_match('/^"(?>\\\\"|[^"])*"/', $chop, $m)) {
-                $from = \substr($from, \strlen($m[0]));
-                $to .= $m[0];
-                continue;
+            if ('"' === $chop[0]) {
+                if ('"' === $chop[1]) {
+                    $from = \substr($from, 2);
+                    $to .= '""';
+                    continue;
+                }
+                if (\preg_match('/^"(?>\\\\"|[^"])+"/', $chop, $m)) {
+                    $from = \substr($from, \strlen($m[0]));
+                    $to .= $m[0];
+                    continue;
+                }
             }
             $from = \substr($from, \strlen($chop));
             $to .= $chop;

@@ -20,7 +20,7 @@ Usage
 
 This converter can be installed using [Composer](https://packagist.org/packages/taufik-nurrohman/minify), but it doesn’t
 need any other dependencies and just uses Composer’s ability to automatically include files. Those of you who don’t use
-Composer should be able to include the files directly into your application without any problems.
+Composer should be able to include the `index.php` file directly into your application without any problems.
 
 ### Using Composer
 
@@ -49,7 +49,7 @@ echo minify_css('asdf { asdf: 0px; } asdf { /* asdf */ }'); // Returns `'asdf{as
 
 ### Using File
 
-Require the files in your application:
+Require the `index.php` file in your application:
 
 ~~~ php
 <?php
@@ -61,12 +61,7 @@ use function x\minify\j_s_o_n as minify_json;
 use function x\minify\p_h_p as minify_php;
 use function x\minify\x_m_l as minify_xml;
 
-require 'c-s-s.php';
-require 'h-t-m-l.php';
-require 'j-s.php';
-require 'j-s-o-n.php';
-require 'p-h-p.php';
-require 'x-m-l.php';
+require 'index.php';
 
 echo minify_css('asdf { asdf: 0px; } asdf { /* asdf */ }'); // Returns `'asdf{asdf:0}'`
 ~~~
@@ -79,8 +74,8 @@ _TODO_
 Tests
 -----
 
-Clone this repository into the root of your web server that supports PHP and then you can open the `test/*.php` file
-with your browser to see the result and the performance of this converter in various cases.
+Clone this repository into the root of your web server that supports PHP and then you can open the `test.php` file with
+your browser to see the result and the performance of this converter in various cases.
 
 Tweaks
 ------

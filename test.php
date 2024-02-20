@@ -10,12 +10,14 @@ define('D', DIRECTORY_SEPARATOR);
 define('P', "\u{001A}");
 define('PATH', __DIR__);
 
-require __DIR__ . D . '..' . D . 'h-t-m-l.php';
+require __DIR__ . D . 'index.php';
 
-$files = glob(__DIR__ . D . 'h-t-m-l' . D . '*.html', GLOB_NOSORT);
+$of = strip_tags($_GET['of'] ?? 'j-s-o-n');
+
+$files = glob(__DIR__ . D . 'test' . D . $of . D . '*.max', GLOB_NOSORT);
 usort($files, static function ($a, $b) {
-    $a = dirname($a) . D . basename($a, '.html');
-    $b = dirname($b) . D . basename($b, '.html');
+    $a = dirname($a) . D . basename($a, '.max');
+    $b = dirname($b) . D . basename($b, '.max');
     return strnatcmp($a, $b);
 });
 
@@ -24,7 +26,7 @@ $out .= '<html dir="ltr">';
 $out .= '<head>';
 $out .= '<meta charset="utf-8">';
 $out .= '<title>';
-$out .= 'Minify HTML';
+$out .= 'Test';
 $out .= '</title>';
 $out .= '<style>';
 $out .= <<<CSS
@@ -63,7 +65,7 @@ $out .= '<body>';
 $error_count = 0;
 foreach ($files as $v) {
     $raw = file_get_contents($v);
-    $out .= '<h1 id="' . ($n = basename($v, '.html')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . strtr($v, [PATH . D => '.' . D]) . '</h1>';
+    $out .= '<h1 id="' . ($n = basename($v, '.max')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . strtr($v, [PATH . D => '.' . D]) . '</h1>';
     $out .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
     $out .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $out .= strtr(htmlspecialchars($raw), [
@@ -75,15 +77,15 @@ foreach ($files as $v) {
     $a = $b = "";
     $a .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $start = microtime(true);
-    $content = x\minify\h_t_m_l($raw) ?? "";
+    $content = call_user_func("x\\minify\\" . \strtr($of, '-', '_'), $raw) ?? "";
     $end = microtime(true);
     $a .= strtr(htmlspecialchars($content), [
         "\t" => '<span class="char-tab">' . "\t" . '</span>',
         ' ' => '<span class="char-space"> </span>'
     ]);
     $a .= '</pre>';
-    if (is_file($v . '.min')) {
-        $test = file_get_contents($v . '.min');
+    if (is_file($f = dirname($v) . D . pathinfo($v, PATHINFO_FILENAME) . '.min')) {
+        $test = file_get_contents($f);
         if ($error = $content !== $test) {
             $b .= '<pre style="background:#cff;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:1em 0 0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
             $b .= strtr(htmlspecialchars($test), [
