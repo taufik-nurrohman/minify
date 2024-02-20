@@ -1,0 +1,38 @@
+void element(s):
+
+asdf <img>
+asdf  <img>
+<img> asdf
+<img>  asdf
+asdf <img> asdf
+asdf  <img>  asdf
+
+asdf <input>
+asdf  <input>
+<input> asdf
+<input>  asdf
+asdf <input> asdf
+asdf  <input>  asdf
+
+note that `br`, `hr`, and `wbr` are block element(s) so space(s) around them can be dropped
+
+asdf <br>
+asdf  <br>
+<br> asdf
+<br>  asdf
+asdf <br> asdf
+asdf  <br>  asdf
+
+asdf <hr>
+asdf  <hr>
+<hr> asdf
+<hr>  asdf
+asdf <hr> asdf
+asdf  <hr>  asdf
+
+asdf <wbr>
+asdf  <wbr>
+<wbr> asdf
+<wbr>  asdf
+asdf <wbr> asdf
+asdf  <wbr>  asdf

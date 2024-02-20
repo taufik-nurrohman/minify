@@ -1,0 +1,43 @@
+<!-- void element(s) but hidden -->
+
+<head>
+
+  <meta charset="utf-8">
+
+  <title> Document </title>
+
+  <meta content="Document’s description." name="description">
+
+  <link href="index.html" rel="canonical">
+
+  <base href="http://127.0.0.1">
+
+</head>
+
+<head>
+
+  <meta charset="utf-8"/>
+
+  <title> Document </title>
+
+  <meta content="Document’s description." name="description"/>
+
+  <link href="index.html" rel="canonical"/>
+
+  <base href="http://127.0.0.1"/>
+
+</head>
+
+<head>
+
+  <meta charset="utf-8" />
+
+  <title> Document </title>
+
+  <meta content="Document’s description." name="description" />
+
+  <link href="index.html" rel="canonical" />
+
+  <base href="http://127.0.0.1" />
+
+</head>

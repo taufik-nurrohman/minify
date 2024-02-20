@@ -1,5 +1,5 @@
 <?php
 
-foreach (glob(__DIR__ . DIRECTORY_SEPARATOR . 'f' . DIRECTORY_SEPARATOR . '*.php', GLOB_NOSORT) as $v) {
+foreach (glob(substr(__FILE__, 0, -4) . DIRECTORY_SEPARATOR . '*.php', GLOB_NOSORT) as $v) {
     require $v;
 }

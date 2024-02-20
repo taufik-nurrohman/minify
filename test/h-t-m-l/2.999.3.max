@@ -1,0 +1,25 @@
+<textarea>
+  &lt;ul&gt;
+    &lt;li&gt; asdf &lt;/li&gt;
+    &lt;li&gt; asdf &lt;/li&gt;
+    &lt;li&gt; asdf
+      &lt;ul&gt;
+        &lt;li&gt; asdf &lt;/li&gt;
+        &lt;li&gt; asdf &lt;/li&gt;
+        &lt;li&gt; asdf &lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+</textarea>
+
+<ul>
+  <li> asdf </li>
+  <li> asdf </li>
+  <li> asdf
+    <ul>
+      <li> asdf </li>
+      <li> asdf </li>
+      <li> asdf </li>
+    </ul>
+  </li>
+</ul>
