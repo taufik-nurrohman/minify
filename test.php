@@ -26,7 +26,7 @@ $out .= '<html dir="ltr">';
 $out .= '<head>';
 $out .= '<meta charset="utf-8">';
 $out .= '<title>';
-$out .= 'Test';
+$out .= 'Minify ' . strtoupper(strtr($of, ['-' => ""]));
 $out .= '</title>';
 $out .= '<style>';
 $out .= <<<CSS

@@ -64,7 +64,15 @@ namespace x\minify {
                     }
                     if (false !== \strpos(',pre,script,style,textarea,', ',' . $n . ',')) {
                         $from = \substr($from, ($e = \strpos($chop, '</' . $n . '>')) + 1);
-                        $to .= \substr($chop, 0, $e) . '</' . $n . '>';
+                        $value = \substr($chop, 0, $e);
+                        if ('script' === $n) {
+                            // TODO
+                        }
+                        if ('style' === $n) {
+                            echo htmlspecialchars($value);
+                            // TODO
+                        }
+                        $to .= $value . '</' . $n . '>';
                         continue;
                     }
                     if (0 === \strpos($m[0], '</')) {}
@@ -103,9 +111,50 @@ namespace x\minify\h_t_m_l {
     // attribute(s). To represent a `false` value, the attribute has to be omitted altogether.
     //
     // <https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#boolean-attributes>
-    \define(__NAMESPACE__ . "\\a", 'allow(?:fullscreen|paymentrequest)|async|auto(?:focus|play)|checked|controls|def(?:ault|er)|disabled|formnovalidate|hidden|ismap|itemscope|loop|multiple|muted|no(?:module|validate)|open|playsinline|re(?:adonly|quired|versed)|selected|truespeed');
     function a(string $to): string {
-        return \preg_replace('/\b(' . a . ')=(?>""|\'\'|"\1"|\'\1\'|\1)?(?=[\/>\s])/', '$1', $to);
+        static $of = [];
+        if (!$of) {
+            foreach ([
+                'allowfullscreen',
+                'allowpaymentrequest',
+                'async',
+                'autofocus',
+                'autoplay',
+                'checked',
+                'controls',
+                'default',
+                'defer',
+                'disabled',
+                'formnovalidate',
+                'hidden',
+                'ismap',
+                'itemscope',
+                'loop',
+                'multiple',
+                'muted',
+                'nomodule',
+                'novalidate',
+                'open',
+                'playsinline',
+                'readonly',
+                'required',
+                'reversed',
+                'selected',
+                'truespeed'
+            ] as $v) {
+                $of[' ' . $v . "='" . $v . "'"] = ' ' . $v;
+                $of[' ' . $v . "=''"] = ' ' . $v;
+                $of[' ' . $v . '= '] = ' ' . $v . ' ';
+                $of[' ' . $v . '=""'] = ' ' . $v;
+                $of[' ' . $v . '="' . $v . '"'] = ' ' . $v;
+                $of[' ' . $v . '=' . $v . ' '] = ' ' . $v . ' ';
+                $of[' ' . $v . '=' . $v . '/'] = ' ' . $v . '/';
+                $of[' ' . $v . '=' . $v . '>'] = ' ' . $v . '>';
+                $of[' ' . $v . '=/'] = ' ' . $v . '/';
+                $of[' ' . $v . '=>'] = ' ' . $v . '>';
+            }
+        }
+        return \strtr($to, $of);
     }
     function e(string $from): string {
         $to = "";
@@ -118,12 +167,12 @@ namespace x\minify\h_t_m_l {
         }
         if (false !== \strpos($to, '=')) {
             $to = a($to);
-        }
-        if (0 === \strpos($to, '<script ')) {
-            $to = a\script($to);
-        }
-        if (0 === \strpos($to, '<style ')) {
-            $to = a\style($to);
+            if (0 === \strpos($to, '<script ')) {
+                $to = a\script($to);
+            }
+            if (0 === \strpos($to, '<style ')) {
+                $to = a\style($to);
+            }
         }
         if ('/>' === \substr($to, -2)) {
             return \rtrim(\substr($to, 0, -2)) . '/>';
@@ -136,10 +185,64 @@ namespace x\minify\h_t_m_l {
 }
 
 namespace x\minify\h_t_m_l\a {
+    function link(string $to): string {
+        static $of = [];
+        if (!$of) {
+            foreach ([
+                'type' => 'text/css'
+            ] as $k => $v) {
+                $of[' ' . $k . "='" . $v . "'"] = "";
+                $of[' ' . $k . '="' . $v . '"'] = "";
+                $of[' ' . $k . '=' . $v . ' '] = ' ';
+                $of[' ' . $k . '=' . $v . '>'] = '>';
+            }
+        }
+        return \strtr($to, $of);
+    }
     function script(string $to): string {
-        return $to;
+        static $of = [];
+        if (!$of) {
+            // <https://crockford.com/javascript/script.html>
+            // <https://crockford.com/javascript/style1.html>
+            foreach ([
+                'language' => 'javascript',
+                'type' => [
+                    'application/ecmascript',
+                    'application/javascript',
+                    'application/x-javascript',
+                    'text/javascript'
+                ]
+            ] as $k => $v) {
+                if (\is_array($v)) {
+                    foreach ($v as $vv) {
+                        $of[' ' . $k . "='" . $vv . "'"] = "";
+                        $of[' ' . $k . '="' . $vv . '"'] = "";
+                        $of[' ' . $k . '=' . $vv . ' '] = ' ';
+                        $of[' ' . $k . '=' . $vv . '>'] = '>';
+                    }
+                    continue;
+                }
+                $of[' ' . $k . "='" . $v . "'"] = "";
+                $of[' ' . $k . '="' . $v . '"'] = "";
+                $of[' ' . $k . '=' . $v . ' '] = ' ';
+                $of[' ' . $k . '=' . $v . '>'] = '>';
+            }
+        }
+        // TODO: Drop `event` and `for` attribute
+        return \strtr($to, $of);
     }
     function style(string $to): string {
-        return $to;
+        static $of = [];
+        if (!$of) {
+            foreach ([
+                'type' => 'text/css'
+            ] as $k => $v) {
+                $of[' ' . $k . "='" . $v . "'"] = "";
+                $of[' ' . $k . '="' . $v . '"'] = "";
+                $of[' ' . $k . '=' . $v . ' '] = ' ';
+                $of[' ' . $k . '=' . $v . '>'] = '>';
+            }
+        }
+        return \strtr($to, $of);
     }
 }
