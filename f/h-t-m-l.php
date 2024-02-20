@@ -29,7 +29,7 @@ namespace x\minify {
                     $from = \substr($from, \strlen($chop = \substr($chop, 0, $n + 3)));
                     // <https://en.wikipedia.org/wiki/Conditional_comment>
                     if ('<![endif]-->' === \substr($chop, -12)) {
-                        $to .= $chop;
+                        $to .= \substr($chop, 0, $n = \strpos($chop, '>') + 1) . h_t_m_l(\substr($chop, $n, -12)) . \substr($chop, -12);
                     }
                     if (' ' !== \strpos($to, -1) && ' ' !== $from[0]) {
                         continue;

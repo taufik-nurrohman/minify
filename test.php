@@ -62,6 +62,20 @@ $out .= '</style>';
 $out .= '</head>';
 $out .= '<body>';
 
+$out .= '<form method="get">';
+$out .= '<fieldset>';
+$out .= '<legend>';
+$out .= 'Tests';
+$out .= '</legend>';
+foreach (glob(__DIR__ . D . 'test' . D . '*', GLOB_ONLYDIR) as $v) {
+    $out .= ' ';
+    $out .= '<button' . ($of === ($n = basename($v)) ? ' disabled' : "") . ' name="of" type="submit" value="' . htmlspecialchars($n) . '">';
+    $out .= htmlspecialchars($n);
+    $out .= '</button>';
+}
+$out .= '</fieldset>';
+$out .= '</form>';
+
 $error_count = 0;
 foreach ($files as $v) {
     $raw = file_get_contents($v);
