@@ -12,7 +12,7 @@ define('PATH', __DIR__);
 
 require __DIR__ . D . 'index.php';
 
-$of = strip_tags($_GET['of'] ?? 'j-s-o-n');
+$of = basename($_GET['of'] ?? 'h-t-m-l');
 
 $files = glob(__DIR__ . D . 'test' . D . $of . D . '*.max', GLOB_NOSORT);
 usort($files, static function ($a, $b) {
