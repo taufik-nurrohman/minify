@@ -3,12 +3,12 @@ PHP Minify
 
 ![c-s-s.php] ![h-t-m-l.php] ![j-s.php] ![j-s-o-n.php] ![p-h-p.php] ![x-m-l.php]
 
-[c-s-s.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/c-s-s.php?branch=main&color=%234f5d95&label=c-s-s.php&labelColor=%231f2328&style=flat-square
-[h-t-m-l.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/h-t-m-l.php?branch=main&color=%234f5d95&label=h-t-m-l.php&labelColor=%231f2328&style=flat-square
-[j-s.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/j-s.php?branch=main&color=%234f5d95&label=j-s.php&labelColor=%231f2328&style=flat-square
-[j-s-o-n.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/j-s-o-n.php?branch=main&color=%234f5d95&label=j-s-o-n.php&labelColor=%231f2328&style=flat-square
-[p-h-p.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/p-h-p.php?branch=main&color=%234f5d95&label=p-h-p.php&labelColor=%231f2328&style=flat-square
-[x-m-l.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/x-m-l.php?branch=main&color=%234f5d95&label=x-m-l.php&labelColor=%231f2328&style=flat-square
+[c-s-s.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/index/c-s-s.php?branch=main&color=%234f5d95&label=c-s-s.php&labelColor=%231f2328&style=flat-square
+[h-t-m-l.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/index/h-t-m-l.php?branch=main&color=%234f5d95&label=h-t-m-l.php&labelColor=%231f2328&style=flat-square
+[j-s.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/index/j-s.php?branch=main&color=%234f5d95&label=j-s.php&labelColor=%231f2328&style=flat-square
+[j-s-o-n.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/index/j-s-o-n.php?branch=main&color=%234f5d95&label=j-s-o-n.php&labelColor=%231f2328&style=flat-square
+[p-h-p.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/index/p-h-p.php?branch=main&color=%234f5d95&label=p-h-p.php&labelColor=%231f2328&style=flat-square
+[x-m-l.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/index/x-m-l.php?branch=main&color=%234f5d95&label=x-m-l.php&labelColor=%231f2328&style=flat-square
 
 Motivation
 ----------
