@@ -27,7 +27,7 @@ namespace x\minify {
                 if ('</' === \substr($from, 0, 2)) {
                     $v = \rtrim($v);
                 }
-                $to .= \preg_replace(['/^\s{2,}|\s{2,}$/', '/\s+/'], ["", ' '], $v);
+                $to .= \preg_replace(['/^\s\s+|\s\s+$/', '/\s+/'], ["", ' '], $v);
             }
             // `<…`
             if ('<' === $chop[0]) {
@@ -54,29 +54,34 @@ namespace x\minify {
                     continue;
                 }
                 if (\preg_match('/^<(?>"[^"]*"|\'[\']*\'|[^>])+>/', $chop, $m)) {
-                    $from = \substr($from, \strlen($m[0]));
-                    $m[0] = h_t_m_l\e($m[0]);
+                    $from = \substr($from, $b = \strlen($m[0]));
                     $n = \substr(\strtok($m[0], " \n\r\t>"), 1);
                     // `<!DOCTYPE…`
                     if ('!' === $n[0]) {
-                        $to .= $m[0];
+                        $to .= h_t_m_l\e($m[0]);
                         continue;
                     }
                     if (false !== \strpos(',pre,script,style,textarea,', ',' . $n . ',')) {
                         $from = \substr($from, ($e = \strpos($chop, '</' . $n . '>')) + 1);
-                        $value = \substr($chop, 0, $e);
-                        if ('script' === $n) {
-                            // TODO
+                        $value = \substr($chop, $b, $e - $b);
+                        if ('script' === $n && \function_exists($f = __NAMESPACE__ . "\\j_s")) {
+                            $value = \trim($value);
+                            if (0 === \strpos($value, '<![CDATA[') && ']]>' === \substr($value, -3)) {
+                                $value = \trim(\substr($value, 9, -3));
+                            }
+                            $value = \call_user_func($f, $value);
+                        } else if ('style' === $n && \function_exists($f = __NAMESPACE__ . "\\c_s_s")) {
+                            $value = \trim($value);
+                            if (0 === \strpos($value, '<![CDATA[') && ']]>' === \substr($value, -3)) {
+                                $value = \trim(\substr($value, 9, -3));
+                            }
+                            $value = \call_user_func($f, $value);
                         }
-                        if ('style' === $n) {
-                            echo htmlspecialchars($value);
-                            // TODO
-                        }
-                        $to .= $value . '</' . $n . '>';
+                        $to .= h_t_m_l\e($m[0]) . $value . '</' . $n . '>';
                         continue;
                     }
                     if (0 === \strpos($m[0], '</')) {}
-                    $to .= $m[0];
+                    $to .= h_t_m_l\e($m[0]);
                     continue;
                 }
                 $from = \substr($from, 1);
@@ -97,7 +102,7 @@ namespace x\minify {
             $to .= $chop;
         }
         if ("" !== $from) {
-            $to .= \preg_replace(['/^\s{2,}/', '/\s+/'], ["", ' '], $from);
+            $to .= \preg_replace(['/^\s\s+/', '/\s+/'], ["", ' '], $from);
         }
         return "" !== $to ? $to : null;
     }
@@ -169,8 +174,7 @@ namespace x\minify\h_t_m_l {
             $to = a($to);
             if (0 === \strpos($to, '<script ')) {
                 $to = a\script($to);
-            }
-            if (0 === \strpos($to, '<style ')) {
+            } else if (0 === \strpos($to, '<style ')) {
                 $to = a\style($to);
             }
         }

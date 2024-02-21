@@ -12,6 +12,22 @@
 </ul>`;
 </script>
 
+<script>
+  <![CDATA[
+  const list = `<ul>
+  <li> asdf </li>
+  <li> asdf </li>
+  <li> asdf
+    <ul>
+      <li> asdf </li>
+      <li> asdf </li>
+      <li> asdf </li>
+    </ul>
+  </li>
+</ul>`;
+  ]]>
+</script>
+
 <ul>
   <li> asdf </li>
   <li> asdf </li>

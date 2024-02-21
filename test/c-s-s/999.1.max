@@ -1,0 +1,19 @@
+/* <https://mothereff.in/unquoted-attributes> */
+[asdf=""] { asdf: asdf; }
+[asdf="-"] { asdf: asdf; }
+[asdf="--"] { asdf: asdf; }
+[asdf="--123"] { asdf: asdf; }
+[asdf="--abc"] { asdf: asdf; }
+[asdf="-123"] { asdf: asdf; }
+[asdf="-abc"] { asdf: asdf; }
+[asdf="123"] { asdf: asdf; }
+[asdf="abc"] { asdf: asdf; }
+[asdf=''] { asdf: asdf; }
+[asdf='-'] { asdf: asdf; }
+[asdf='--'] { asdf: asdf; }
+[asdf='--123'] { asdf: asdf; }
+[asdf='--abc'] { asdf: asdf; }
+[asdf='-123'] { asdf: asdf; }
+[asdf='-abc'] { asdf: asdf; }
+[asdf='123'] { asdf: asdf; }
+[asdf='abc'] { asdf: asdf; }
