@@ -13,7 +13,18 @@ PHP Minify
 Motivation
 ----------
 
-_TODO_
+This project was started as a [gist][gist/minify], which now has more stars than [the copy of it][mecha-cms/x.minify]
+that was actually made to abandon the gist. It was inspired by [a code snippet][ideone] that will probably get lost in
+the future, so I decided to make a copy of it and put it [here][gist/ideone].
+
+I once got an e-mail from someone who wanted to use some parts of [my Mecha CMS’ extension][mecha-cms/x.minify], for him
+to use in a proprietary application, so he hoped not to be bound by [the GPL restrictions][article/gpl].
+
+[article/gpl]: https://mecha-cms.com/article/general-public-license
+[gist/ideone]: https://gist.github.com/taufik-nurrohman/db723da29e69065a1130
+[gist/minify]: https://gist.github.com/taufik-nurrohman/d7b310dea3b33e4732c0/804ae266c30664e7dcdf1d7d544628f7790bdad8
+[ideone]: https://ideone.com/Q5USEF
+[mecha-cms/x.minify]: https://github.com/mecha-cms/x.minify
 
 Usage
 -----
@@ -64,6 +75,25 @@ use function x\minify\x_m_l as minify_xml;
 require 'index.php';
 
 echo minify_css('asdf { asdf: 0px; } asdf { /* asdf */ }'); // Returns `'asdf{asdf:0}'`
+~~~
+
+Notes
+-----
+
+These minifiers focus only on removing the white-space characters. Other improvisations were considered as a bonus, as
+they were safe to modify the source code. They can’t read your code and only perform generic tokenization, like grouping
+comments and strings as a single token. They won’t fix your code, like adding an optional semi-colon at the end of a
+line because it was followed by a line-break, so it was optional initially, but then your code will be broken after the
+minification is done because the required line-break is now gone:
+
+~~~ js
+// Before
+foo()
+bar()
+baz()
+
+// After
+foo()bar()baz()
 ~~~
 
 Options
