@@ -9,25 +9,7 @@ namespace x\minify {
         while (false !== ($chop = \strpbrk($from, '<&'))) {
             if ("" !== ($v = \substr($from, 0, \strlen($from) - \strlen($chop)))) {
                 $from = \substr($from, \strlen($v));
-                if ('>' === \substr($to, -1) && \preg_match('/<(?>"[^"]*"|\'[^\']*\'|[^\/>])+>$/', $to, $m)) {
-                    $n = \substr(\strtok($m[0], " \n\r\t>"), 1);
-                    if (false !== \strpos(',br,hr,wbr,', ',' . $n . ',')) {
-                        $v = \rtrim($v);
-                    }
-                    if ('/' !== $n[0]) {
-                        if (' ' === $v && '</' === \substr($from, 0, 2)) {
-                            $to .= $v;
-                            continue;
-                        }
-                        if (false === \strpos(',img,input,', ',' . $n . ',')) {
-                            $v = \ltrim($v);
-                        }
-                    }
-                }
-                if ('</' === \substr($from, 0, 2)) {
-                    $v = \rtrim($v);
-                }
-                $to .= \preg_replace(['/^\s\s+|\s\s+$/', '/\s+/'], ["", ' '], $v);
+                $to .= h_t_m_l\n($v);
             }
             // `<…`
             if ('<' === $chop[0]) {
@@ -56,13 +38,9 @@ namespace x\minify {
                 if (\preg_match('/^<(?>"[^"]*"|\'[\']*\'|[^>])+>/', $chop, $m)) {
                     $from = \substr($from, $b = \strlen($m[0]));
                     $n = \substr(\strtok($m[0], " \n\r\t>"), 1);
-                    // `<!DOCTYPE…`
-                    if ('!' === $n[0]) {
-                        $to .= h_t_m_l\e($m[0]);
-                        continue;
-                    }
+                    // `<pre>…</pre>` or `<script>…</script>` or `<style>…</style>` or `<textarea>…</textarea>`
                     if (false !== \strpos(',pre,script,style,textarea,', ',' . $n . ',')) {
-                        $from = \substr($from, ($e = \strpos($chop, '</' . $n . '>')) + 1);
+                        $from = \ltrim(\substr($from, ($e = \strpos($chop, '</' . $n . '>')) + 1));
                         $value = \substr($chop, $b, $e - $b);
                         if ('script' === $n && \function_exists($f = __NAMESPACE__ . "\\j_s")) {
                             $value = \trim($value);
@@ -80,7 +58,58 @@ namespace x\minify {
                         $to .= h_t_m_l\e($m[0]) . $value . '</' . $n . '>';
                         continue;
                     }
-                    if (0 === \strpos($m[0], '</')) {}
+                    // `</asdf>`
+                    if ('/' === $m[0][1]) {
+                        if (\strlen($from) > 1 && false !== \strpos(" \n\r\t", \substr($from, 1, 1))) {
+                            $from = \ltrim($from);
+                        }
+                        if ('> ' === \substr($to, -2) && \preg_match('/<[^!\/][^>]*> $/', $to)) {} else {
+                            $to = \rtrim($to);
+                        }
+                    // `<asdf/>`
+                    } else if ('/' === \substr($m[0], -2, 1)) {
+                        // `<br/>` or `<hr/>` or `<wbr/>`
+                        if (false !== \strpos(',br,hr,wbr,', ',' . \trim($n, '/') . ',')) {
+                            $from = \ltrim($from);
+                            $to = \rtrim($to);
+                        // `<asdf/>`
+                        } else {
+                            if (\strlen($from) > 1 && false !== \strpos(" \n\r\t", \substr($from, 1, 1))) {
+                                $from = \ltrim($from);
+                            }
+                            if (\strlen($to) > 1 && false !== \strpos(" \n\r\t", \substr($to, -2, 1))) {
+                                $to = \rtrim($to);
+                            }
+                        }
+                    // `<asdf>`
+                    } else {
+                        // `<br>` or `<hr>` or `<wbr>`
+                        if (false !== \strpos(',br,hr,wbr,', ',' . $n . ',')) {
+                            $from = \ltrim($from);
+                            $to = \rtrim($to);
+                        // `<img>` or `<input>`
+                        } else if (false !== \strpos(',img,input,', ',' . $n . ',')) {
+                            if (\strlen($from) > 1 && false !== \strpos(" \n\r\t", \substr($from, 1, 1))) {
+                                $from = \ltrim($from);
+                            }
+                            if (\strlen($to) > 1 && false !== \strpos(" \n\r\t", \substr($to, -2, 1))) {
+                                $to = \rtrim($to);
+                            }
+                        // `<asdf>`
+                        } else {
+                            if (0 === \strpos($from, ' </')) {} else {
+                                $from = \ltrim($from);
+                            }
+                            if (\strlen($to) > 1 && false !== \strpos(" \n\r\t", \substr($to, -2, 1))) {
+                                $to = \rtrim($to);
+                            }
+                        }
+                    }
+                    // `<!DOCTYPE…`
+                    if ('!' === $n[0]) {
+                        $to .= h_t_m_l\e($m[0]);
+                        continue;
+                    }
                     $to .= h_t_m_l\e($m[0]);
                     continue;
                 }
@@ -99,10 +128,10 @@ namespace x\minify {
                 continue;
             }
             $from = \substr($from, \strlen($chop));
-            $to .= $chop;
+            $to .= h_t_m_l\n($chop);
         }
         if ("" !== $from) {
-            $to .= \preg_replace(['/^\s\s+/', '/\s+/'], ["", ' '], $from);
+            $to .= h_t_m_l\n($from);
         }
         return "" !== $to ? $to : null;
     }
@@ -185,6 +214,15 @@ namespace x\minify\h_t_m_l {
             return \rtrim(\substr($to, 0, -1)) . '>';
         }
         return $to;
+    }
+    function n(string $from): string {
+        if (\strlen($from) > 1 && false !== \strpos(" \n\r\t", \substr($from, 1, 1))) {
+            return '  ' . \preg_replace('/\s+/', ' ', \ltrim($from));
+        }
+        if (\strlen($from) > 1 && false !== \strpos(" \n\r\t", \substr($from, -2, 1))) {
+            return \preg_replace('/\s+/', ' ', \rtrim($from)) . '  ';
+        }
+        return \preg_replace('/\s+/', ' ', $from);
     }
 }
 

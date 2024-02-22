@@ -14,6 +14,13 @@ asdf  <input>
 asdf <input> asdf
 asdf  <input>  asdf
 
+asdf <asdf/>
+asdf  <asdf/>
+<asdf/> asdf
+<asdf/>  asdf
+asdf <asdf/> asdf
+asdf  <asdf/>  asdf
+
 note that `br`, `hr`, and `wbr` are block element(s) so space(s) around them can be dropped
 
 asdf <br>
@@ -36,3 +43,24 @@ asdf  <wbr>
 <wbr>  asdf
 asdf <wbr> asdf
 asdf  <wbr>  asdf
+
+asdf <br/>
+asdf  <br/>
+<br/> asdf
+<br/>  asdf
+asdf <br/> asdf
+asdf  <br/>  asdf
+
+asdf <hr/>
+asdf  <hr/>
+<hr/> asdf
+<hr/>  asdf
+asdf <hr/> asdf
+asdf  <hr/>  asdf
+
+asdf <wbr/>
+asdf  <wbr/>
+<wbr/> asdf
+<wbr/>  asdf
+asdf <wbr/> asdf
+asdf  <wbr/>  asdf
