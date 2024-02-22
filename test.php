@@ -70,7 +70,7 @@ $out .= '</legend>';
 foreach (glob(__DIR__ . D . 'test' . D . '*', GLOB_ONLYDIR) as $v) {
     $out .= ' ';
     $out .= '<button' . ($of === ($n = basename($v)) ? ' disabled' : "") . ' name="of" type="submit" value="' . htmlspecialchars($n) . '">';
-    $out .= htmlspecialchars($n);
+    $out .= htmlspecialchars(strtoupper(strtr($n, ['-' => ""])));
     $out .= '</button>';
 }
 $out .= '</fieldset>';

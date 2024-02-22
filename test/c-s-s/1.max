@@ -1,5 +1,5 @@
-h1, h2, h3, h4, h5, h6,
-[role='heading'] {
-  display: block;
-  font-weight: bold;
-}
+asdf asdf { /** keep space between selector(s) */ }
+
+asdf
+
+asdf { /** convert space(s) to a space */ }
