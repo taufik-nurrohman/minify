@@ -3,3 +3,19 @@
 
 @asdf  (  asdf : asdf  )  { /** TODO: convert space(s) to a space after `@asdf` */ }
 @asdf  (  asdf : asdf  )  x  (  asdf : asdf  )  { /** TODO: convert space(s) to a space before and after `x` */ }
+
+@asdf
+  (
+    asdf : asdf
+  )
+    { /** TODO: convert space(s) to a space after `@asdf` */ }
+
+@asdf
+  (
+    asdf : asdf
+  )
+    x
+      (
+        asdf : asdf
+      )
+        { /** TODO: convert space(s) to a space before and after `x` */ }
