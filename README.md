@@ -14,11 +14,13 @@ Motivation
 ----------
 
 This project was started as a [gist][gist/minify], which now has more stars than [the copy of it][mecha-cms/x.minify],
-that was actually made to abandon the gist. It was inspired by [a code snippet][ideone] that will probably get lost in
-the future, so I decided to make a copy of it and put it [here][gist/ideone].
+that was actually made to abandon the gist. It was inspired by [a code snippet][ideone], that will probably get lost in
+the future, so I decided to make [a copy of it][gist/ideone].
 
-I once got an e-mail from someone who wanted to use some parts of [my Mecha CMS’ extension][mecha-cms/x.minify], for him
-to use in a proprietary application, so he hoped not to be bound by [the GPL restrictions][article/gpl].
+I once got an e-mail from someone who wanted to use some parts of [my extension’s code][mecha-cms/x.minify], for him to
+use in a proprietary application, hoped not to be bound by [the GPL restrictions][article/gpl]. It was not possible
+legally at first, due to the nature that an extension will always be a part of a core application. And the core
+application, in this case, were using the GPL license. So, its extensions have to use the GPL license too.
 
 etc etc ...
 
