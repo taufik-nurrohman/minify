@@ -34,8 +34,11 @@
     "parse",
     "parser",
     "reduce",
+    "reducer",
     "token",
     "tokenize",
+    "tokenizer",
+    "uglifier",
     "uglify",
     "ugly",
     "xml"
