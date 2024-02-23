@@ -119,8 +119,8 @@ space after it, even when it is possible to do so:
 @media(min-width:1280px)and(max-width:1919px){color:#f00}
 ~~~
 
-The idea is that you are responsible for the code you are going to compress. If the original code works well, then it is
-likely that it will work well too after it has been compressed.
+The idea is that **you are responsible for the code you are going to compress**. If the original code works well, then
+it is likely that it will work well too after it has been compressed.
 
 Options
 -------
