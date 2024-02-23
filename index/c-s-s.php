@@ -88,6 +88,21 @@ namespace x\minify {
                 continue;
             }
             if (false !== \strpos('():{}', $chop[0])) {
+                if ('(' === $chop[0]) {
+                    $from = \ltrim(\substr($from, 1));
+                    if (false !== \strpos(" \n\r\t", \substr($to, -1))) {
+                        $to = \rtrim($to) . ' ';
+                    }
+                    $to .= '(';
+                    continue;
+                }
+                if (')' === $chop[0]) {
+                    if (false !== \strpos(" \n\r\t", $from[0])) {
+                        $from = ' ' . \ltrim($from);
+                    }
+                    $to = \rtrim($to) . ')';
+                    continue;
+                }
                 if (':' === $chop[0] && \preg_match('/^::?[a-z-][a-z\d-]*(?=[(+>[{~\s])/', $chop, $m)) {
                     $from = \ltrim(\substr($from, \strlen($m[0])));
                     if (false !== \strpos(" \n\r\t", \substr($to, -1))) {
