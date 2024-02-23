@@ -170,7 +170,7 @@ Tests
 -----
 
 Clone this repository into the root of your web server that supports PHP and then you can open the `test.php` file with
-your browser to see the result and the performance of this converter in various cases.
+your browser to see the result and the performance of this library in various cases.
 
 License
 -------
