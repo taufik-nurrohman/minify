@@ -84,11 +84,11 @@ echo minify_css('asdf { asdf: 0px; } asdf { /* asdf */ }'); // Returns `'asdf{as
 Notes
 -----
 
-This project focuses only on removing white-spaces. Other improvisations were considered as a bonus, as they were safe
-to modify the source code. It can’t read your code and only perform generic tokenization, like grouping comments and
-strings as a single token. It won’t fix your code, like adding an optional semi-colon at the end of a line because it
-was followed by a line-break, so the semi-colon was optional initially, but then your code will be broken after the
-minification because the required line-break is now gone:
+This project focuses only on removing white-spaces. Other improvisations were considered as a bonus. It can’t read your
+code and only perform generic tokenization, like, grouping comments and strings as a single token. It won’t fix your
+code, like, adding an optional semi-colon at the end of a line because it was followed by a line-break, so the
+semi-colon was optional initially, but then your code will be broken after the minification because the required
+line-break is now gone:
 
 ~~~ js
 // Before
