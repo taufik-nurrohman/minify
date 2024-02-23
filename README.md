@@ -84,10 +84,10 @@ echo minify_css('asdf { asdf: 0px; } asdf { /* asdf */ }'); // Returns `'asdf{as
 Notes
 -----
 
-This project focuses only on removing white-spaces. Other improvisations were considered as a bonus. It can’t read your
-code and only perform generic tokenization, like, grouping comments and strings as a single token. It won’t fix your
-code, like, adding an optional semi-colon at the end of a line because it was followed by a line-break, so the
-semi-colon was optional initially, but then your code will be broken after the minification because the required
+This project focuses only on white-space removal. Other optimizations were treated as a bonus. It can’t read your code
+and only does generic tokenization, like grouping comments and strings into a single token. It won’t fix your code, like
+adding an optional semi-colon at the end of a line because it was followed by a line-break, so the semi-colon was
+optional in that situation. But then your code will probably break after the minification, because the required
 line-break is now gone:
 
 ~~~ js
@@ -100,8 +100,8 @@ c()
 a()b()c()
 ~~~
 
-I still don’t quite understand why this way of writing JavaScript has become so popular these days. Someone who started
-[this standard][standard/standard] is probably into [Python][python], but he doesn’t want to admit it.
+I still don’t quite understand why this way of writing JavaScript has become so popular these days. Someone who
+initiated [this coding style][standard/standard] is probably into [Python][python], but he/she doesn’t want to admit it.
 
 [python]: https://github.com/python
 [standard/standard]: https://github.com/standard/standard
@@ -109,7 +109,35 @@ I still don’t quite understand why this way of writing JavaScript has become s
 Options
 -------
 
-_TODO_
+### CSS Minifier
+
+~~~ php
+c_s_s(?string $from): ?string;
+~~~
+
+### HTML Minifier
+
+~~~ php
+h_t_m_l(?string $from, int $level = 1): ?string;
+~~~
+
+### JSON Minifier
+
+~~~ php
+j_s_o_n(?string $from): ?string;
+~~~
+
+### PHP Minifier
+
+~~~ php
+p_h_p(?string $from): ?string;
+~~~
+
+### XML Minifier
+
+~~~ php
+x_m_l(?string $from): ?string;
+~~~
 
 Tests
 -----

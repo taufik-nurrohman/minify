@@ -11,7 +11,7 @@
       "index.php"
     ]
   },
-  "description": "Reduce CSS, HTML/XML, JavaScript, JSON, and PHP code size on the server side.",
+  "description": "Reduce CSS, HTML, JavaScript, JSON, PHP, and XML code size on the server side.",
   "funding": [
     {
       "type": "other",
