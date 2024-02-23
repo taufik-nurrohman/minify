@@ -87,8 +87,8 @@ Notes
 This project focuses only on white-space removal. Other optimizations were treated as a bonus. It can’t read your code
 and only does generic tokenization, like grouping comments and strings into a single token. It won’t fix your code, like
 adding an optional semi-colon at the end of a line because it was followed by a line-break, so the semi-colon was
-optional in that situation. But then your code will probably break after the minification, because the required
-line-break is now gone:
+optional in that situation. But then your JavaScript code will probably break after the minification, because the
+required line-break is now gone:
 
 ~~~ js
 // Before
