@@ -103,6 +103,15 @@ a()b()c()
 I still don’t quite understand why this way of writing JavaScript has become so popular these days. Someone who
 initiated [this coding style][standard/standard] is probably into [Python][python], but he/she doesn’t want to admit it.
 
+This CSS code is not valid because a space is required after the `and` token, and the CSS minifier will not insert a
+space after it, even when it is possible to do so:
+
+~~~ css
+@media(min-width:1280px)and(max-width:1919px) {
+  color: #f00;
+}
+~~~
+
 [python]: https://github.com/python
 [standard/standard]: https://github.com/standard/standard
 
