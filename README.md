@@ -20,7 +20,8 @@ the future, so I decided to make [a copy of it][gist/ideone].
 I once got an e-mail from someone who wanted to use some parts of [my extension’s code][mecha-cms/x.minify], for him to
 use in a proprietary application, hoped not to be bound by [the GPL restrictions][article/gpl]. It was not possible
 legally at first, due to the nature that an extension will always be a part of its core application. And its core
-application, in this case, were using the GPL license. And so, it has to be licensed under the GPL license too.
+application, in this case, were using the GPL license from the start. And so, the extension has to be licensed under the
+GPL license too.
 
 etc etc ...
 
