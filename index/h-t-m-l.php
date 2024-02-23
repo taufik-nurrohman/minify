@@ -1,7 +1,7 @@
 <?php
 
 namespace x\minify {
-    function h_t_m_l(?string $from): ?string {
+    function h_t_m_l(?string $from, int $level = 1): ?string {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
@@ -55,7 +55,7 @@ namespace x\minify {
                             }
                             $value = \call_user_func($f, $value);
                         }
-                        $to .= h_t_m_l\e($m[0]) . $value . '</' . $n . '>';
+                        $to .= h_t_m_l\e($m[0], $level) . $value . '</' . $n . '>';
                         continue;
                     }
                     // `</asdf>`
@@ -63,9 +63,7 @@ namespace x\minify {
                         if (\strlen($from) > 1 && false !== \strpos(" \n\r\t", \substr($from, 1, 1))) {
                             $from = \ltrim($from);
                         }
-                        if ('> ' === \substr($to, -2) && \preg_match('/<[^!\/][^>]*> $/', $to)) {} else {
-                            $to = \rtrim($to);
-                        }
+                        $to = \rtrim($to);
                     // `<asdf/>`
                     } else if ('/' === \substr($m[0], -2, 1)) {
                         // `<br/>` or `<hr/>` or `<wbr/>`
@@ -97,7 +95,10 @@ namespace x\minify {
                             }
                         // `<asdf>`
                         } else {
-                            if (0 === \strpos($from, ' </')) {} else {
+                            if (0 === \strpos($from, ' </') && false !== ($n = \strpos($from, '>'))) {
+                                $from = \substr($from, $n + 1);
+                                $to .= \substr($from, 0, $n + 1);
+                            } else {
                                 $from = \ltrim($from);
                             }
                             if (\strlen($to) > 1 && false !== \strpos(" \n\r\t", \substr($to, -2, 1))) {
@@ -105,12 +106,7 @@ namespace x\minify {
                             }
                         }
                     }
-                    // `<!DOCTYPE…`
-                    if ('!' === $n[0]) {
-                        $to .= h_t_m_l\e($m[0]);
-                        continue;
-                    }
-                    $to .= h_t_m_l\e($m[0]);
+                    $to .= h_t_m_l\e($m[0], $level);
                     continue;
                 }
                 $from = \substr($from, 1);
@@ -190,12 +186,18 @@ namespace x\minify\h_t_m_l {
         }
         return \strtr($to, $of);
     }
-    function e(string $from): string {
+    function e(string $from, int $level): string {
         $to = "";
         foreach (\preg_split('/("[^"]*"|\'[^\']*\'|[^\/<=>\s]+)/', $from, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
             if ("" === ($v = \trim($v))) {
                 $to .= ' ';
                 continue;
+            }
+            if (2 === $level && (
+                '"' === $v[0] && '"' === \substr($v, -1) ||
+                "'" === $v[0] && "'" === \substr($v, -1)
+            )) {
+                // TODO
             }
             $to .= $v;
         }
