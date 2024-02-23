@@ -128,30 +128,40 @@ Options
 ### CSS
 
 ~~~ php
+<?php
+
 c_s_s(?string $from): ?string;
 ~~~
 
 ### HTML
 
 ~~~ php
+<?php
+
 h_t_m_l(?string $from, int $level = 1): ?string;
 ~~~
 
 ### JSON
 
 ~~~ php
+<?php
+
 j_s_o_n(?string $from): ?string;
 ~~~
 
 ### PHP
 
 ~~~ php
+<?php
+
 p_h_p(?string $from): ?string;
 ~~~
 
 ### XML
 
 ~~~ php
+<?php
+
 x_m_l(?string $from): ?string;
 ~~~
 
