@@ -1,5 +1,6 @@
 <?php
 
+// !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
 // <https://www.w3.org/TR/CSS22/syndata.html#tokenization>
 // <https://www.w3.org/TR/css-syntax-3#token-diagrams>
 // <https://www.w3.org/TR/selectors-4>
@@ -9,8 +10,9 @@ namespace x\minify {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
-        $p = '!"\'()+,-/:;=>[]^{|}~'; // !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
-        $s = '"(?>\\\\"|[^"])*"|\'(?>\\\\\'|[^\'])*\'';
+        $p = '!"\'()+,-/:;=>[]^{|}~';
+        // <https://stackoverflow.com/a/5696141>
+        $s = '"[^"\\\\]*(?:\\\\.[^"\\\\]*)*"' . '|' . "'[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
         $to = "";
         while (false !== ($chop = \strpbrk($from, '/"\'[' . '()+,:;>{}~'))) {
             if ("" !== ($v = \substr($from, 0, \strlen($from) - \strlen($chop)))) {
@@ -44,7 +46,7 @@ namespace x\minify {
                 continue;
             }
             // `"…"` or `'…'`
-            if (false !== \strpos('"\'', $chop[0]) && \preg_match('/^(?>' . $s . ')/', $chop, $m)) {
+            if (false !== \strpos('"\'', $chop[0]) && \preg_match('/^(?>' . $s . ')/s', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
                 $to .= $m[0];
                 continue;
@@ -55,14 +57,14 @@ namespace x\minify {
                 continue;
             }
             // `[…]`
-            if ('[' === $chop[0] && \preg_match('/^\[(?>' . $s . '|[^]])+\]/', $chop, $m)) {
+            if ('[' === $chop[0] && \preg_match('/^\[(?>' . $s . '|[^]])+\]/s', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
                 if ("" !== $to && false !== \strpos(" \n\r\t", \substr($to, -1))) {
                     $to = \rtrim($to) . ' ';
                 }
                 // Minify attribute selector(s)
                 $to .= '[';
-                foreach (\preg_split('/(' . $s . '|[$*=^|~]|\s+)/', \trim(\substr($m[0], 1, -1)), -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+                foreach (\preg_split('/(' . $s . '|[$*=^|~]|\s+)/s', \trim(\substr($m[0], 1, -1)), -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
                     if ("" === ($v = \trim($v))) {
                         continue;
                     }

@@ -43,8 +43,13 @@ namespace x\minify {
                     $to .= $chop;
                     continue;
                 }
-                if (\preg_match('/^<(?>"[^"]*"|\'[\']*\'|[^>])+>/', $chop, $m)) {
+                if (\preg_match('/^<(?>"[^"]*"|\'[^\']*\'|[^>])+>/', $chop, $m)) {
                     $from = \substr($from, $b = \strlen($m[0]));
+                    if (false !== \strpos('!?', $m[0][1])) {
+                        $from = \ltrim($from);
+                        $to = \rtrim($to) . h_t_m_l\e($m[0], $level);
+                        continue;
+                    }
                     $n = \substr(\strtok($m[0], " \n\r\t>"), 1);
                     // `<pre>…</pre>` or `<script>…</script>` or `<style>…</style>` or `<textarea>…</textarea>`
                     if (false !== \strpos(',pre,script,style,textarea,', ',' . $n . ',')) {
@@ -203,7 +208,7 @@ namespace x\minify\h_t_m_l {
     }
     function e(string $from, int $level): string {
         $to = "";
-        foreach (\preg_split('/("[^"]*"|\'[^\']*\'|[^\/<=>\s]+)/', $from, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+        foreach (\preg_split('/("[^"]*"|\'[^\']*\'|[^!\/<=>?\s]+)/', $from, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
             if ("" === ($v = \trim($v))) {
                 $to .= ' ';
                 continue;
