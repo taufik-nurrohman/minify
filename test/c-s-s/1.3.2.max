@@ -1,14 +1,14 @@
-@asdf ( asdf : asdf ) { /** TODO: keep space after `@asdf` */ }
-@asdf ( asdf : asdf ) x ( asdf : asdf ) { /** TODO: keep space before and after `x` */ }
+@asdf ( asdf : asdf ) { /** keep space after `@asdf` */ }
+@asdf ( asdf : asdf ) x ( asdf : asdf ) { /** keep space before and after `x` */ }
 
-@asdf  (  asdf : asdf  )  { /** TODO: convert space(s) to a space after `@asdf` */ }
-@asdf  (  asdf : asdf  )  x  (  asdf : asdf  )  { /** TODO: convert space(s) to a space before and after `x` */ }
+@asdf  (  asdf : asdf  )  { /** convert space(s) to a space after `@asdf` */ }
+@asdf  (  asdf : asdf  )  x  (  asdf : asdf  )  { /** convert space(s) to a space before and after `x` */ }
 
 @asdf
   (
     asdf : asdf
   )
-    { /** TODO: convert space(s) to a space after `@asdf` */ }
+    { /** convert space(s) to a space after `@asdf` */ }
 
 @asdf
   (
@@ -18,4 +18,4 @@
       (
         asdf : asdf
       )
-        { /** TODO: convert space(s) to a space before and after `x` */ }
+        { /** convert space(s) to a space before and after `x` */ }

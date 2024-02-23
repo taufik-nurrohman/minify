@@ -5,6 +5,6 @@ namespace x\minify {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
-        return "" !== $to ? $to : null;
+        return "" !== ($to = \trim($to)) ? $to : null;
     }
 }

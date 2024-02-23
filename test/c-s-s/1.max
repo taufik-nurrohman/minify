@@ -3,3 +3,46 @@ asdf asdf { /** keep space between selector(s) */ }
 asdf
 
 asdf { /** convert space(s) to a space */ }
+
+
+* asdf { asdf: asdf; }
+* * asdf { asdf: asdf; }
+asdf * asdf { asdf: asdf; }
+
+*
+
+asdf {
+  asdf: asdf;
+}
+
+* + asdf { asdf: asdf; }
+
+
+asdf {
+  & asdf {
+    asdf: asdf;
+  }
+  & & asdf { asdf: asdf; }
+  asdf & asdf { asdf: asdf; }
+}
+
+
+asdf {
+
+  &
+
+  asdf {
+
+    asdf: asdf;
+
+  }
+
+}
+
+asdf {
+  &
+  +
+  asdf {
+    asdf: asdf;
+  }
+}

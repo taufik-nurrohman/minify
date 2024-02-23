@@ -17,15 +17,23 @@ namespace x\minify {
                 // `<!--…`
                 if (0 === \strpos($chop, '<!--') && false !== ($n = \strpos($chop, '-->'))) {
                     $from = \substr($from, \strlen($chop = \substr($chop, 0, $n + 3)));
+                    if (false !== \strpos(" \n\r\t", $from[0])) {
+                        $from = ' ' . \ltrim($from);
+                    } else {
+                        $from = \ltrim($from);
+                    }
+                    if (false !== \strpos(" \n\r\t", \substr($to, -1))) {
+                        $to = \rtrim($to) . ' ';
+                    } else {
+                        $to = \rtrim($to);
+                    }
                     // <https://en.wikipedia.org/wiki/Conditional_comment>
                     if ('<![endif]-->' === \substr($chop, -12)) {
-                        $to .= \substr($chop, 0, $n = \strpos($chop, '>') + 1) . h_t_m_l(\substr($chop, $n, -12)) . \substr($chop, -12);
+                        $to .= \substr($chop, 0, $n = \strpos($chop, '>') + 1) . h_t_m_l(\substr($chop, $n, -12), $level) . \substr($chop, -12);
                     }
-                    if (' ' !== \strpos($to, -1) && ' ' !== $from[0]) {
-                        continue;
+                    if (' ' === $from[0]) {
+                        $to = \rtrim($to);
                     }
-                    $from = \ltrim($from);
-                    $to = \rtrim($to) . ' ';
                     continue;
                 }
                 // <https://html.spec.whatwg.org/multipage/syntax.html#cdata-sections>
@@ -95,12 +103,12 @@ namespace x\minify {
                             }
                         // `<asdf>`
                         } else {
-                            if (0 === \strpos($from, ' </') && false !== ($n = \strpos($from, '>'))) {
-                                $from = \substr($from, $n + 1);
-                                $to .= \substr($from, 0, $n + 1);
-                            } else {
-                                $from = \ltrim($from);
+                            if (0 === \strpos($from, ' </' . $n . '>')) {
+                                $from = \substr($from, 3 + \strlen($n) + 1);
+                                $to .= h_t_m_l\e($m[0], $level) . ' </' . $n . '>';
+                                continue;
                             }
+                            $from = \ltrim($from);
                             if (\strlen($to) > 1 && false !== \strpos(" \n\r\t", \substr($to, -2, 1))) {
                                 $to = \rtrim($to);
                             }
@@ -114,7 +122,7 @@ namespace x\minify {
                 continue;
             }
             if ('&' === $chop[0]) {
-                if (\preg_match('/^&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', $chop, $m)) {
+                if (\strpos($chop, ';') > 1 && \preg_match('/^&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', $chop, $m)) {
                     $from = \substr($from, \strlen($m[0]));
                     $to .= $m[0];
                     continue;
@@ -129,7 +137,7 @@ namespace x\minify {
         if ("" !== $from) {
             $to .= h_t_m_l\n($from);
         }
-        return "" !== $to ? $to : null;
+        return "" !== ($to = \trim($to)) ? $to : null;
     }
 }
 
@@ -184,7 +192,14 @@ namespace x\minify\h_t_m_l {
                 $of[' ' . $v . '=>'] = ' ' . $v . '>';
             }
         }
-        return \strtr($to, $of);
+        $to = \strtr($to, $of);
+        if (false !== \strpos($to, ' on')) {
+            // TODO
+        }
+        if (false !== \strpos($to, ' style=')) {
+            // TODO
+        }
+        return $to;
     }
     function e(string $from, int $level): string {
         $to = "";
@@ -193,11 +208,13 @@ namespace x\minify\h_t_m_l {
                 $to .= ' ';
                 continue;
             }
-            if (2 === $level && (
-                '"' === $v[0] && '"' === \substr($v, -1) ||
-                "'" === $v[0] && "'" === \substr($v, -1)
-            )) {
-                // TODO
+            if ('"' === $v[0] && '"' === \substr($v, -1) || "'" === $v[0] && "'" === \substr($v, -1)) {
+                if (false !== ($n = \strpos($v, '&')) && \strpos($v, ';') > $n + 1) {
+                    // TODO
+                }
+                if (2 === $level) {
+                    // TODO
+                }
             }
             $to .= $v;
         }
@@ -272,7 +289,9 @@ namespace x\minify\h_t_m_l\a {
                 $of[' ' . $k . '=' . $v . '>'] = '>';
             }
         }
-        // TODO: Drop `event` and `for` attribute
+        if (false !== \strpos($to, ' event=') || false !== \strpos($to, ' for=')) {
+            $to = \preg_replace('/ (event|for)=(?>"[^"]*"|\'[^\']*\'|[^\/>\s]+)/', "", $to);
+        }
         return \strtr($to, $of);
     }
     function style(string $to): string {

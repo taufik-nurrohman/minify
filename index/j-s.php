@@ -6,6 +6,6 @@ namespace x\minify {
             return null;
         }
         $to = $from;
-        return "" !== $to ? $to : null;
+        return "" !== ($to = \trim($to)) ? $to : null;
     }
 }

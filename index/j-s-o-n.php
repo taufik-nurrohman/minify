@@ -35,6 +35,6 @@ namespace x\minify {
         if ("" !== $from) {
             $to .= $from;
         }
-        return "" !== $to ? $to : null;
+        return "" !== ($to = \trim($to)) ? $to : null;
     }
 }

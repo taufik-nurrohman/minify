@@ -12,16 +12,16 @@ namespace x\minify {
         $p = '!"\'()+,-/:;=>[]^{|}~'; // !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
         $s = '"(?>\\\\"|[^"])*"|\'(?>\\\\\'|[^\'])*\'';
         $to = "";
-        while (false !== ($chop = \strpbrk($from, '/"\'[' . '()+,:>{}~'))) {
+        while (false !== ($chop = \strpbrk($from, '/"\'[' . '()+,:;>{}~'))) {
             if ("" !== ($v = \substr($from, 0, \strlen($from) - \strlen($chop)))) {
                 $from = \substr($from, \strlen($v));
                 $to .= \preg_replace('/\s+/', ' ', $v);
             }
             if ('/' === $chop[0]) {
-                // `/* … */`
+                // `/*…*/`
                 if ('*' === $chop[1] && \preg_match('/^\/\*[^*]*\*+([^\/*][^*]*\*+)*\//', $chop, $m)) {
                     $from = \ltrim(\substr($from, \strlen($m[0])));
-                    // `/*! … */` or `/** … */`
+                    // `/*!…*/` or `/**…*/`
                     if (false !== \strpos('!*', $m[0][2])) {
                         $to .= '/*' . \trim(\substr($m[0], 3, -2)) . '*/';
                     } else if ("" !== $to && false === \strpos($p, \substr($to, -1))) {
@@ -29,8 +29,8 @@ namespace x\minify {
                     }
                     continue;
                 }
-                $from = \substr($from, 1);
-                $to .= '/';
+                $from = \ltrim(\substr($from, 1));
+                $to = \rtrim($to) . '/';
                 continue;
             }
             if ('""' === \substr($chop, 0, 2)) {
@@ -43,7 +43,7 @@ namespace x\minify {
                 $to .= "''";
                 continue;
             }
-            // `" … "` or `' … '`
+            // `"…"` or `'…'`
             if (false !== \strpos('"\'', $chop[0]) && \preg_match('/^(?>' . $s . ')/', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
                 $to .= $m[0];
@@ -54,7 +54,7 @@ namespace x\minify {
                 $to = \rtrim($to) . $chop[0];
                 continue;
             }
-            // `[ … ]`
+            // `[…]`
             if ('[' === $chop[0] && \preg_match('/^\[(?>' . $s . '|[^]])+\]/', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
                 if ("" !== $to && false !== \strpos(" \n\r\t", \substr($to, -1))) {
@@ -87,18 +87,25 @@ namespace x\minify {
                 $to .= ']';
                 continue;
             }
-            if (false !== \strpos('():{}', $chop[0])) {
+            if (false !== \strpos('():;{}', $chop[0])) {
                 if ('(' === $chop[0]) {
                     $from = \ltrim(\substr($from, 1));
                     if (false !== \strpos(" \n\r\t", \substr($to, -1))) {
                         $to = \rtrim($to) . ' ';
                     }
+                    if (\strlen($to) > 1 && false !== \strpos($p, \substr($to, -2, 1))) {
+                        $to = \substr($to, 0, -1);
+                    }
                     $to .= '(';
                     continue;
                 }
                 if (')' === $chop[0]) {
+                    $from = \substr($from, 1);
                     if (false !== \strpos(" \n\r\t", $from[0])) {
                         $from = ' ' . \ltrim($from);
+                    }
+                    if (\strlen($from) > 1 && false !== \strpos($p, $from[1])) {
+                        $from = \substr($from, 1);
                     }
                     $to = \rtrim($to) . ')';
                     continue;
@@ -109,6 +116,11 @@ namespace x\minify {
                         $to = \rtrim($to) . ' ';
                     }
                     $to .= $m[0];
+                    continue;
+                }
+                if (';' === $chop[0]) {
+                    $from = \ltrim(\substr($from, 1));
+                    $to = \rtrim($to) . ';';
                     continue;
                 }
                 $from = \ltrim(\substr($from, 1));
@@ -125,6 +137,6 @@ namespace x\minify {
         if ("" !== $from) {
             $to .= \preg_replace('/\s+/', ' ', $from);
         }
-        return "" !== $to ? $to : null;
+        return "" !== ($to = \trim($to)) ? $to : null;
     }
 }
