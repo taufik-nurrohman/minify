@@ -20,7 +20,7 @@ the future, so I decided to make [a copy of it][gist/ideone].
 I once got an e-mail from someone who wanted to use some parts of [my extension’s code][mecha-cms/x.minify], for him to
 use in a proprietary application, hoped not to be bound by [the GPL restrictions][article/gpl]. It was not possible
 legally at first, due to the nature that an extension will always be a part of its core application. And its core
-application, in this case, were using the GPL license from the start. And so, the extension has to be licensed under the
+application, in this case, were using the GPL license from the start. And so, its extensions have to be licensed under the
 GPL license too.
 
 etc etc ...
@@ -117,7 +117,7 @@ space after it, even when it is possible to do so:
 }
 
 /* After */
-@media(min-width:1280px)and(max-width:1919px){color:#f00}
+@media (min-width:1280px)and(max-width:1919px){color:#f00}
 ~~~
 
 The idea is that **you are responsible for the code you are going to compress**. If the original code works well, then
@@ -140,6 +140,12 @@ c_s_s(?string $from): ?string;
 <?php
 
 h_t_m_l(?string $from, int $level = 1): ?string;
+~~~
+
+### JS
+
+~~~ php
+j_s(?string $from): ?string;
 ~~~
 
 ### JSON
