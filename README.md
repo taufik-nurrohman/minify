@@ -103,46 +103,53 @@ a()b()c()
 I still don’t quite understand why this way of writing JavaScript has become so popular these days. Someone who
 initiated [this coding style][standard/standard] is probably into [Python][python], but he/she doesn’t want to admit it.
 
-This CSS code is not valid because a space is required after the `and` token, and the CSS minifier will not insert a
+[python]: https://github.com/python
+[standard/standard]: https://github.com/standard/standard
+
+This CSS code is not valid because a space is required after the `and` token, and the CSS compressor will not insert a
 space after it, even when it is possible to do so:
 
 ~~~ css
-@media(min-width:1280px)and(max-width:1919px) {
+/* Before */
+@media (min-width: 1280px)and(max-width: 1919px) {
   color: #f00;
 }
+
+/* After */
+@media(min-width:1280px)and(max-width:1919px){color:#f00}
 ~~~
 
-[python]: https://github.com/python
-[standard/standard]: https://github.com/standard/standard
+The idea is that you are responsible for the code you are going to compress. If the original code works well, then it is
+likely that it will work well too after it has been compressed.
 
 Options
 -------
 
-### CSS Minifier
+### CSS
 
 ~~~ php
 c_s_s(?string $from): ?string;
 ~~~
 
-### HTML Minifier
+### HTML
 
 ~~~ php
 h_t_m_l(?string $from, int $level = 1): ?string;
 ~~~
 
-### JSON Minifier
+### JSON
 
 ~~~ php
 j_s_o_n(?string $from): ?string;
 ~~~
 
-### PHP Minifier
+### PHP
 
 ~~~ php
 p_h_p(?string $from): ?string;
 ~~~
 
-### XML Minifier
+### XML
 
 ~~~ php
 x_m_l(?string $from): ?string;
@@ -153,11 +160,6 @@ Tests
 
 Clone this repository into the root of your web server that supports PHP and then you can open the `test.php` file with
 your browser to see the result and the performance of this converter in various cases.
-
-Tweaks
-------
-
-_TODO_
 
 License
 -------
