@@ -1,0 +1,8 @@
+<asdf>
+drop line break between close tag → </asdf>
+<asdf> ← and open tag
+</asdf>
+
+<asdf>
+keep space between close tag → </asdf> <asdf> ← and open tag
+</asdf>

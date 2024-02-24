@@ -10,6 +10,7 @@ namespace x\minify {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
+        $from = \strtr($from, ["\r" => ""]);
         $p = '!"\'()+,-/:;=>[]^{|}~';
         // <https://stackoverflow.com/a/5696141>
         $s = '"[^"\\\\]*(?:\\\\.[^"\\\\]*)*"' . '|' . "'[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
@@ -59,7 +60,7 @@ namespace x\minify {
             // `[…]`
             if ('[' === $chop[0] && \preg_match('/^\[(?>' . $s . '|[^]])+\]/s', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
-                if ("" !== $to && false !== \strpos(" \n\r\t", \substr($to, -1))) {
+                if ("" !== $to && false !== \strpos(" \n\t", \substr($to, -1))) {
                     $to = \rtrim($to) . ' ';
                 }
                 // Minify attribute selector(s)
@@ -92,7 +93,7 @@ namespace x\minify {
             if (false !== \strpos('():;{}', $chop[0])) {
                 if ('(' === $chop[0]) {
                     $from = \ltrim(\substr($from, 1));
-                    if (false !== \strpos(" \n\r\t", \substr($to, -1))) {
+                    if (false !== \strpos(" \n\t", \substr($to, -1))) {
                         $to = \rtrim($to) . ' ';
                     }
                     if (\strlen($to) > 1 && false !== \strpos($p, \substr($to, -2, 1))) {
@@ -103,7 +104,7 @@ namespace x\minify {
                 }
                 if (')' === $chop[0]) {
                     $from = \substr($from, 1);
-                    if (false !== \strpos(" \n\r\t", $from[0])) {
+                    if (false !== \strpos(" \n\t", $from[0])) {
                         $from = ' ' . \ltrim($from);
                     }
                     if (\strlen($from) > 1 && false !== \strpos($p, $from[1])) {
@@ -114,7 +115,7 @@ namespace x\minify {
                 }
                 if (':' === $chop[0] && \preg_match('/^::?[a-z-][a-z\d-]*(?=[(+>[{~\s])/', $chop, $m)) {
                     $from = \ltrim(\substr($from, \strlen($m[0])));
-                    if (false !== \strpos(" \n\r\t", \substr($to, -1))) {
+                    if (false !== \strpos(" \n\t", \substr($to, -1))) {
                         $to = \rtrim($to) . ' ';
                     }
                     $to .= $m[0];

@@ -1,0 +1,11 @@
+<asdf
+
+onmousedown="return onMouseDown.call( this , 1 ) , false ;"
+
+onmousemove="return onMouseMove.call(this , 2 ) , false ;"
+
+onmouseup="return onMouseUp.call(this , 3 ) , false ;"
+
+>
+
+</asdf>

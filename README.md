@@ -20,8 +20,8 @@ the future, so I decided to make [a copy of it][gist/ideone].
 I once got an e-mail from someone who wanted to use some parts of [my extension’s code][mecha-cms/x.minify], for him to
 use in a proprietary application, hoped not to be bound by [the GPL restrictions][article/gpl]. It was not possible
 legally at first, due to the nature that an extension will always be a part of its core application. And its core
-application, in this case, were using the GPL license from the start. And so, its extensions have to be licensed under the
-GPL license too.
+application, in this case, were using the GPL license from the start. And so, its extensions have to be licensed under
+the GPL license too.
 
 etc etc ...
 
@@ -34,7 +34,7 @@ etc etc ...
 Usage
 -----
 
-This library can be installed using [Composer](https://packagist.org/packages/taufik-nurrohman/minify), but it doesn’t
+This converter can be installed using [Composer](https://packagist.org/packages/taufik-nurrohman/minify), but it doesn’t
 need any other dependencies and just uses Composer’s ability to automatically include files. Those of you who don’t use
 Composer should be able to include the `index.php` file directly into your application without any problems.
 
@@ -85,9 +85,16 @@ echo minify_css('asdf { asdf: 0px; } asdf { /* asdf */ }'); // Returns `'asdf{as
 Notes
 -----
 
-This library focuses only on white-space removal. Other optimizations are considered as a bonus. It can’t read your code
-and only does generic tokenization, like grouping comments and strings into a single token. It won’t fix your code, like
-adding an optional semi-colon at the end of a line because it was followed by a line-break, so the semi-colon was
+My choice of naming the functions may irritate a lot of people, but it is part of the standard rules that Mecha has
+decided [^1] to keep them reversible. You can always make a list of function aliases in a special file that you can
+store in some place, to be included later in your application. That way, you can only use the function aliases that you
+find more pleasant to type.
+
+[^1]: [Strict Conversions](https://mecha-cms.com/article/strict-convert)
+
+This converter focuses only on white-space removal. Other optimizations are considered as a bonus. It can’t read your
+code and only does generic tokenization, like grouping comments and strings into a single token. It won’t fix your code,
+like adding an optional semi-colon at the end of a line because it was followed by a line-break, so the semi-colon was
 optional in that situation. But then your JavaScript code will probably break after the minification, because the
 required line-break is now gone:
 
@@ -176,7 +183,7 @@ Tests
 -----
 
 Clone this repository into the root of your web server that supports PHP and then you can open the `test.php` file with
-your browser to see the result and the performance of this library in various cases.
+your browser to see the result and the performance of this converter in various cases.
 
 License
 -------

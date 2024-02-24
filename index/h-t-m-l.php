@@ -5,6 +5,7 @@ namespace x\minify {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
+        $from = \strtr($from, ["\r" => ""]);
         $to = "";
         while (false !== ($chop = \strpbrk($from, '<&'))) {
             if ("" !== ($v = \substr($from, 0, \strlen($from) - \strlen($chop)))) {
@@ -13,16 +14,21 @@ namespace x\minify {
             }
             // `<…`
             if ('<' === $chop[0]) {
+                if (\strlen($chop) > 1 && false !== \strpos(" \n\t", $chop[1])) {
+                    $from = \substr($from, 1);
+                    $to .= '<';
+                    continue;
+                }
                 // <https://html.spec.whatwg.org/multipage/syntax.html#comments>
                 // `<!--…`
                 if (0 === \strpos($chop, '<!--') && false !== ($n = \strpos($chop, '-->'))) {
                     $from = \substr($from, \strlen($chop = \substr($chop, 0, $n + 3)));
-                    if (false !== \strpos(" \n\r\t", $from[0])) {
+                    if ("" !== $from && false !== \strpos(" \n\t", $from[0])) {
                         $from = ' ' . \ltrim($from);
                     } else {
                         $from = \ltrim($from);
                     }
-                    if (false !== \strpos(" \n\r\t", \substr($to, -1))) {
+                    if (false !== \strpos(" \n\t", \substr($to, -1))) {
                         $to = \rtrim($to) . ' ';
                     } else {
                         $to = \rtrim($to);
@@ -31,7 +37,7 @@ namespace x\minify {
                     if ('<![endif]-->' === \substr($chop, -12)) {
                         $to .= \substr($chop, 0, $n = \strpos($chop, '>') + 1) . h_t_m_l(\substr($chop, $n, -12), $level) . \substr($chop, -12);
                     }
-                    if (' ' === $from[0]) {
+                    if ("" !== $from && ' ' === $from[0]) {
                         $to = \rtrim($to);
                     }
                     continue;
@@ -39,8 +45,8 @@ namespace x\minify {
                 // <https://html.spec.whatwg.org/multipage/syntax.html#cdata-sections>
                 // `<![CDATA[…`
                 if (0 === \strpos($chop, '<![CDATA[') && false !== ($n = \strpos($chop, ']]>'))) {
-                    $from = \substr($from, \strlen($chop = \substr($chop, 0, $n + 3)));
-                    $to .= $chop;
+                    $from = \ltrim(\substr($from, \strlen($chop = \substr($chop, 0, $n + 3))));
+                    $to = \rtrim($to) . $chop;
                     continue;
                 }
                 if (\preg_match('/^<(?>"[^"]*"|\'[^\']*\'|[^>])+>/', $chop, $m)) {
@@ -50,7 +56,7 @@ namespace x\minify {
                         $to = \rtrim($to) . h_t_m_l\e($m[0], $level);
                         continue;
                     }
-                    $n = \substr(\strtok($m[0], " \n\r\t>"), 1);
+                    $n = \substr(\strtok($m[0], " \n\t>"), 1);
                     // `<pre>…</pre>` or `<script>…</script>` or `<style>…</style>` or `<textarea>…</textarea>`
                     if (false !== \strpos(',pre,script,style,textarea,', ',' . $n . ',')) {
                         $from = \ltrim(\substr($from, ($e = \strpos($chop, '</' . $n . '>')) + 1));
@@ -73,8 +79,11 @@ namespace x\minify {
                     }
                     // `</asdf>`
                     if ('/' === $m[0][1]) {
-                        if (\strlen($from) > 1 && false !== \strpos(" \n\r\t", \substr($from, 1, 1))) {
+                        if (\strlen($from) > 1 && false !== \strpos(" \n\t", $from[1])) {
                             $from = \ltrim($from);
+                        }
+                        if (0 === \strpos($from, "\n<") && '/' !== $from[3] && false === \strpos($from, '<![endif]-->')) {
+                            $from = \substr($from, 1);
                         }
                         $to = \rtrim($to);
                     // `<asdf/>`
@@ -85,10 +94,10 @@ namespace x\minify {
                             $to = \rtrim($to);
                         // `<asdf/>`
                         } else {
-                            if (\strlen($from) > 1 && false !== \strpos(" \n\r\t", \substr($from, 1, 1))) {
+                            if (\strlen($from) > 1 && false !== \strpos(" \n\t", \substr($from, 1, 1))) {
                                 $from = \ltrim($from);
                             }
-                            if (\strlen($to) > 1 && false !== \strpos(" \n\r\t", \substr($to, -2, 1))) {
+                            if (\strlen($to) > 1 && false !== \strpos(" \n\t", \substr($to, -2, 1))) {
                                 $to = \rtrim($to);
                             }
                         }
@@ -100,10 +109,10 @@ namespace x\minify {
                             $to = \rtrim($to);
                         // `<img>` or `<input>`
                         } else if (false !== \strpos(',img,input,', ',' . $n . ',')) {
-                            if (\strlen($from) > 1 && false !== \strpos(" \n\r\t", \substr($from, 1, 1))) {
+                            if (\strlen($from) > 1 && false !== \strpos(" \n\t", \substr($from, 1, 1))) {
                                 $from = \ltrim($from);
                             }
-                            if (\strlen($to) > 1 && false !== \strpos(" \n\r\t", \substr($to, -2, 1))) {
+                            if (\strlen($to) > 1 && false !== \strpos(" \n\t", \substr($to, -2, 1))) {
                                 $to = \rtrim($to);
                             }
                         // `<asdf>`
@@ -114,7 +123,7 @@ namespace x\minify {
                                 continue;
                             }
                             $from = \ltrim($from);
-                            if (\strlen($to) > 1 && false !== \strpos(" \n\r\t", \substr($to, -2, 1))) {
+                            if (\strlen($to) > 1 && false !== \strpos(" \n\t", \substr($to, -2, 1))) {
                                 $to = \rtrim($to);
                             }
                         }
@@ -129,7 +138,12 @@ namespace x\minify {
             if ('&' === $chop[0]) {
                 if (\strpos($chop, ';') > 1 && \preg_match('/^&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', $chop, $m)) {
                     $from = \substr($from, \strlen($m[0]));
-                    $to .= $m[0];
+                    $v = \html_entity_decode($m[0], \ENT_HTML5 | \ENT_QUOTES, 'UTF-8');
+                    if (false !== \strpos('&<>', $v)) {
+                        $to .= $m[0];
+                        continue;
+                    }
+                    $to .= $v;
                     continue;
                 }
                 $from = \substr($from, 1);
@@ -197,14 +211,7 @@ namespace x\minify\h_t_m_l {
                 $of[' ' . $v . '=>'] = ' ' . $v . '>';
             }
         }
-        $to = \strtr($to, $of);
-        if (false !== \strpos($to, ' on')) {
-            // TODO
-        }
-        if (false !== \strpos($to, ' style=')) {
-            // TODO
-        }
-        return $to;
+        return \strtr($to, $of);
     }
     function e(string $from, int $level): string {
         $to = "";
@@ -214,8 +221,22 @@ namespace x\minify\h_t_m_l {
                 continue;
             }
             if ('"' === $v[0] && '"' === \substr($v, -1) || "'" === $v[0] && "'" === \substr($v, -1)) {
+                $test = \substr($v, 1, -1);
+                if (' class=' === \substr($to, -7)) {
+                    $v = $v[0] . \trim(\preg_replace('/\s+/', ' ', $test)) . $v[0];
+                } else if (' style=' === \substr($to, -7) && \function_exists($f = \dirname(__NAMESPACE__) . "\\c_s_s")) {
+                    $v = $v[0] . \call_user_func($f, $test) . $v[0];
+                } else if (false !== \strpos($to, ' on') && \preg_match('/ on[a-z\d]+=$/', $to) && \function_exists($f = \dirname(__NAMESPACE__) . "\\j_s")) {
+                    $v = $v[0] . \call_user_func($f, $test) . $v[0];
+                }
                 if (false !== ($n = \strpos($v, '&')) && \strpos($v, ';') > $n + 1) {
-                    // TODO
+                    $v = \preg_replace_callback('/&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', static function ($m) use ($v) {
+                        $s = \html_entity_decode($m[0], \ENT_HTML5 | \ENT_QUOTES, 'UTF-8');
+                        if ($s === $v[0]) {
+                            return $m[0];
+                        }
+                        return $s;
+                    }, $v);
                 }
                 if (2 === $level) {
                     // TODO
@@ -225,7 +246,9 @@ namespace x\minify\h_t_m_l {
         }
         if (false !== \strpos($to, '=')) {
             $to = a($to);
-            if (0 === \strpos($to, '<script ')) {
+            if (0 === \strpos($to, '<link ')) {
+                $to = a\link($to);
+            } else if (0 === \strpos($to, '<script ')) {
                 $to = a\script($to);
             } else if (0 === \strpos($to, '<style ')) {
                 $to = a\style($to);
@@ -240,10 +263,10 @@ namespace x\minify\h_t_m_l {
         return $to;
     }
     function n(string $from): string {
-        if (\strlen($from) > 1 && false !== \strpos(" \n\r\t", \substr($from, 1, 1))) {
+        if (\strlen($from) > 1 && false !== \strpos(" \n\t", $from[0]) && false !== \strpos(" \n\t", $from[1])) {
             return '  ' . \preg_replace('/\s+/', ' ', \ltrim($from));
         }
-        if (\strlen($from) > 1 && false !== \strpos(" \n\r\t", \substr($from, -2, 1))) {
+        if (\strlen($from) > 1 && false !== \strpos(" \n\t", \substr($from, -1)) && false !== \strpos(" \n\t", \substr($from, -2, 1))) {
             return \preg_replace('/\s+/', ' ', \rtrim($from)) . '  ';
         }
         return \preg_replace('/\s+/', ' ', $from);
