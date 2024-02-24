@@ -86,11 +86,11 @@ Notes
 -----
 
 My choice of naming the functions may irritate a lot of people, but it is part of the standard rules that Mecha has
-decided [^1] to keep them reversible. You can always make a list of function aliases in a special file that you can
-store in some place, to be included later in your application. That way, you can only use the function aliases that you
-find more pleasant to type.
+decided to keep them [reversible][article/strict-convert]. You can always make a list of function aliases in a
+particular file that you can store in some place, to be included later in your application. That way, you can use only
+the function aliases that you find more pleasant to type.
 
-[^1]: [Strict Conversions](https://mecha-cms.com/article/strict-convert)
+[article/strict-convert]: https://mecha-cms.com/article/strict-convert
 
 This converter focuses only on white-space removal. Other optimizations are considered as a bonus. It can’t read your
 code and only does generic tokenization, like grouping comments and strings into a single token. It won’t fix your code,
