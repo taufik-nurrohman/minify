@@ -1,0 +1,13 @@
+/* TODO: drop empty selector(s) */
+asdf {}
+asdf {/* asdf */}
+asdf {/** asdf */}
+
+asdf { asdf: asdf; } asdf {}
+
+asdf {} asdf { asdf: asdf; }
+
+asdf { asdf: asdf; } asdf {} asdf { asdf: asdf; }
+
+asdf [asdf='asdf{}'] {  }
+asdf [asdf='asdf{}'] { asdf: asdf; }

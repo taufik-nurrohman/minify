@@ -1,0 +1,9 @@
+asdf {
+  asdf: url( http://asdf );
+  asdf: url( "http://asdf" );
+  asdf: url( 'http://asdf' );
+  asdf: url( "http://asdf?asdf=(asdf)" );
+  asdf: url( 'http://asdf?asdf=(asdf)' );
+  asdf: url( "./asdf'" );
+  asdf: url( './asdf"' );
+}

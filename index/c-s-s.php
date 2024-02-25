@@ -15,9 +15,18 @@ namespace x\minify {
         // <https://stackoverflow.com/a/5696141>
         $s = '"[^"\\\\]*(?:\\\\.[^"\\\\]*)*"' . '|' . "'[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
         $to = "";
-        while (false !== ($chop = \strpbrk($from, '/"\'[' . '()+,:;>{}~'))) {
+        while (false !== ($chop = \strpbrk($from, '/"\'[' . '!()+,:;>{}~'))) {
             if ("" !== ($v = \substr($from, 0, \strlen($from) - \strlen($chop)))) {
                 $from = \substr($from, \strlen($v));
+                if (\strlen($to) > 1 && ':' === \substr($to, -1) && false === \strpos(" \n\t", \substr($to, -2, 1))) {
+                    // <https://www.w3.org/TR/css-values-4#numeric-types>
+                    $v = \preg_replace_callback('/(^|[\s\S])(-?(?:\d*[.])?\d+)(%|Hz|Q|cap|ch|cm|deg|dpcm|dpi|dppx|em|ex|grad|ic|in|kHz|lh|mm|ms|pc|pt|px|rad|rcap|rch|rem|rex|ric|rlh|s|turn|vb|vh|vi|vmax|vmin|vw)\b/', static function ($m) {
+                        if ("" !== $m[1] && false !== \stripos('0123456789abcdefghijklmnopqrstuvwxyz', $m[1])) {
+                            return $m[0];
+                        }
+                        return 0 === ((int) $m[2]) && false === \strpos(',%,deg,', ',' . $m[3] . ',') ? $m[1] . '0' : $m[0];
+                    }, $v);
+                }
                 $to .= \preg_replace('/\s+/', ' ', $v);
             }
             if ('/' === $chop[0]) {
@@ -90,8 +99,44 @@ namespace x\minify {
                 $to .= ']';
                 continue;
             }
-            if (false !== \strpos('():;{}', $chop[0])) {
+            if (false !== \strpos('!():;{}', $chop[0])) {
                 if ('(' === $chop[0]) {
+                    if ('calc' === \substr($to, -4) && false !== \strpos($p . ' ', \substr($to, -5, 1)) && \preg_match('/\((?>[^()]+|(?R))*\)/', $chop, $m)) {
+                        $from = \substr($from, \strlen($m[0]));
+                        $to .= '(' . \trim(\preg_replace(['/\s+/', '/\s*([()*,\/])\s*/'], [' ', '$1'], \substr($m[0], 1, -1))) . ')';
+                        continue;
+                    }
+                    if ('format' === \substr($to, -6) && false !== \strpos($p . ' ', \substr($to, -7, 1)) && \preg_match('/^\(\s*(' . $s . ')\s*\)/', $chop, $m)) {
+                        $from = \substr($from, \strlen($m[0]));
+                        $v = \substr($type = \trim(\substr($m[0], 1, -1)), 1, -1);
+                        // <https://drafts.csswg.org/css-fonts#font-face-src-parsing>
+                        if (false !== \strpos(',collection,embedded-opentype,opentype,svg,truetype,woff,woff2,', ',' . $v . ',')) {
+                            $type = \substr($type, 1, -1);
+                        } else if (false !== \strpos(',woff-variations,woff2-variations,truetype-variations,opentype-variations,', ',' . $v . ',')) {
+                            $type = \strtr(\substr($type, 1, -1), ['-' => ') tech(']);
+                        }
+                        $to .= '(' . $type . ')';
+                        continue;
+                    }
+                    if ('tech' === \substr($to, -4) && false !== \strpos($p . ' ', \substr($to, -5, 1)) && \preg_match('/^\(\s*(' . $s . ')\s*\)/', $chop, $m)) {
+                        $from = \substr($from, \strlen($m[0]));
+                        $v = \substr($type = \trim(\substr($m[0], 1, -1)), 1, -1);
+                        // <https://drafts.csswg.org/css-fonts#font-face-src-parsing>
+                        if (false !== \strpos(',color-COLRv0,color-COLRv1,color-SVG,color-sbix,color-CBDT,features-opentype,features-aat,features-graphite,incremental,palettes,variations,', ',' . $v . ',')) {
+                            $type = \substr($type, 1, -1);
+                        }
+                        $to .= '(' . $type . ')';
+                        continue;
+                    }
+                    if ('url' === \substr($to, -3) && false !== \strpos($p . ' ', \substr($to, -4, 1)) && \preg_match('/^\(\s*(' . $s . ')\s*\)/', $chop, $m)) {
+                        $from = \substr($from, \strlen($m[0]));
+                        $v = \substr($link = \trim(\substr($m[0], 1, -1)), 1, -1);
+                        if (\strcspn($v, '"\'()') === \strlen($v)) {
+                            $link = \substr($link, 1, -1);
+                        }
+                        $to .= '(' . $link . ')';
+                        continue;
+                    }
                     $from = \ltrim(\substr($from, 1));
                     if (false !== \strpos(" \n\t", \substr($to, -1))) {
                         $to = \rtrim($to) . ' ';
@@ -113,12 +158,12 @@ namespace x\minify {
                     $to = \rtrim($to) . ')';
                     continue;
                 }
-                if (':' === $chop[0] && \preg_match('/^::?[a-z-][a-z\d-]*(?=[(+>[{~\s])/', $chop, $m)) {
-                    $from = \ltrim(\substr($from, \strlen($m[0])));
+                if (':' === $chop[0] && \strlen($chop) > 1 && false === \strpos(" \n\t", $chop[1])) {
+                    $from = \ltrim(\substr($from, 1));
                     if (false !== \strpos(" \n\t", \substr($to, -1))) {
                         $to = \rtrim($to) . ' ';
                     }
-                    $to .= $m[0];
+                    $to .= ':';
                     continue;
                 }
                 if (';' === $chop[0]) {

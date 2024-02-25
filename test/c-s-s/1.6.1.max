@@ -1,0 +1,6 @@
+asdf {
+  asdf: calc( 1% + 1px - -1px / 1px * 1 + (
+    1px * var( --asdf , var( --asdf-asdf , 1 ) )
+  ) ) ;
+  asdf: 1px calc( var(--asdf) * 5 ) ;
+}

@@ -1,0 +1,7 @@
+@import 'http://asdf';
+@import 'http://asdf' print;
+@import 'http://asdf' projection, tv;
+
+@import url('http://asdf');
+@import url('http://asdf') print;
+@import url('http://asdf') projection, tv;
