@@ -1,0 +1,16 @@
+asdf { asdf: #000; }
+asdf { asdf: #0f0; }
+asdf { asdf: #0000; }
+asdf { asdf: #000f; }
+asdf { asdf: #0f00; }
+asdf { asdf: #0f0f; }
+asdf { asdf: #000000; }
+asdf { asdf: #00ff00; }
+asdf { asdf: #00fa00; }
+asdf { asdf: #00000000; }
+asdf { asdf: #00ff00ff; }
+asdf { asdf: #00fa00ff; }
+asdf { asdf: #00ff00fa; }
+asdf { asdf: #00fa00fa; }
+asdf { asdf: rgb( 0 , 0 , 0 ); }
+asdf { asdf: rgb( 0  0  0 ); }

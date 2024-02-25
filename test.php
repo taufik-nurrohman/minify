@@ -87,7 +87,7 @@ foreach ($files as $v) {
         ' ' => '<span class="char-space"> </span>'
     ]);
     $out .= '</pre>';
-    $out .= '<div style="flex:1;">';
+    $out .= '<div style="flex:1;min-width:0;">';
     $a = $b = "";
     $a .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $start = microtime(true);

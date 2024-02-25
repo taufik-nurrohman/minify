@@ -1,13 +1,16 @@
 /* TODO: drop empty selector(s) */
-asdf {}
-asdf {/* asdf */}
-asdf {/** asdf */}
+asdf-1 {}
+asdf-2 {/* asdf */}
+asdf-3 {/** asdf */}
 
-asdf { asdf: asdf; } asdf {}
+asdf-4 { asdf: asdf; } asdf-5 {}
 
-asdf {} asdf { asdf: asdf; }
+asdf-6 {} asdf-7 { asdf: asdf; }
 
-asdf { asdf: asdf; } asdf {} asdf { asdf: asdf; }
+asdf-8 { asdf: asdf; } asdf-9 {} asdf-10 { asdf: asdf; }
 
-asdf [asdf='asdf{}'] {  }
-asdf [asdf='asdf{}'] { asdf: asdf; }
+asdf-11 [asdf='asdf{}'] {  }
+asdf-12 [asdf='asdf{}'] { asdf: asdf; }
+
+asdf-13, asdf-13 {}
+asdf-14 + asdf-14 { asdf: asdf; }
