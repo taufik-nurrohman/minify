@@ -23,7 +23,10 @@ legally at first, due to the nature that an extension will always be a part of i
 application, in this case, were using the GPL license from the start. And so, its extensions have to be licensed under
 the GPL license too.
 
-etc etc ...
+I decided to completely re-write this library under the MIT license because I no longer view this implementation as a
+“complex thing” that it takes a lot of effort to program it. I also want to make my implementation generally available
+to a wide range of people (including those who develop proprietary applications), so it will be easier for me to get
+financial support from them.
 
 [article/gpl]: https://mecha-cms.com/article/general-public-license
 [gist/ideone]: https://gist.github.com/taufik-nurrohman/db723da29e69065a1130

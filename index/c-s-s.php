@@ -109,36 +109,6 @@ namespace x\minify {
             }
             if (false !== \strpos('!():;{}', $chop[0])) {
                 if ('(' === $chop[0]) {
-                    // <https://www.w3.org/TR/css-values-4#calc-syntax>
-                    foreach ([
-                        'abs',
-                        'acos',
-                        'asin',
-                        'atan',
-                        'atan2',
-                        'calc',
-                        'clamp',
-                        'cos',
-                        'exp',
-                        'hypot',
-                        'log',
-                        'max',
-                        'min',
-                        'mod',
-                        'pow',
-                        'rem',
-                        'round',
-                        'sign',
-                        'sin',
-                        'sqrt',
-                        'tan',
-                    ] as $v) {
-                        if ($v === \substr($to, -\strlen($v)) && false !== \strpos(' ,:', \substr($to, -(\strlen($v) + 1), 1)) && \preg_match('/\((?>[^()]+|(?R))*\)/', $chop, $m)) {
-                            $from = \substr($from, \strlen($m[0]));
-                            $to .= '(' . \trim(\preg_replace(['/\s+/', '/\s*([()*,\/])\s*/'], [' ', '$1'], \substr($m[0], 1, -1))) . ')';
-                            continue 2;
-                        }
-                    }
                     if ('format' === \substr($to, -6) && false !== \strpos(' ,:', \substr($to, -7, 1)) && \preg_match('/^\(\s*(' . $s . ')\s*\)/', $chop, $m)) {
                         $from = \substr($from, \strlen($m[0]));
                         $v = \substr($type = \trim(\substr($m[0], 1, -1)), 1, -1);
@@ -150,6 +120,19 @@ namespace x\minify {
                         }
                         $to .= '(' . $type . ')';
                         continue;
+                    }
+                    // <https://www.w3.org/TR/css-color-4#rgb-functions>
+                    $v = '(none|\d*\.?\d+%?)';
+                    if ((
+                        'rgb' === \substr($to, -3) && false !== \strpos(' ,:', \substr($to, -4, 1)) ||
+                        'rgba' === \substr($to, -4) && false !== \strpos(' ,:', \substr($to, -5, 1))
+                    ) && \preg_match('/^\(\s*' . $v . '\s*[,\s]\s*' . $v . '\s*[,\s]\s*' . $v . '\s*(?:[,\/]\s*' . $v . '\s*)?\)/', $chop, $m)) {
+                        $r = 'none' === $m[1] ? 0 : '%' === \substr($m[1], -1) ? (255 * (((float) \substr($m[1], 0, -1)) / 100)) : (float) $m[1];
+                        $g = 'none' === $m[2] ? 0 : '%' === \substr($m[2], -1) ? (255 * (((float) \substr($m[2], 0, -1)) / 100)) : (float) $m[2];
+                        $b = 'none' === $m[3] ? 0 : '%' === \substr($m[3], -1) ? (255 * (((float) \substr($m[3], 0, -1)) / 100)) : (float) $m[3];
+                        $a = isset($m[4]) ? ('none' === $m[4] ? 0 : '%' === \substr($m[4], -1) ? (255 * (((float) \substr($m[4], 0, -1)) / 100)) : (float) $m[4]) : 255;
+                        $hex = \sprintf('#%02x%02x%02x%02x', $r < 0 ? 0 : ($r > 255 ? 255 : $r), $g < 0 ? 0 : ($g > 255 ? 255 : $g), $b < 0 ? 0 : ($b > 255 ? 255 : $b), $a < 0 ? 0 : ($a > 255 ? 255 : $a));
+                        // TODO
                     }
                     if ('tech' === \substr($to, -4) && false !== \strpos(' ,:', \substr($to, -5, 1)) && \preg_match('/^\(\s*(' . $s . ')\s*\)/', $chop, $m)) {
                         $from = \substr($from, \strlen($m[0]));
@@ -169,6 +152,14 @@ namespace x\minify {
                         }
                         $to .= '(' . $link . ')';
                         continue;
+                    }
+                    // <https://www.w3.org/TR/css-values-4#calc-syntax>
+                    foreach (['abs', 'acos', 'asin', 'atan', 'atan2', 'calc', 'clamp', 'cos', 'exp', 'hypot', 'log', 'max', 'min', 'mod', 'pow', 'rem', 'round', 'sign', 'sin', 'sqrt', 'tan'] as $v) {
+                        if ($v === \substr($to, -\strlen($v)) && false !== \strpos(' ,:', \substr($to, -(\strlen($v) + 1), 1)) && \preg_match('/\((?>[^()]+|(?R))*\)/', $chop, $m)) {
+                            $from = \substr($from, \strlen($m[0]));
+                            $to .= '(' . \trim(\preg_replace(['/\s+/', '/\s*([()*,\/])\s*/'], [' ', '$1'], \substr($m[0], 1, -1))) . ')';
+                            continue 2;
+                        }
                     }
                     $from = \ltrim(\substr($from, 1));
                     if (false !== \strpos(" \n\t", \substr($to, -1))) {
