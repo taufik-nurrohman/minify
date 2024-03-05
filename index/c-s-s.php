@@ -133,9 +133,9 @@ namespace x\minify {
                         $g = 'none' === $m[2] ? 0 : ('%' === \substr($m[2], -1) ? (255 * (((float) \substr($m[2], 0, -1)) / 100)) : (float) $m[2]);
                         $b = 'none' === $m[3] ? 0 : ('%' === \substr($m[3], -1) ? (255 * (((float) \substr($m[3], 0, -1)) / 100)) : (float) $m[3]);
                         $a = (isset($m[4]) ? ('none' === $m[4] ? 0 : ('%' === \substr($m[4], -1) ? (1 * (((float) \substr($m[4], 0, -1)) / 100)) : (float) $m[4])) : 1) * 255;
-                        $hex = \sprintf('#%02x%02x%02x%02x', $r < 0 ? 0 : ($r > 255 ? 255 : $r), $g < 0 ? 0 : ($g > 255 ? 255 : $g), $b < 0 ? 0 : ($b > 255 ? 255 : $b), $a < 0 ? 0 : ($a > 255 ? 255 : $a));
-                        $from = $hex . \substr($from, \strlen($m[0]));
-                        $to = \substr($to, 0, -('rgba' === \substr($to, -4) ? 4 : 3));
+                        $x = \sprintf('#%02x%02x%02x%02x', $r < 0 ? 0 : ($r > 255 ? 255 : $r), $g < 0 ? 0 : ($g > 255 ? 255 : $g), $b < 0 ? 0 : ($b > 255 ? 255 : $b), $a < 0 ? 0 : ($a > 255 ? 255 : $a));
+                        $from = $x . \substr($from, \strlen($m[0]));
+                        $to = \substr($to, 0, -('rgb' === \substr($to, -3) ? 3 : 4));
                         continue;
                     }
                     if ('tech' === \substr($to, -4) && false !== \strpos(' ,:', \substr($to, -5, 1)) && \preg_match('/^\(\s*(' . $s . ')\s*\)/', $chop, $m)) {
