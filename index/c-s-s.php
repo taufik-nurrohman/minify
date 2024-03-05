@@ -103,6 +103,8 @@ namespace x\minify {
                 }
                 if (6 === $i && $v[0] === $v[1] && $v[2] === $v[3] && $v[4] === $v[5]) {
                     $v = $v[0] . $v[2] . $v[4];
+                } else if (8 === $i && $v[0] === $v[1] && $v[2] === $v[3] && $v[4] === $v[5] && $v[6] === $v[7]) {
+                    $v = $v[0] . $v[2] . $v[4] . $v[6];
                 }
                 $to .= '#' . $v;
                 continue;
@@ -127,12 +129,14 @@ namespace x\minify {
                         'rgb' === \substr($to, -3) && false !== \strpos(' ,:', \substr($to, -4, 1)) ||
                         'rgba' === \substr($to, -4) && false !== \strpos(' ,:', \substr($to, -5, 1))
                     ) && \preg_match('/^\(\s*' . $v . '\s*[,\s]\s*' . $v . '\s*[,\s]\s*' . $v . '\s*(?:[,\/]\s*' . $v . '\s*)?\)/', $chop, $m)) {
-                        $r = 'none' === $m[1] ? 0 : '%' === \substr($m[1], -1) ? (255 * (((float) \substr($m[1], 0, -1)) / 100)) : (float) $m[1];
-                        $g = 'none' === $m[2] ? 0 : '%' === \substr($m[2], -1) ? (255 * (((float) \substr($m[2], 0, -1)) / 100)) : (float) $m[2];
-                        $b = 'none' === $m[3] ? 0 : '%' === \substr($m[3], -1) ? (255 * (((float) \substr($m[3], 0, -1)) / 100)) : (float) $m[3];
-                        $a = isset($m[4]) ? ('none' === $m[4] ? 0 : '%' === \substr($m[4], -1) ? (255 * (((float) \substr($m[4], 0, -1)) / 100)) : (float) $m[4]) : 255;
+                        $r = 'none' === $m[1] ? 0 : ('%' === \substr($m[1], -1) ? (255 * (((float) \substr($m[1], 0, -1)) / 100)) : (float) $m[1]);
+                        $g = 'none' === $m[2] ? 0 : ('%' === \substr($m[2], -1) ? (255 * (((float) \substr($m[2], 0, -1)) / 100)) : (float) $m[2]);
+                        $b = 'none' === $m[3] ? 0 : ('%' === \substr($m[3], -1) ? (255 * (((float) \substr($m[3], 0, -1)) / 100)) : (float) $m[3]);
+                        $a = (isset($m[4]) ? ('none' === $m[4] ? 0 : ('%' === \substr($m[4], -1) ? (1 * (((float) \substr($m[4], 0, -1)) / 100)) : (float) $m[4])) : 1) * 255;
                         $hex = \sprintf('#%02x%02x%02x%02x', $r < 0 ? 0 : ($r > 255 ? 255 : $r), $g < 0 ? 0 : ($g > 255 ? 255 : $g), $b < 0 ? 0 : ($b > 255 ? 255 : $b), $a < 0 ? 0 : ($a > 255 ? 255 : $a));
-                        // TODO
+                        $from = $hex . \substr($from, \strlen($m[0]));
+                        $to = \substr($to, 0, -('rgba' === \substr($to, -4) ? 4 : 3));
+                        continue;
                     }
                     if ('tech' === \substr($to, -4) && false !== \strpos(' ,:', \substr($to, -5, 1)) && \preg_match('/^\(\s*(' . $s . ')\s*\)/', $chop, $m)) {
                         $from = \substr($from, \strlen($m[0]));
