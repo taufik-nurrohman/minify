@@ -123,12 +123,28 @@ namespace x\minify {
                         $to .= '(' . $type . ')';
                         continue;
                     }
+                    // <https://www.w3.org/TR/css-color-4#the-hsl-notation>
+                    if ((
+                        'hsl' === \substr($to, -3) && false !== \strpos(' ,:', \substr($to, -4, 1)) ||
+                        'hsla' === \substr($to, -4) && false !== \strpos(' ,:', \substr($to, -5, 1))
+                    ) && \preg_match('/^\(\s*(none|\d*\.?\d+(?:deg)?)\s*[,\s]\s*(none|\d*\.?\d+%?)\s*[,\s]\s*(none|\d*\.?\d+%?)\s*(?:[,\/]\s*(none|\d*\.?\d+%?)\s*)?\)/', $chop, $m)) {
+                        $h = 'none' === $m[1] ? 0 : (float) ('deg' === \substr($m[1], -3) ? \substr($m[1], 0, -3) : $m[1]);
+                        $s = 'none' === $m[2] ? 0 : (float) ('%' === \substr($m[2], -1) ? \substr($m[2], 0, -1) : $m[2]);
+                        $l = 'none' === $m[3] ? 0 : (float) ('%' === \substr($m[3], -1) ? \substr($m[3], 0, -1) : $m[3]);
+                        $a = isset($m[4]) ? ('none' === $m[4] ? 0 : (float) ('%' === \substr($m[4], -1) ? \substr($m[4], 0, -1) : $m[4])) : 1;
+                        $h = $h % 360;
+                        if ($h < 0) {
+                            $h += 360;
+                        }
+                        $s /= 100;
+                        $l /= 100;
+                        // TODO
+                    }
                     // <https://www.w3.org/TR/css-color-4#rgb-functions>
-                    $v = '(none|\d*\.?\d+%?)';
                     if ((
                         'rgb' === \substr($to, -3) && false !== \strpos(' ,:', \substr($to, -4, 1)) ||
                         'rgba' === \substr($to, -4) && false !== \strpos(' ,:', \substr($to, -5, 1))
-                    ) && \preg_match('/^\(\s*' . $v . '\s*[,\s]\s*' . $v . '\s*[,\s]\s*' . $v . '\s*(?:[,\/]\s*' . $v . '\s*)?\)/', $chop, $m)) {
+                    ) && \preg_match('/^\(\s*(none|\d*\.?\d+%?)\s*[,\s]\s*(none|\d*\.?\d+%?)\s*[,\s]\s*(none|\d*\.?\d+%?)\s*(?:[,\/]\s*(none|\d*\.?\d+%?)\s*)?\)/', $chop, $m)) {
                         $r = 'none' === $m[1] ? 0 : ('%' === \substr($m[1], -1) ? (255 * (((float) \substr($m[1], 0, -1)) / 100)) : (float) $m[1]);
                         $g = 'none' === $m[2] ? 0 : ('%' === \substr($m[2], -1) ? (255 * (((float) \substr($m[2], 0, -1)) / 100)) : (float) $m[2]);
                         $b = 'none' === $m[3] ? 0 : ('%' === \substr($m[3], -1) ? (255 * (((float) \substr($m[3], 0, -1)) / 100)) : (float) $m[3]);
