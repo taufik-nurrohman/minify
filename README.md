@@ -89,11 +89,12 @@ Notes
 -----
 
 My choice of naming the functions may irritate a lot of people, but it is part of the standard rules that Mecha has
-decided to keep them [reversible][article/strict-convert]. You can always make a list of function aliases in a
-particular file that you can store in some place, to be included later in your application. That way, you can use only
-the function aliases that you find more pleasant to type.
+decided to keep them [reversible][article/strict-convert]. You can always make
+[a list of function aliases][tweak/functions] in a particular file that you can store in some place, to be included
+later in your application. That way, you can use only the function aliases that you find more pleasant to type.
 
 [article/strict-convert]: https://mecha-cms.com/article/strict-convert
+[tweak/functions]: #globally-reusable-functions
 
 This converter focuses only on white-space removal. Other optimizations are considered as a bonus. It can’t read your
 code and only does generic tokenization, like grouping comments and strings into a single token. It won’t fix your code,
