@@ -188,6 +188,46 @@ Tests
 Clone this repository into the root of your web server that supports PHP and then you can open the `test.php` file with
 your browser to see the result and the performance of this converter in various cases.
 
+Tweaks
+------
+
+### Globally Reusable Functions
+
+You can use this method to shorten function names globally:
+
+~~~ php
+<?php
+
+require 'index.php';
+
+// Or, if you are using Composer…
+// require 'vendor/autoload.php';
+
+function minify_css(...$v) {
+    return x\minify\c_s_s(...$v);
+}
+
+function minify_html(...$v) {
+    return x\minify\h_t_m_l(...$v);
+}
+
+function minify_js(...$v) {
+    return x\minify\j_s(...$v);
+}
+
+function minify_json(...$v) {
+    return x\minify\j_s_o_n(...$v);
+}
+
+function minify_php(...$v) {
+    return x\minify\p_h_p(...$v);
+}
+
+function minify_xml(...$v) {
+    return x\minify\x_m_l(...$v);
+}
+~~~
+
 License
 -------
 
