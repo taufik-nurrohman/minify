@@ -224,9 +224,9 @@ namespace x\minify\h_t_m_l {
                 $test = \substr($v, 1, -1);
                 if (' class=' === \substr($to, -7)) {
                     $v = $v[0] . \trim(\preg_replace('/\s+/', ' ', $test)) . $v[0];
-                } else if (' style=' === \substr($to, -7) && \function_exists($f = \dirname(__NAMESPACE__) . "\\c_s_s")) {
-                    $v = $v[0] . \call_user_func($f, $test) . $v[0];
-                } else if (false !== \strpos($to, ' on') && \preg_match('/ on[a-z\d]+=$/', $to) && \function_exists($f = \dirname(__NAMESPACE__) . "\\j_s")) {
+                } else if (' style=' === \substr($to, -7) && \function_exists($f = \substr(__NAMESPACE__, 0, -7) . 'c_s_s')) {
+                    $v = $v[0] . \substr(\call_user_func($f, 'x{' . $test . '}'), 2, -1) . $v[0];
+                } else if (false !== \strpos($to, ' on') && \preg_match('/ on[a-z\d]+=$/', $to) && \function_exists($f = \substr(__NAMESPACE__, 0, -7) . 'j_s')) {
                     $v = $v[0] . \call_user_func($f, $test) . $v[0];
                 }
                 if (false !== ($n = \strpos($v, '&')) && \strpos($v, ';') > $n + 1) {
