@@ -24,7 +24,7 @@ namespace x\minify {
                 $to .= '""';
                 continue;
             }
-            if ('"' === $chop[0] && \preg_match('/^"[^"\\\\]*(?:\\\\.[^"\\\\]*)*"/', $chop, $m)) {
+            if ('"' === $chop[0] && \preg_match('/^"[^"\\\\]*(?>\\\\.[^"\\\\]*)*"/', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
                 $to .= $m[0];
                 continue;
