@@ -8,9 +8,9 @@ namespace x\minify {
         $from = \strtr($from, ["\r" => ""]);
         $to = "";
         while (false !== ($chop = \strpbrk($from, '<&'))) {
-            if ("" !== ($v = \substr($from, 0, \strlen($from) - \strlen($chop)))) {
-                $from = \substr($from, \strlen($v));
-                $to .= h_t_m_l\n($v);
+            if ("" !== ($v = \strstr($from, $chop[0], true))) {
+                $from = $chop;
+                $to .= h_t_m_l\n($v, $to);
             }
             // `<…`
             if ('<' === $chop[0]) {
@@ -150,7 +150,7 @@ namespace x\minify {
                 $to .= '&';
                 continue;
             }
-            $from = \substr($from, \strlen($chop));
+            $from = "";
             $to .= h_t_m_l\n($chop);
         }
         if ("" !== $from) {

@@ -10,8 +10,8 @@ namespace x\minify {
         }
         $to = "";
         while (false !== ($chop = \strpbrk($from, '",:[]{}'))) {
-            if ("" !== ($v = \substr($from, 0, \strlen($from) - \strlen($chop)))) {
-                $from = \substr($from, \strlen($v));
+            if ("" !== ($v = \strstr($from, $chop[0], true))) {
+                $from = $chop;
                 $to .= \trim($v);
             }
             if (false !== \strpos(',:[]{}', $chop[0])) {
@@ -29,7 +29,7 @@ namespace x\minify {
                 $to .= $m[0];
                 continue;
             }
-            $from = \substr($from, \strlen($chop));
+            $from = "";
             $to .= $chop;
         }
         if ("" !== $from) {
