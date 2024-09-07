@@ -1,0 +1,8 @@
+switch ( 1 ) {
+    case 1 + 4 :
+      asdf =/ 4;
+      break;
+    case asdf :
+      asdf += 1;
+      break;
+}
