@@ -5,12 +5,20 @@ namespace x\minify {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
-        $r = '`"\'/' . '!#$%&()*+,-.:;<=>?@[\]^_`{|}~';
+        $r = '`"\'/' . '!#$%&()*+,-.:;<=>?@[\]^_`{|}~ ' . "\n\r\t";
         $to = "";
         while (false !== ($chop = \strpbrk($from, $r))) {
             if ("" !== ($v = \strstr($from, $chop[0], true))) {
                 $from = $chop;
                 $to .= j_s\n($v);
+            }
+            if (false !== \strpos(" \n\r\t", $chop[0])) {
+                // TODO
+                // echo '<pre style="border:1px solid">';
+                // echo json_encode($chop);
+                // echo '</pre>';
+                $from = \substr($from, 1);
+                continue;
             }
             if (
                 '`' === $chop[0] && \preg_match('/^`[^`\\\\]*(?>\\\\.[^`\\\\]*)*`/', $chop, $m) ||
