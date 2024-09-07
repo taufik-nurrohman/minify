@@ -9,7 +9,7 @@ namespace x\minify {
         while (false !== ($chop = \strpbrk($from, '<&'))) {
             if ("" !== ($v = \strstr($from, $chop[0], true))) {
                 $from = $chop;
-                $to .= x_m_l\n($v, $to);
+                $to .= x_m_l\n($v);
             }
             // `<…`
             if ('<' === $chop[0]) {

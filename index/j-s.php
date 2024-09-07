@@ -10,7 +10,7 @@ namespace x\minify {
         while (false !== ($chop = \strpbrk($from, $r))) {
             if ("" !== ($v = \strstr($from, $chop[0], true))) {
                 $from = $chop;
-                $to .= \trim($v);
+                $to .= j_s\n($v);
             }
             if (
                 '`' === $chop[0] && \preg_match('/^`[^`\\\\]*(?>\\\\.[^`\\\\]*)*`/', $chop, $m) ||
@@ -75,11 +75,17 @@ namespace x\minify {
                 continue;
             }
             $from = "";
-            $to .= $chop;
+            $to .= j_s\n($chop);
         }
         if ("" !== $from) {
-            $to .= $from;
+            $to .= j_s\n($from);
         }
         return "" !== ($to = \trim($to)) ? $to : null;
+    }
+}
+
+namespace x\minify\j_s {
+    function n(string $from): string {
+        return \trim(\preg_replace('/\s+/', ' ', $from));
     }
 }
