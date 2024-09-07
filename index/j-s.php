@@ -18,6 +18,11 @@ namespace x\minify {
                 "'" === $chop[0] && \preg_match('/^\'[^\'\\\\]*(?>\\\\.[^\'\\\\]*)*\'/', $chop, $m)
             ) {
                 $from = \substr($from, \strlen($m[0]));
+                if ('`' === $chop[0] && false !== \strpos($m[0], '${')) {
+                    $m[0] = \preg_replace_callback('/\$(\{[^{}\\\\]*(?>\\\\.[^{}\\\\]*)*\})/', static function ($m) {
+                        return j_s($m[0]);
+                    }, $m[0]);
+                }
                 $to .= $m[0];
                 continue;
             }

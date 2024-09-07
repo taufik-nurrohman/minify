@@ -6,3 +6,10 @@ switch ( 1 ) {
       asdf += 1;
       break;
 }
+
+var asdf = `asdf ${ a + b ( 1 / NaN ); } asdf
+
+asdf asdf
+  asdf
+
+` ;
