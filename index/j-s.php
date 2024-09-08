@@ -27,11 +27,13 @@ namespace x\minify {
                 continue;
             }
             if (false !== \strpos($c2, $c)) {
+                // `0b0`, `0o0`, `0x0`, `0b0n`, `0o0n`, `0x0n`
                 if (\preg_match('/^0(b[01]+(_[01]+)*|o[0-7]+(_[0-7]+)?|x[a-f\d]+(_[a-f\d]+)*)n?\b/i', $chop, $m)) {
                     $from = \substr($from, \strlen($m[0]));
                     $to .= \strtr($m[0], ['_' => ""]);
                     continue;
                 }
+                // `0`, `0n`, `0e0`, `0e+0`, `0e-0`, `0.0`, `0.0e0`, `0.0e+0, `0.0e-0`
                 if (\preg_match('/^\d+(_\d+)*(n|(\.\d+(_\d+)*)?(e[+-]?\d+(_\d+)*)?)\b/i', $chop, $m)) {
                     $from = \substr($from, \strlen($m[0]));
                     $v = \strtr($m[0], ['_' => ""]);
@@ -52,12 +54,16 @@ namespace x\minify {
                 continue;
             }
             if (
+                // ``…``
                 '`' === $c && \preg_match('/^`[^`\\\\]*(?>\\\\.[^`\\\\]*)*`/', $chop, $m) ||
+                // `"…"`
                 '"' === $c && \preg_match('/^"[^"\\\\]*(?>\\\\.[^"\\\\]*)*"/', $chop, $m) ||
+                // `'…'`
                 "'" === $c && \preg_match("/^'[^'\\\\]*(?>\\\\.[^'\\\\]*)*'/", $chop, $m)
             ) {
                 $from = \substr($from, \strlen($m[0]));
                 if ('`' === $c && false !== \strpos($m[0], '${')) {
+                    // `${…}`
                     $to .= \preg_replace_callback('/\$(\{[^}\\\\]*(?>\\\\.[^}\\\\]*)*\})/', static function ($m) {
                         return j_s($m[0]);
                     }, $m[0]);
@@ -86,7 +92,7 @@ namespace x\minify {
                     $from = \substr($from, \strpos($chop . "\n", "\n") + 1);
                     continue;
                 }
-                // Look like a regular expression <https://javascript.info/regexp-introduction#flags>
+                // `/…/i`
                 if (\preg_match('/^\/[^\/\\\\]*(?>\\\\.[^\/\\\\]*)*\/[gimsuy]?\b/', $chop, $m)) {
                     $from = \substr($from, \strlen($m[0]));
                     $to .= $m[0];
@@ -98,9 +104,9 @@ namespace x\minify {
             }
             $from = \substr($from, 1);
             if (false !== \strpos(')]', $c)) {
-                $to = \rtrim($to, ',');
+                $to = \rtrim($to, ','); // `(a,b,[a,b,c,],)` to `(a,b,[a,b,c])`
             } else if ('}' === $c) {
-                $to = \rtrim($to, ';');
+                $to = \rtrim($to, ';'); // `{a;b;c;}` to `{a;b;c}`
             }
             $to .= $c;
         }
