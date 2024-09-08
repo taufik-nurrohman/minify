@@ -9,7 +9,7 @@ namespace x\minify {
         $c2 = '`"\'/' . '!#%&()*+,-.:;<=>?@[\]^`{|}~'; // Punctuation(s) but `$` and `_`
         $c3 = " \n\r\t";
         $to = "";
-        while (false !== ($chop = \strpbrk($from, $c1 . $c2 . $c3))) {
+        while (false !== ($chop = \strpbrk($from, $c1 . 'ft' . $c2 . $c3))) {
             if ("" !== ($v = \strstr($from, $c = $chop[0], true))) {
                 $from = $chop;
                 $to .= $v;
@@ -20,6 +20,19 @@ namespace x\minify {
                     $to .= ' ';
                 }
                 continue;
+            }
+            if ('f' === $c && \preg_match('/^false\b/', $chop)) {
+                $from = \substr($from, 5);
+                $to .= '!1';
+                continue;
+            }
+            if ('t' === $c && \preg_match('/^true\b/', $chop)) {
+                $from = \substr($from, 4);
+                $to .= '!0';
+                continue;
+            }
+            if (false !== \strpos($c1, $c) && \preg_match('/^(\d+(_\d+)*)*\.\d+(_\d+)*\b/', $chop, $m)) {
+                // TODO
             }
             if (
                 '`' === $c && \preg_match('/^`[^`\\\\]*(?>\\\\.[^`\\\\]*)*`/', $chop, $m) ||

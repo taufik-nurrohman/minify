@@ -10,11 +10,11 @@ namespace x\minify {
         }
         $to = "";
         while (false !== ($chop = \strpbrk($from, '",:[]{}'))) {
-            if ("" !== ($v = \strstr($from, $chop[0], true))) {
+            if ("" !== ($v = \strstr($from, $c = $chop[0], true))) {
                 $from = $chop;
                 $to .= \trim($v);
             }
-            if (false !== \strpos(',:[]{}', $chop[0])) {
+            if (false !== \strpos(',:[]{}', $c)) {
                 $from = \substr($from, 1);
                 $to .= $chop[0];
                 continue;
@@ -24,7 +24,7 @@ namespace x\minify {
                 $to .= '""';
                 continue;
             }
-            if ('"' === $chop[0] && \preg_match('/^"[^"\\\\]*(?>\\\\.[^"\\\\]*)*"/', $chop, $m)) {
+            if ('"' === $c && \preg_match('/^"[^"\\\\]*(?>\\\\.[^"\\\\]*)*"/', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
                 $to .= $m[0];
                 continue;
