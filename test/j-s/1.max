@@ -1,9 +1,9 @@
-return [
-    $true,
-    _true,
-    true$,
-    true,
-    true_,
-    truex,
-    xtrue,
-];
+asdf(0, 1);
+
+asdf(00, 0.0, 0.00, 00.00);
+
+asdf(0.1, 0.01, 0.10);
+
+asdf(1.0, 1.00, 1.10);
+
+asdf(01, 10);

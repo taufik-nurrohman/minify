@@ -7,7 +7,7 @@ namespace x\minify {
         }
         $c1 = '$_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
         $c2 = '0123456789';
-        $c3 = '`"\'/' . '!#%&()*+,-.:;<=>?@[\]^`{|}~'; // Punctuation(s) but `$` and `_`
+        $c3 = '`"\'/!#%&()*+,-.:;<=>?@[\]^`{|}~'; // Punctuation(s) but `$` and `_`
         $c4 = " \n\r\t";
         $to = "";
         while (false !== ($chop = \strpbrk($from, $c1 . $c2 . $c3 . $c4))) {
@@ -15,7 +15,7 @@ namespace x\minify {
                 $from = $chop;
                 $to .= $v;
             }
-            if (false !== \strpos($c1, $c) && \preg_match('/^[a-z$_][\w$]*\b(?![$])/i', $chop, $m)) {
+            if (false !== \strpos($c1, $c) && \preg_match('/^[a-z$_][\w$]*\b(?!\$)/i', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
                 if ('false' === $m[0]) {
                     $to .= '!1';
@@ -26,16 +26,29 @@ namespace x\minify {
                 }
                 continue;
             }
+            if (false !== \strpos($c2, $c)) {
+                if (\preg_match('/^0(b[01]+(_[01]+)*|o[0-7]+(_[0-7]+)?|x[a-f\d]+(_[a-f\d]+)*)n?\b/i', $chop, $m)) {
+                    $from = \substr($from, \strlen($m[0]));
+                    $to .= \strtr($m[0], ['_' => ""]);
+                    continue;
+                }
+                if (\preg_match('/^\d+(_\d+)*(n|(\.\d+(_\d+)*)?(e[+-]?\d+(_\d+)*)?)\b/i', $chop, $m)) {
+                    $from = \substr($from, \strlen($m[0]));
+                    $v = \strtr($m[0], ['_' => ""]);
+                    if (false !== \strpos($v, '.')) {
+                        $v = \rtrim(\trim($v, '0'), '.');
+                    } else {
+                        $v = \ltrim($v, '0');
+                    }
+                    $to .= "" === $v ? '0' : $v;
+                    continue;
+                }
+            }
             if ($n = \strspn($chop, $c4)) {
                 $from = \substr($from, $n);
-                if ("" !== $from && "" !== $to && false === \strpos($c3, $from[0]) && false === \strpos($c3, \substr($to, -1))) {
+                if ("" !== $from . $to && false === \strpos($c3, $from[0]) && false === \strpos($c3, \substr($to, -1))) {
                     $to .= ' ';
                 }
-                continue;
-            }
-            if (false !== \strpos($c2, $c) && \preg_match('/^(\d+(_\d+)*)\.\d+(_\d+)*\b/', $chop, $m)) {
-                $from = \substr($from, \strlen($m[0]));
-                $to .= $m[0];
                 continue;
             }
             if (
@@ -70,7 +83,7 @@ namespace x\minify {
                 }
                 // `//…`
                 if ('/' === $test) {
-                    $from = \substr($from, \strpos($chop, "\n") + 1);
+                    $from = \substr($from, \strpos($chop . "\n", "\n") + 1);
                     continue;
                 }
                 // Look like a regular expression <https://javascript.info/regexp-introduction#flags>
@@ -83,17 +96,12 @@ namespace x\minify {
                 $to .= $c;
                 continue;
             }
-            if (false !== \strpos($c3, $c)) {
-                $from = \substr($from, 1);
-                if (false !== \strpos(')]', $c)) {
-                    $to = \rtrim($to, ',');
-                } else if ('}' === $c) {
-                    $to = \rtrim($to, ';');
-                }
-                $to .= $c;
-                continue;
-            }
             $from = \substr($from, 1);
+            if (false !== \strpos(')]', $c)) {
+                $to = \rtrim($to, ',');
+            } else if ('}' === $c) {
+                $to = \rtrim($to, ';');
+            }
             $to .= $c;
         }
         if ("" !== $from) {
