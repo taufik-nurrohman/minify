@@ -5,39 +5,43 @@ namespace x\minify {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
-        $c1 = '0123456789';
-        $c2 = '`"\'/' . '!#%&()*+,-.:;<=>?@[\]^`{|}~'; // Punctuation(s) but `$` and `_`
-        $c3 = " \n\r\t";
+        $c1 = '$_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        $c2 = '0123456789';
+        $c3 = '`"\'/' . '!#%&()*+,-.:;<=>?@[\]^`{|}~'; // Punctuation(s) but `$` and `_`
+        $c4 = " \n\r\t";
         $to = "";
-        while (false !== ($chop = \strpbrk($from, $c1 . 'ft' . $c2 . $c3))) {
+        while (false !== ($chop = \strpbrk($from, $c1 . $c2 . $c3 . $c4))) {
             if ("" !== ($v = \strstr($from, $c = $chop[0], true))) {
                 $from = $chop;
                 $to .= $v;
             }
-            if ($n = \strspn($chop, $c3)) {
+            if (false !== \strpos($c1, $c) && \preg_match('/^[a-z$_][\w$]*\b(?![$])/i', $chop, $m)) {
+                $from = \substr($from, \strlen($m[0]));
+                if ('false' === $m[0]) {
+                    $to .= '!1';
+                } else if ('true' === $m[0]) {
+                    $to .= '!0';
+                } else {
+                    $to .= $m[0];
+                }
+                continue;
+            }
+            if ($n = \strspn($chop, $c4)) {
                 $from = \substr($from, $n);
-                if ("" !== $from && "" !== $to && false === \strpos($c2, $from[0]) && false === \strpos($c2, \substr($to, -1))) {
+                if ("" !== $from && "" !== $to && false === \strpos($c3, $from[0]) && false === \strpos($c3, \substr($to, -1))) {
                     $to .= ' ';
                 }
                 continue;
             }
-            if ('f' === $c && \preg_match('/^false\b/', $chop)) {
-                $from = \substr($from, 5);
-                $to .= '!1';
+            if (false !== \strpos($c2, $c) && \preg_match('/^(\d+(_\d+)*)\.\d+(_\d+)*\b/', $chop, $m)) {
+                $from = \substr($from, \strlen($m[0]));
+                $to .= $m[0];
                 continue;
-            }
-            if ('t' === $c && \preg_match('/^true\b/', $chop)) {
-                $from = \substr($from, 4);
-                $to .= '!0';
-                continue;
-            }
-            if (false !== \strpos($c1, $c) && \preg_match('/^(\d+(_\d+)*)*\.\d+(_\d+)*\b/', $chop, $m)) {
-                // TODO
             }
             if (
                 '`' === $c && \preg_match('/^`[^`\\\\]*(?>\\\\.[^`\\\\]*)*`/', $chop, $m) ||
                 '"' === $c && \preg_match('/^"[^"\\\\]*(?>\\\\.[^"\\\\]*)*"/', $chop, $m) ||
-                "'" === $c && \preg_match('/^\'[^\'\\\\]*(?>\\\\.[^\'\\\\]*)*\'/', $chop, $m)
+                "'" === $c && \preg_match("/^'[^'\\\\]*(?>\\\\.[^'\\\\]*)*'/", $chop, $m)
             ) {
                 $from = \substr($from, \strlen($m[0]));
                 if ('`' === $c && false !== \strpos($m[0], '${')) {
@@ -76,10 +80,10 @@ namespace x\minify {
                     continue;
                 }
                 $from = \substr($from, 1);
-                $to .= $chop[0];
+                $to .= $c;
                 continue;
             }
-            if (false !== \strpos($c2, $c)) {
+            if (false !== \strpos($c3, $c)) {
                 $from = \substr($from, 1);
                 if (false !== \strpos(')]', $c)) {
                     $to = \rtrim($to, ',');
@@ -89,8 +93,8 @@ namespace x\minify {
                 $to .= $c;
                 continue;
             }
-            $from = "";
-            $to .= $chop;
+            $from = \substr($from, 1);
+            $to .= $c;
         }
         if ("" !== $from) {
             $to .= $from;
