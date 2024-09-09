@@ -9,8 +9,8 @@ namespace x\minify {
         $c2 = '0123456789';
         $c3 = '"\'/[!#()+,:;<>{}~';
         $c4 = " \n\r\t";
-        $s1 = '"[^"\\\\]*(?>\\\\.[^"\\\\]*)*"';
-        $s2 = "'[^'\\\\]*(?>\\\\.[^'\\\\]*)*'";
+        $r1 = '"[^"\\\\]*(?>\\\\.[^"\\\\]*)*"';
+        $r2 = "'[^'\\\\]*(?>\\\\.[^'\\\\]*)*'";
         $to = "";
         while (false !== ($chop = \strpbrk($from, $c1 . $c2 . $c3 . $c4))) {
             if ("" !== ($v = \strstr($from, $c = $chop[0], true))) {
@@ -49,7 +49,7 @@ namespace x\minify {
                 }
                 continue;
             }
-            if (false !== \strpos('"\'', $c) && \preg_match('/^(?>' . $s1 . '|' . $s2 . ')/', $chop, $m)) {
+            if (false !== \strpos('"\'', $c) && \preg_match('/^(?>' . $r1 . '|' . $r2 . ')/', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
                 $to .= $m[0];
                 continue;
@@ -70,14 +70,14 @@ namespace x\minify {
                 continue;
             }
             // `[…]`
-            if ('[' === $c && \preg_match('/^\[(?>' . $s1 . '|' . $s2 . '|[^]]+)+\]/', $chop, $m)) {
+            if ('[' === $c && \preg_match('/^\[(?>' . $r1 . '|' . $r2 . '|[^]]+)+\]/', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
                 if ("" !== $to && false !== \strpos($c4, \substr($to, -1))) {
                     $to = \rtrim($to) . ' ';
                 }
                 // Minify attribute selector(s)
                 $to .= '[';
-                foreach (\preg_split('/((?>' . $s1 . '|' . $s2 . '|[$*=^|~]|\s+))/', \trim(\substr($m[0], 1, -1)), -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+                foreach (\preg_split('/((?>' . $r1 . '|' . $r2 . '|[$*=^|~]|\s+))/', \trim(\substr($m[0], 1, -1)), -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
                     if ("" === ($v = \trim($v))) {
                         continue;
                     }
