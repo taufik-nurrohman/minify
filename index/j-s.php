@@ -43,7 +43,7 @@ namespace x\minify {
                 if (\preg_match('/^\d+(_\d+)*(n|(\.\d+(_\d+)*)?(e[+-]?\d+(_\d+)*)?)\b/i', $chop, $m)) {
                     $from = \substr($from, \strlen($m[0]));
                     $v = \strtr($m[0], ['_' => ""]);
-                    if (false !== \strpos($v, '.')) {
+                    if (false !== \strpos($v, '.') || '.' === \substr($to, -1)) {
                         $v = \rtrim(\trim($v, '0'), '.');
                     } else {
                         $v = \ltrim($v, '0');
@@ -58,7 +58,7 @@ namespace x\minify {
             }
             if ($n = \strspn($chop, $c4)) {
                 $from = \substr($from, $n);
-                // Fix case of `1 + ++1` or `1 - --1`
+                // Case of `1 + ++1` or `1 - --1`
                 if (false !== \strpos('+-', $v = \substr($to, -1)) && 2 === \strspn($from, $v)) {
                     $to .= ' ';
                 } else if ("" !== $from . $to && false === \strpos($c3, $from[0]) && false === \strpos($c3, $v)) {

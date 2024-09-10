@@ -17,18 +17,23 @@ namespace x\minify {
                 $from = $chop;
                 $to .= $v;
             }
-            // <https://www.w3.org/TR/css-syntax-3#ident-token-diagram>
-            // TODO: Capture escape sequence
-            if (false !== \strpos($c1, $c) && \preg_match('/^[a-z_-][a-z\d_-]*/i', $chop, $m)) {
+            if ('c' === $c && 0 === \strpos($chop, 'calc(') && \preg_match('/^calc\([^;}]+\)/', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
-                $to .= $m[0];
+                // Remove space(s) around `*` and `/`
+                $to .= 'calc(' . \preg_replace('/\s*([*\/])\s*/', '$1', c_s_s(\substr($m[0], 5, -1))) . ')';
+                continue;
+            }
+            // <https://www.w3.org/TR/css-syntax-3#ident-token-diagram>
+            if (false !== \strpos("\\" . $c1, $c) && \preg_match('/^(?>\\\\[a-f\d]+(?=\s)|\\\\.|[a-z_-])(?>\\\\[a-f\d]+(?=\s)|\\\\.|[a-z\d_-])*/i', $chop, $m)) {
+                $from = \substr($from, \strlen($m[0]));
+                $to .= \preg_replace('/\s+/', ' ', $m[0]);
                 continue;
             }
             // <https://www.w3.org/TR/css-syntax-3#number-token-diagram>
             if (false !== \strpos($c2, $c)) {
                 if (\preg_match('/^\d+(\.\d+)?(e[+-]?\d+)?\b/i', $chop, $m)) {
                     $from = \substr($from, \strlen($m[0]));
-                    if (false !== \strpos($v = $m[0], '.')) {
+                    if (false !== \strpos($v = $m[0], '.') || '.' === \substr($to, -1)) {
                         $v = \rtrim(\trim($v, '0'), '.');
                     } else {
                         $v = \ltrim($v, '0');
@@ -39,18 +44,31 @@ namespace x\minify {
             }
             if ($n = \strspn($chop, $c4)) {
                 $from = \substr($from, $n);
-                if (
-                    false !== \strpos('"\'(', $from[0]) && false === \strpos($c3, \substr($to, -1)) ||
-                    false !== \strpos('"\')', \substr($to, -1)) && false === \strpos($c3, $from[0])
+                $a = $from[0] ?? "";
+                $b = \substr($to, -1);
+                if (\strlen($from) > 1 && ('[' === $a || ':' === $a && false === \strpos($c4, $from[1]))) {
+                    if ("" !== $b && false === \strpos('+,>}', $b)) {
+                        $to .= ' '; // Case of `asdf :asdf` and `asdf [asdf]`
+                    }
+                } else if (
+                    // Case of `@asdf "asdf"` and `"asdf" asdf` or `@asdf (asdf)` and `asdf (asdf)`
+                    false !== \strpos('"\'(', $a) && false === \strpos($c3, $b) ||
+                    false !== \strpos('"\')', $b) && false === \strpos($c3, $a)
                 ) {
                     $to .= ' ';
-                } else if ("" !== $from . $to && false === \strpos($c3, $from[0]) && false === \strpos($c3, \substr($to, -1))) {
+                } else if ("" !== $a . $b && false === \strpos($c3, $a) && false === \strpos($c3, $b)) {
                     $to .= ' ';
                 }
                 continue;
             }
             if (false !== \strpos('"\'', $c) && \preg_match('/^(?>' . $r1 . '|' . $r2 . ')/', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
+                // <https://www.w3.org/TR/css-syntax-3#consume-a-url-token>
+                // <https://www.w3.org/TR/css-syntax-3#url-token-diagram>
+                if ('url(' === \substr($to, -4) && \strcspn(\substr($m[0], 1, -1), $c4 . '"\'()\\\\') === \strlen($m[0]) - 2) {
+                    $to .= \substr($m[0], 1, -1);
+                    continue;
+                }
                 $to .= $m[0];
                 continue;
             }
@@ -64,6 +82,7 @@ namespace x\minify {
                     } else {
                         $to .= '/*' . \trim(\substr($m[0], 3, -2)) . '*/';
                     }
+                // Case of `asdf/*asdf*/asdf{asdf:asdf}`
                 } else if ("" !== $to && false === \strpos($c3, \substr($to, -1))) {
                     $to .= ' ';
                 }
@@ -75,7 +94,6 @@ namespace x\minify {
                 if ("" !== $to && false !== \strpos($c4, \substr($to, -1))) {
                     $to = \rtrim($to) . ' ';
                 }
-                // Minify attribute selector(s)
                 $to .= '[';
                 foreach (\preg_split('/((?>' . $r1 . '|' . $r2 . '|[$*=^|~]|\s+))/', \trim(\substr($m[0], 1, -1)), -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
                     if ("" === ($v = \trim($v))) {
@@ -95,7 +113,7 @@ namespace x\minify {
                         continue;
                     }
                     if (false === \strpos('"$\'*=[]^|~', \substr($to, -1)) && false === \strpos('"$\'*=[]^|~', $v[0])) {
-                        $to .= ' ';
+                        $to .= ' '; // Case of `[asdf=asdf i]` or `[asdf="asdf"i]`
                     }
                     $to .= $v;
                 }
