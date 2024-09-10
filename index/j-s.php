@@ -15,12 +15,18 @@ namespace x\minify {
                 $from = $chop;
                 $to .= $v;
             }
-            if (false !== \strpos($c1, $c) && \preg_match('/^[a-z$_][\w$]*\b(?!\$)/i', $chop, $m)) {
+            // Have to capture the identifier token before the number token. This ensures that identifier(s) containing
+            // number(s) will not be compressed by mistake. Valid identifier syntax for JavaScript is actually quite
+            // extensive. However, I prefer to stick to a common pattern. If you use some Unicode character(s) in your
+            // identifier(s), some thing(s) may not get compressed well. This parser works by looking for the first
+            // possible character found in a token (which I have listed in the `$c*` variable), before it continues the
+            // step to the end of the token.
+            if (false !== \strpos($c1, $c) && \preg_match('/^[a-z$_][\w$]*\b/i', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
-                if ('false' === $m[0]) {
-                    $to .= '!1';
-                } else if ('true' === $m[0]) {
-                    $to .= '!0';
+                if ('false' === $m[0] && '$' !== ($from[0] ?? 0)) {
+                    $to = \rtrim($to) . '!1';
+                } else if ('true' === $m[0] && '$' !== ($from[0] ?? 0)) {
+                    $to = \rtrim($to) . '!0';
                 } else {
                     $to .= $m[0];
                 }
@@ -42,13 +48,20 @@ namespace x\minify {
                     } else {
                         $v = \ltrim($v, '0');
                     }
+                    // `return .123` to `return.123`
+                    if ("" !== $v && '.' === $v[0] && false === \strpos($c2, \substr(\rtrim($to), -1))) {
+                        $to = \rtrim($to);
+                    }
                     $to .= "" === $v ? '0' : $v;
                     continue;
                 }
             }
             if ($n = \strspn($chop, $c4)) {
                 $from = \substr($from, $n);
-                if ("" !== $from . $to && false === \strpos($c3, $from[0]) && false === \strpos($c3, \substr($to, -1))) {
+                // Fix case of `1 + ++1` or `1 - --1`
+                if (false !== \strpos('+-', $v = \substr($to, -1)) && 2 === \strspn($from, $v)) {
+                    $to .= ' ';
+                } else if ("" !== $from . $to && false === \strpos($c3, $from[0]) && false === \strpos($c3, $v)) {
                     $to .= ' ';
                 }
                 continue;
@@ -84,6 +97,8 @@ namespace x\minify {
                         } else {
                             $to .= '/*' . \trim(\substr($m[0], 3, -2)) . '*/';
                         }
+                    } else if ("" !== $from . $to && false !== \strpos('+-', $v = \substr($to, -1)) && $v === $from[0]) {
+                        $to .= ' ';
                     }
                     continue;
                 }
@@ -106,7 +121,7 @@ namespace x\minify {
             if (false !== \strpos(')]', $c)) {
                 $to = \rtrim($to, ','); // `(a,b,[a,b,c,],)` to `(a,b,[a,b,c])`
             } else if ('}' === $c) {
-                $to = \rtrim($to, ';'); // `{a;b;c;}` to `{a;b;c}`
+                $to = \rtrim($to, ',;'); // `{a;b;c;}` to `{a;b;c}`, `{a:1,b:1,}` to `{a:1,b:1}`
             }
             $to .= $c;
         }
