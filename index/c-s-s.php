@@ -151,7 +151,7 @@ namespace x\minify {
                 // `/*!…*/` or `/**…*/`
                 if (false !== \strpos('!*', $m[0][2])) {
                     if (false !== \strpos($m[0], "\n")) {
-                        $to .= $m[0];
+                        $to .= '/*' . \substr($m[0], 3);
                     } else {
                         $to .= '/*' . \trim(\substr($m[0], 3, -2)) . '*/';
                     }

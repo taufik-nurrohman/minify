@@ -30,10 +30,10 @@ namespace x\minify {
                 continue;
             }
             $from = "";
-            $to .= $chop;
+            $to .= \trim($chop); // `false`, `null`, `true`, `1`, `1.0`
         }
         if ("" !== $from) {
-            $to .= $from;
+            $to .= \trim($from);
         }
         return "" !== ($to = \trim($to)) ? $to : null;
     }

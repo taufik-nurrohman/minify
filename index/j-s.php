@@ -75,11 +75,24 @@ namespace x\minify {
                 "'" === $c && \preg_match("/^'[^'\\\\]*(?>\\\\.[^'\\\\]*)*'/", $chop, $m)
             ) {
                 $from = \substr($from, \strlen($m[0]));
-                if ('`' === $c && false !== \strpos($m[0], '${')) {
-                    // `${…}`
-                    $to .= \preg_replace_callback('/\$(\{[^}\\\\]*(?>\\\\.[^}\\\\]*)*\})/', static function ($m) {
-                        return j_s($m[0]);
-                    }, $m[0]);
+                if ('`' === $c) {
+                    if (false !== \strpos($m[0], '${')) {
+                        // `${…}`
+                        $m[0] = \preg_replace_callback('/\$(\{[^}\\\\]*(?>\\\\.[^}\\\\]*)*\})/', static function ($m) {
+                            return j_s($m[0]);
+                        }, $m[0]);
+                    } else if (false === \strpos($m[0], "\n") && false === \strpos($m[0], "'")) {
+                        $m[0] = "'" . \strtr(\substr($m[0], 1, -1), ["\\" . '`' => '`']) . "'";
+                    }
+                    $to .= $m[0];
+                    continue;
+                }
+                if ('"' === $c && false !== \strpos($m[0], $x = "\\" . '"') && false === \strpos($m[0], "'")) {
+                    $to .= "'" . \strtr(\substr($m[0], 1, -1), [$x => '"']) . "'";
+                    continue;
+                }
+                if ("'" === $c && false !== \strpos($m[0], $x = "\\" . "'") && false === \strpos($m[0], '"')) {
+                    $to .= '"' . \strtr(\substr($m[0], 1, -1), [$x => "'"]) . '"';
                     continue;
                 }
                 $to .= $m[0];
@@ -93,7 +106,7 @@ namespace x\minify {
                     // `/*!…*/` or `/**…*/`
                     if (false !== \strpos('!*', $m[0][2])) {
                         if (false !== \strpos($m[0], "\n")) {
-                            $to .= $m[0];
+                            $to .= '/*' . \substr($m[0], 3);
                         } else {
                             $to .= '/*' . \trim(\substr($m[0], 3, -2)) . '*/';
                         }
@@ -119,9 +132,9 @@ namespace x\minify {
             }
             $from = \substr($from, 1);
             if (false !== \strpos(')]', $c)) {
-                $to = \rtrim($to, ','); // `(a,b,[a,b,c,],)` to `(a,b,[a,b,c])`
+                $to = \trim($to, ','); // `(a,b,[a,b,c,],)` to `(a,b,[a,b,c])`
             } else if ('}' === $c) {
-                $to = \rtrim($to, ',;'); // `{a;b;c;}` to `{a;b;c}`, `{a:1,b:1,}` to `{a:1,b:1}`
+                $to = \trim($to, ',;'); // `{a;b;c;}` to `{a;b;c}`, `{a:1,b:1,}` to `{a:1,b:1}`
             }
             $to .= $c;
         }
