@@ -5,15 +5,16 @@ namespace x\minify {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
+        $c1 = " \n\r\t";
         $to = "";
-        while (false !== ($chop = \strpbrk($from, '<&'))) {
-            if ("" !== ($v = \strstr($from, $chop[0], true))) {
+        while (false !== ($chop = \strpbrk($from, '<&' . $c1))) {
+            if ("" !== ($v = \strstr($from, $c = $chop[0], true))) {
                 $from = $chop;
-                $to .= x_m_l\n($v);
+                $to .= $v;
             }
             // `<…`
-            if ('<' === $chop[0]) {
-                if (\strlen($chop) > 1 && false !== \strpos(" \n\t", $chop[1])) {
+            if ('<' === $c) {
+                if (false !== \strpos($c1, $chop[1] ?? $c)) {
                     $from = \substr($from, 1);
                     $to .= '<';
                     continue;
@@ -21,75 +22,56 @@ namespace x\minify {
                 // <https://html.spec.whatwg.org/multipage/syntax.html#comments>
                 // `<!--…`
                 if (0 === \strpos($chop, '<!--') && false !== ($n = \strpos($chop, '-->'))) {
-                    $from = \substr($from, \strlen($chop = \substr($chop, 0, $n + 3)));
-                    $to = \rtrim($to);
+                    $from = \substr($from, \strlen(\substr($chop, 0, $n + 3)));
                     continue;
                 }
                 // <https://html.spec.whatwg.org/multipage/syntax.html#cdata-sections>
                 // `<![CDATA[…`
                 if (0 === \strpos($chop, '<![CDATA[') && false !== ($n = \strpos($chop, ']]>'))) {
-                    $from = \ltrim(\substr($from, \strlen($chop = \substr($chop, 0, $n + 3))));
-                    $to = \rtrim($to) . $chop;
+                    $from = \substr($from, \strlen($v = \substr($chop, 0, $n + 3)));
+                    $to .= $v;
                     continue;
                 }
                 if (\preg_match('/^<(?>"[^"]*"|\'[^\']*\'|[^>])+>/', $chop, $m)) {
-                    $from = \substr($from, $b = \strlen($m[0]));
-                    if (false !== \strpos('!?', $m[0][1])) {
-                        $from = \ltrim($from);
-                        $to = \rtrim($to) . x_m_l\e($m[0]);
-                        continue;
+                    $from = \trim(\substr($from, \strlen($m[0])));
+                    $to = \trim($to);
+                    foreach (\preg_split('/("[^"]*"|\'[^\']*\'|\s+)/', $m[0], -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+                        $to .= "" === ($v = \trim($v)) ? ' ' : $v;
                     }
-                    $to .= x_m_l\e($m[0]);
+                    if ('/>' === \substr($to, -2)) {
+                        $to = \trim(\substr($to, 0, -2)) . '/>';
+                    } else if ('?>' === \substr($to, -2)) {
+                        $to = \trim(\substr($to, 0, -2)) . '?>';
+                    } else {
+                        $to = \trim(\substr($to, 0, -1)) . '>';
+                    }
                     continue;
                 }
                 $from = \substr($from, 1);
                 $to .= '<';
                 continue;
             }
-            if ('&' === $chop[0]) {
-                if (\strpos($chop, ';') > 1 && \preg_match('/^&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', $chop, $m)) {
-                    $from = \substr($from, \strlen($m[0]));
-                    $v = \html_entity_decode($m[0], \ENT_HTML5 | \ENT_QUOTES, 'UTF-8');
-                    if (false !== \strpos('&<>', $v)) {
-                        $to .= $m[0];
-                        continue;
-                    }
-                    $to .= $v;
+            if ('&' === $c && \strpos($chop, ';') > 1 && \preg_match('/^&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', $chop, $m)) {
+                $from = \substr($from, \strlen($m[0]));
+                $v = \html_entity_decode($m[0], \ENT_HTML5 | \ENT_QUOTES, 'UTF-8');
+                if (false !== \strpos('&<>', $v)) {
+                    $to .= $m[0];
                     continue;
                 }
-                $from = \substr($from, 1);
-                $to .= '&';
+                $to .= $v;
                 continue;
             }
-            $from = "";
-            $to .= x_m_l\n($chop);
-        }
-        if ("" !== $from) {
-            $to .= x_m_l\n($from);
-        }
-        return "" !== ($to = \trim($to)) ? $to : null;
-    }
-}
-
-namespace x\minify\x_m_l {
-    function e(string $from): string {
-        $to = "";
-        foreach (\preg_split('/("[^"]*"|\'[^\']*\'|[^!\/<=>?\s]+)/', $from, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
-            if ("" === ($v = \trim($v))) {
+            if ($n = \strspn($chop, $c1)) {
+                $from = \substr($from, $n);
                 $to .= ' ';
                 continue;
             }
-            $to .= $v;
+            $from = "";
+            $to .= $chop;
         }
-        if ('/>' === \substr($to, -2)) {
-            return \rtrim(\substr($to, 0, -2)) . '/>';
+        if ("" !== $from) {
+            $to .= $from;
         }
-        if ('>' === \substr($to, -1)) {
-            return \rtrim(\substr($to, 0, -1)) . '>';
-        }
-        return $to;
-    }
-    function n(string $from): string {
-        return \trim(\preg_replace('/\s+/', ' ', $from));
+        return "" !== ($to = \trim($to)) ? $to : null;
     }
 }
