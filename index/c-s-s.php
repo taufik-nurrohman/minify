@@ -56,7 +56,7 @@ namespace x\minify {
                 continue;
             }
             // <https://www.w3.org/TR/css-syntax-3#ident-token-diagram>
-            if (false !== \strpos("\\" . $c1, $c) && \preg_match('/^(?>\\\\[a-f\d]+(?=\s)|\\\\.|[a-z_-])(?>\\\\[a-f\d]+(?=\s)|\\\\.|[a-z\d_-])*/i', $chop, $m)) {
+            if (false !== \strpos("\\" . $c1, $c) && \preg_match('/^(?>\\\\[a-f\d]+\s+|\\\\.|[a-z_-])(?>\\\\[a-f\d]+\s+|\\\\.|[a-z\d_-])*/i', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
                 $to .= \preg_replace('/\s+/', ' ', $m[0]);
                 continue;

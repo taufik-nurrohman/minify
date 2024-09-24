@@ -26,10 +26,12 @@ namespace x\minify {
                 }
                 if (\T_ECHO === $v[0] || \T_PRINT === $v[0]) {
                     if ('<?' . 'php ' === \substr($to, -6)) {
-                        $to = \substr($to, 0, -4) . '='; // Replace `<?php echo` with `<?=`
+                        // Replace `<?php echo` with `<?=`
+                        $to = \substr($to, 0, -4) . '=';
                         continue;
                     }
-                    $to .= 'echo '; // Replace `print` with `echo`
+                    // Replace `print` with `echo`
+                    $to .= 'echo ';
                     continue;
                 }
                 if (\T_END_HEREDOC === $v[0]) {
@@ -42,7 +44,8 @@ namespace x\minify {
                 }
                 if (\T_START_HEREDOC === $v[0]) {
                     if ("'" === $v[1][3]) {
-                        // TODO
+                        $to .= "<<<'S'\n";
+                        continue;
                     }
                     $to .= "<<<S\n";
                     continue;
