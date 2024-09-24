@@ -1,0 +1,19 @@
+<?php
+
+$asdf = <<<TEXT
+asdf
+asdf
+asdf
+TEXT;
+
+$asdf = <<<"TEXT"
+asdf
+asdf
+asdf
+TEXT;
+
+$asdf = <<<'TEXT'
+asdf
+asdf
+asdf
+TEXT;

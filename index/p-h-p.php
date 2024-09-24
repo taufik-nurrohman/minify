@@ -20,16 +20,35 @@ namespace x\minify {
                     }
                     continue;
                 }
+                if (\T_CONSTANT_ENCAPSED_STRING === $v[0]) {
+                    $to = \trim($to) . $v[1];
+                    continue;
+                }
+                if (\T_ECHO === $v[0] || \T_PRINT === $v[0]) {
+                    if ('<?' . 'php ' === \substr($to, -6)) {
+                        $to = \substr($to, 0, -4) . '='; // Replace `<?php echo` with `<?=`
+                        continue;
+                    }
+                    $to .= 'echo '; // Replace `print` with `echo`
+                    continue;
+                }
+                if (\T_END_HEREDOC === $v[0]) {
+                    $to .= 'S';
+                    continue;
+                }
                 if (\T_OPEN_TAG === $v[0]) {
                     $to .= $prev = \trim($v[1]) . ' ';
                     continue;
                 }
-                if (\T_WHITESPACE === $v[0]) {
-                    $to .= $prev = false !== \strpos(' "/!#%&()*+,-.:;<=>?@[\]^`{|}~' . "'", \substr($to, -1)) ? "" : ' ';
+                if (\T_START_HEREDOC === $v[0]) {
+                    if ("'" === $v[1][3]) {
+                        // TODO
+                    }
+                    $to .= "<<<S\n";
                     continue;
                 }
-                if ((\T_ECHO === $v[0] || \T_PRINT === $v[0]) && '<?' . 'php ' === \substr($to, -6)) {
-                    $to = \substr($to, 0, -4) . '=';
+                if (\T_WHITESPACE === $v[0]) {
+                    $to .= $prev = false !== \strpos(' "/!#%&()*+,-.:;<=>?@[\]^`{|}~' . "'", \substr($to, -1)) ? "" : ' ';
                     continue;
                 }
                 $to .= $prev = $v[1];

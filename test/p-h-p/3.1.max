@@ -1,0 +1,2 @@
+<?php if (1) echo 'asdf', 'asdf', 'asdf'; ?>
+<?php if (1) print 'asdf', 'asdf', 'asdf'; ?>
