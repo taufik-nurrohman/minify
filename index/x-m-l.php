@@ -5,37 +5,42 @@ namespace x\minify {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
-        $c1 = " \n\r\t";
+        $c1 = '<&';
+        $c2 = " \n\r\t";
         $to = "";
-        while (false !== ($chop = \strpbrk($from, '<&' . $c1))) {
+        while (false !== ($chop = \strpbrk($from, $c1 . $c2))) {
             if ("" !== ($v = \strstr($from, $c = $chop[0], true))) {
                 $from = $chop;
                 $to .= $v;
             }
+            // <https://www.w3.org/TR/xml#dt-stag>
             // `<…`
-            if ('<' === $c) {
-                if (false !== \strpos($c1, $chop[1] ?? $c)) {
-                    $from = \substr($from, 1);
-                    $to .= '<';
-                    continue;
-                }
-                // <https://html.spec.whatwg.org/multipage/syntax.html#comments>
+            if ('<' === $c && isset($chop[1]) && false === \strpos($c2, $chop[1])) {
+                // <https://www.w3.org/TR/xml#d0e1149>
                 // `<!--…`
                 if (0 === \strpos($chop, '<!--') && false !== ($n = \strpos($chop, '-->'))) {
                     $from = \substr($from, \strlen(\substr($chop, 0, $n + 3)));
                     continue;
                 }
-                // <https://html.spec.whatwg.org/multipage/syntax.html#cdata-sections>
+                // <https://www.w3.org/TR/xml#d0e1271>
                 // `<![CDATA[…`
                 if (0 === \strpos($chop, '<![CDATA[') && false !== ($n = \strpos($chop, ']]>'))) {
                     $from = \substr($from, \strlen($v = \substr($chop, 0, $n + 3)));
                     $to .= $v;
                     continue;
                 }
-                if (\preg_match('/^<(?>"[^"]*"|\'[^\']*\'|[^>])+>/', $chop, $m)) {
-                    $from = \trim(\substr($from, \strlen($m[0])));
+                if (false !== ($n = \strpos($chop, '>'))) {
+                    $from = \trim(\substr($from, \strlen($any = \substr($chop, 0, $n + 1))));
                     $to = \trim($to);
-                    foreach (\preg_split('/("[^"]*"|\'[^\']*\'|\s+)/', $m[0], -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+                    // <https://www.w3.org/TR/xml#dt-etag>
+                    if ('/' === $chop[1] && '>' === \substr($to, -1) && false !== ($v = \strrchr($to, '<'))) {
+                        if (\substr($any, 2, -1) === \strtok(\substr($v, 1, -1), $c2)) {
+                            // <https://www.w3.org/TR/xml#dt-empty>
+                            $to = \substr($to, 0, -1) . '/>';
+                            continue;
+                        }
+                    }
+                    foreach (\preg_split('/("[^"]*"|\'[^\']*\'|\s+)/', $any, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
                         $to .= "" === ($v = \trim($v)) ? ' ' : $v;
                     }
                     if ('/>' === \substr($to, -2)) {
@@ -47,10 +52,9 @@ namespace x\minify {
                     }
                     continue;
                 }
-                $from = \substr($from, 1);
-                $to .= '<';
-                continue;
             }
+            // <https://www.w3.org/TR/xml#dt-charref>
+            // <https://www.w3.org/TR/xml#dt-entref>
             if ('&' === $c && \strpos($chop, ';') > 1 && \preg_match('/^&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
                 $v = \html_entity_decode($m[0], \ENT_HTML5 | \ENT_QUOTES, 'UTF-8');
@@ -61,13 +65,13 @@ namespace x\minify {
                 $to .= $v;
                 continue;
             }
-            if ($n = \strspn($chop, $c1)) {
+            if ($n = \strspn($chop, $c2)) {
                 $from = \substr($from, $n);
                 $to .= ' ';
                 continue;
             }
-            $from = "";
-            $to .= $chop;
+            $from = \substr($from, 1);
+            $to .= $c;
         }
         if ("" !== $from) {
             $to .= $from;
