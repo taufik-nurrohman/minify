@@ -150,7 +150,7 @@ c_s_s(?string $from): ?string;
 ~~~ php
 <?php
 
-h_t_m_l(?string $from, int $level = 1): ?string;
+h_t_m_l(?string $from): ?string;
 ~~~
 
 ### JS

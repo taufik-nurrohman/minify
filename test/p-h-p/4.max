@@ -1,0 +1,12 @@
+<?php
+
+return [
+    ( asdf ) $asdf,
+    ( float ) $asdf,
+    ( float ) 0,
+    ( float ) 1,
+    ( int ) $asdf,
+    ( int ) 0.0,
+    ( int ) 1.0,
+    ( string ) $asdf,
+];

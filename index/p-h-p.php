@@ -9,7 +9,11 @@ namespace x\minify {
         $to = "";
         foreach ($tokens as $k => $v) {
             if (\is_array($v)) {
-                echo \token_name($v[0]) . '<br/>' . \htmlspecialchars(\json_encode($v[1])) . '<br/><br/>';
+                if ('_CAST' === \substr(\token_name($v[0]), -5)) {
+                    $to .= '(' . \trim(\substr($v[1], 1, -1)) . ')';
+                    continue;
+                }
+                // echo \token_name($v[0]) . '<br/>' . \htmlspecialchars(\json_encode($v[1])) . '<br/><br/>';
                 if (\T_CLOSE_TAG === $v[0]) {
                     if ($k === $count - 1) {
                         $to = \trim($to, ';') . ';';
@@ -33,15 +37,16 @@ namespace x\minify {
                     $to = \trim($to) . $v[1];
                     continue;
                 }
-                if (\T_DNUMBER === $v[0] || \T_LNUMBER === $v[0]) {
-                    // <https://wiki.php.net/rfc/numeric_literal_separator>
-                    $test = \strtr($v[1], ['_' => ""]);
-                    if (\T_DNUMBER === $v[0]) {
-                        $test = \rtrim(\trim($test, '0'), '.');
-                    } else {
-                        $test = \ltrim($test, '0');
+                if (\T_DNUMBER === $v[0]) {
+                    $test = \rtrim(\trim(\strtr($v[1], ['_' => ""]), '0'), '.');
+                    if (false === \strpos($test = "" !== $test ? $test : '0', '.')) {
+                        $test .= '.0';
                     }
-                    $to .= "" === $test ? '0' : $test;
+                    if ('(int)' === \substr($to, -5)) {
+                        $to = \substr($to, 0, -5) . \var_export((int) $test, true);
+                        continue;
+                    }
+                    $to .= $test;
                     continue;
                 }
                 if (\T_ECHO === $v[0] || \T_PRINT === $v[0]) {
@@ -56,6 +61,15 @@ namespace x\minify {
                 }
                 if (\T_END_HEREDOC === $v[0]) {
                     $to .= 'S';
+                    continue;
+                }
+                if (\T_LNUMBER === $v[0]) {
+                    $test = \ltrim(\strtr($v[1], ['_' => ""]), '0');
+                    if ('(float)' === \substr($to, -7)) {
+                        $to = \substr($to, 0, -7) . \var_export((float) $test, true);
+                        continue;
+                    }
+                    $to .= "" !== $test ? $test : '0';
                     continue;
                 }
                 if (\T_OPEN_TAG === $v[0]) {
@@ -86,7 +100,7 @@ namespace x\minify {
                 $to .= $v[1];
                 continue;
             }
-            echo \htmlspecialchars(\json_encode($v)) . '<br/><br/>';
+            // echo \htmlspecialchars(\json_encode($v)) . '<br/><br/>';
             if (false !== \strpos(')]', $v)) {
                 $to = \trim(\trim($to, ',')) . $v;
                 continue;

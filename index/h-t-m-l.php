@@ -1,7 +1,7 @@
 <?php
 
 namespace x\minify {
-    function h_t_m_l(?string $from, int $level = 1): ?string {
+    function h_t_m_l(?string $from): ?string {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
@@ -35,7 +35,7 @@ namespace x\minify {
                     }
                     // <https://en.wikipedia.org/wiki/Conditional_comment>
                     if ('<![endif]-->' === \substr($chop, -12)) {
-                        $to .= \substr($chop, 0, $n = \strpos($chop, '>') + 1) . h_t_m_l(\substr($chop, $n, -12), $level) . \substr($chop, -12);
+                        $to .= \substr($chop, 0, $n = \strpos($chop, '>') + 1) . h_t_m_l(\substr($chop, $n, -12)) . \substr($chop, -12);
                     }
                     if ("" !== $from && ' ' === $from[0]) {
                         $to = \rtrim($to);
@@ -53,7 +53,7 @@ namespace x\minify {
                     $from = \substr($from, $b = \strlen($m[0]));
                     if (false !== \strpos('!?', $m[0][1])) {
                         $from = \ltrim($from);
-                        $to = \rtrim($to) . h_t_m_l\e($m[0], $level);
+                        $to = \rtrim($to) . h_t_m_l\e($m[0]);
                         continue;
                     }
                     $n = \substr(\strtok($m[0], " \n\t>"), 1);
@@ -74,7 +74,7 @@ namespace x\minify {
                             }
                             $value = \call_user_func($f, $value);
                         }
-                        $to .= h_t_m_l\e($m[0], $level) . $value . '</' . $n . '>';
+                        $to .= h_t_m_l\e($m[0]) . $value . '</' . $n . '>';
                         continue;
                     }
                     // `</asdf>`
@@ -119,7 +119,7 @@ namespace x\minify {
                         } else {
                             if (0 === \strpos($from, ' </' . $n . '>')) {
                                 $from = \substr($from, 3 + \strlen($n) + 1);
-                                $to .= h_t_m_l\e($m[0], $level) . ' </' . $n . '>';
+                                $to .= h_t_m_l\e($m[0]) . ' </' . $n . '>';
                                 continue;
                             }
                             $from = \ltrim($from);
@@ -128,7 +128,7 @@ namespace x\minify {
                             }
                         }
                     }
-                    $to .= h_t_m_l\e($m[0], $level);
+                    $to .= h_t_m_l\e($m[0]);
                     continue;
                 }
                 $from = \substr($from, 1);
@@ -213,7 +213,7 @@ namespace x\minify\h_t_m_l {
         }
         return \strtr($to, $of);
     }
-    function e(string $from, int $level): string {
+    function e(string $from): string {
         $to = "";
         foreach (\preg_split('/("[^"]*"|\'[^\']*\'|[^!\/<=>?\s]+)/', $from, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
             if ("" === ($v = \trim($v))) {
@@ -237,9 +237,6 @@ namespace x\minify\h_t_m_l {
                         }
                         return $s;
                     }, $v);
-                }
-                if (2 === $level) {
-                    // TODO
                 }
             }
             $to .= $v;
