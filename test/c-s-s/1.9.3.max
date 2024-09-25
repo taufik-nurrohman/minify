@@ -1,0 +1,9 @@
+asdf { asdf: hsl( 0 , 100% , 50% ); asdf: hsl( 0 , 100% , 50% , 0.5 ) }
+asdf { asdf: hsl( 0  100%  50% ); asdf: hsl( 0  100%  50% / 0.5 ) }
+asdf { asdf: hsl( 50% , 50% , 100% ); asdf: hsl( 50% , 50% , 100% , 50% ) }
+asdf { asdf: hsl( 0%  0%  50% ); asdf: hsl( 0%  0%  50% / 50% ) }
+
+asdf { asdf: hsla( 0 , 100% , 50% ); asdf: hsla( 0 , 100% , 50% , 0.5 ) }
+asdf { asdf: hsla( 0  100%  50% ); asdf: hsla( 0  100%  50% / 0.5 ) }
+asdf { asdf: hsla( 50% , 50% , 100% ); asdf: hsla( 50% , 50% , 100% , 50% ) }
+asdf { asdf: hsla( 0%  0%  50% ); asdf: hsla( 0%  0%  50% / 50% ) }

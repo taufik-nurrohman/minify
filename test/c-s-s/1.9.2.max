@@ -1,0 +1,9 @@
+asdf { asdf: rgb( 0 , 0 , 0 ); asdf: rgb( 0 , 0 , 0 , 0.5 ) }
+asdf { asdf: rgb( 0  0  0 ); asdf: rgb( 0  0  0 / 0.5 ) }
+asdf { asdf: rgb( 50% , 50% , 100% ); asdf: rgb( 50% , 50% , 100% , 50% ) }
+asdf { asdf: rgb( 0%  0%  50% ); asdf: rgb( 0%  0%  50% / 50% ) }
+
+asdf { asdf: rgba( 0 , 0 , 0 ); asdf: rgba( 0 , 0 , 0 , 0.5 ) }
+asdf { asdf: rgba( 0  0  0 ); asdf: rgba( 0  0  0 / 0.5 ) }
+asdf { asdf: rgba( 50% , 50% , 100% ); asdf: rgba( 50% , 50% , 100% , 50% ) }
+asdf { asdf: rgba( 0%  0%  50% ); asdf: rgba( 0%  0%  50% / 50% ) }

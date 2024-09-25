@@ -26,17 +26,25 @@ namespace x\minify {
             }
             // <https://www.w3.org/TR/css-color-4#the-hsl-notation>
             if ('h' === $c && (0 === \strpos($chop, 'hsl(') || 0 === \strpos($chop, 'hsla(')) && \preg_match('/^hsla?\(\s*(none|\d*\.?\d+(?:deg)?)\s*[,\s]\s*(none|\d*\.?\d+%?)\s*[,\s]\s*(none|\d*\.?\d+%?)\s*(?:[,\/]\s*(none|\d*\.?\d+%?)\s*)?\)/', $chop, $m)) {
+                $from = \substr($from, \strlen($m[0]));
                 $h = 'none' === $m[1] ? 0 : (float) ('deg' === \substr($m[1], -3) ? \substr($m[1], 0, -3) : $m[1]);
                 $s = 'none' === $m[2] ? 0 : (float) ('%' === \substr($m[2], -1) ? \substr($m[2], 0, -1) : $m[2]);
                 $l = 'none' === $m[3] ? 0 : (float) ('%' === \substr($m[3], -1) ? \substr($m[3], 0, -1) : $m[3]);
                 $a = isset($m[4]) ? ('none' === $m[4] ? 0 : (float) ('%' === \substr($m[4], -1) ? \substr($m[4], 0, -1) : $m[4])) : 1;
+                // <https://www.w3.org/TR/css-color-4#hsl-to-rgb>
                 $h = $h % 360;
                 if ($h < 0) {
                     $h += 360;
                 }
                 $s /= 100;
                 $l /= 100;
-                // TODO
+                $f = static function ($n) use ($h, $l, $s) {
+                    $a = $s * \min($l, 1 - $l);
+                    $k = ($n + $h / 30) % 12;
+                    return $l - $a * \max(-1, \min($k - 3, 9 - $k, 1));
+                };
+                $to .= c_s_s(\sprintf('#%02x%02x%02x%02x', $f(0) * 255, $f(8) * 255, $f(4) * 255, $a * 255));
+                continue;
             }
             // <https://www.w3.org/TR/css-color-4#rgb-functions>
             if ('r' === $c && (0 === \strpos($chop, 'rgb(') || 0 === \strpos($chop, 'rgba(')) && \preg_match('/^rgba?\(\s*(none|\d*\.?\d+%?)\s*[,\s]\s*(none|\d*\.?\d+%?)\s*[,\s]\s*(none|\d*\.?\d+%?)\s*(?:[,\/]\s*(none|\d*\.?\d+%?)\s*)?\)/', $chop, $m)) {
@@ -46,7 +54,7 @@ namespace x\minify {
                 $b = 'none' === $m[3] ? 0 : ('%' === \substr($m[3], -1) ? (255 * (((float) \substr($m[3], 0, -1)) / 100)) : (float) $m[3]);
                 $a = (isset($m[4]) ? ('none' === $m[4] ? 0 : ('%' === \substr($m[4], -1) ? (1 * (((float) \substr($m[4], 0, -1)) / 100)) : (float) $m[4])) : 1) * 255;
                 $x = \sprintf('#%02x%02x%02x%02x', $r < 0 ? 0 : ($r > 255 ? 255 : $r), $g < 0 ? 0 : ($g > 255 ? 255 : $g), $b < 0 ? 0 : ($b > 255 ? 255 : $b), $a < 0 ? 0 : ($a > 255 ? 255 : $a));
-                $to .= $x;
+                $to .= c_s_s($x);
                 continue;
             }
             // <https://www.w3.org/TR/css-values-4#numeric-types>

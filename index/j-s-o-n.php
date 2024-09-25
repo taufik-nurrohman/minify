@@ -8,13 +8,14 @@ namespace x\minify {
         if ('""' === $from || '[]' === $from || 'false' === $from || 'null' === $from || 'true' === $from || '{}' === $from || \is_numeric($from)) {
             return $from;
         }
+        $c1 = ',:[]{}';
         $to = "";
-        while (false !== ($chop = \strpbrk($from, '",:[]{}'))) {
+        while (false !== ($chop = \strpbrk($from, '"' . $c1))) {
             if ("" !== ($v = \strstr($from, $c = $chop[0], true))) {
                 $from = $chop;
                 $to .= \trim($v);
             }
-            if (false !== \strpos(',:[]{}', $c)) {
+            if (false !== \strpos($c1, $c)) {
                 $from = \substr($from, 1);
                 $to .= $chop[0];
                 continue;

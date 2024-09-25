@@ -7,6 +7,9 @@ namespace x\minify {
         }
         $c1 = '<&';
         $c2 = " \n\r\t";
+        $r1 = '"[^"]+"';
+        $r2 = "'[^']+'";
+        $r3 = $r1 . '|' . $r2;
         $to = "";
         while (false !== ($chop = \strpbrk($from, $c1 . $c2))) {
             if ("" !== ($v = \strstr($from, $c = $chop[0], true))) {
@@ -29,18 +32,16 @@ namespace x\minify {
                     $to .= $v;
                     continue;
                 }
-                if (false !== ($n = \strpos($chop, '>'))) {
-                    $from = \trim(\substr($from, \strlen($any = \substr($chop, 0, $n + 1))));
+                if (\preg_match('/^<(?>' . $r3 . '|[^>])++>/', $chop, $m)) {
+                    $from = \trim(\substr($from, \strlen($m[0])));
                     $to = \trim($to);
                     // <https://www.w3.org/TR/xml#dt-etag>
-                    if ('/' === $chop[1] && '>' === \substr($to, -1) && false !== ($v = \strrchr($to, '<'))) {
-                        if (\substr($any, 2, -1) === \strtok(\substr($v, 1, -1), $c2)) {
-                            // <https://www.w3.org/TR/xml#dt-empty>
-                            $to = \substr($to, 0, -1) . '/>';
-                            continue;
-                        }
+                    if ('/' === $chop[1] && '>' === \substr($to, -1) && \preg_match('/<' . \substr(\strtok($m[0], $c2 . '>'), 2) . '>$/', $to)) {
+                        // <https://www.w3.org/TR/xml#dt-empty>
+                        $to = \substr($to, 0, -1) . '/>';
+                        continue;
                     }
-                    foreach (\preg_split('/("[^"]*"|\'[^\']*\'|\s+)/', $any, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+                    foreach (\preg_split('/(' . $r3 . '|\s+)/', $m[0], -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
                         $to .= "" === ($v = \trim($v)) ? ' ' : $v;
                     }
                     if ('/>' === \substr($to, -2)) {
