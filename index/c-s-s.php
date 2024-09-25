@@ -18,12 +18,6 @@ namespace x\minify {
                 $from = $chop;
                 $to .= $v;
             }
-            if ('c' === $c && 0 === \strpos($chop, 'calc(') && \preg_match('/^calc\([^;}]+\)/', $chop, $m)) {
-                $from = \substr($from, \strlen($m[0]));
-                // Remove space(s) around `*` and `/`
-                $to .= 'calc(' . \preg_replace('/\s*([*\/])\s*/', '$1', c_s_s(\substr($m[0], 5, -1))) . ')';
-                continue;
-            }
             // <https://www.w3.org/TR/css-color-4#the-hsl-notation>
             if ('h' === $c && (0 === \strpos($chop, 'hsl(') || 0 === \strpos($chop, 'hsla(')) && \preg_match('/^hsla?\(\s*(none|\d*\.?\d+(?:deg)?)\s*[,\s]\s*(none|\d*\.?\d+%?)\s*[,\s]\s*(none|\d*\.?\d+%?)\s*(?:[,\/]\s*(none|\d*\.?\d+%?)\s*)?\)/', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
@@ -66,6 +60,13 @@ namespace x\minify {
             // <https://www.w3.org/TR/css-syntax-3#ident-token-diagram>
             if (false !== \strpos("\\" . $c1, $c) && \preg_match('/^(?>\\\\[a-f\d]+\s+|\\\\.|[a-z_-])(?>\\\\[a-f\d]+\s+|\\\\.|[a-z\d_-])*/i', $chop, $m)) {
                 $from = \substr($from, \strlen($m[0]));
+                // <https://www.w3.org/TR/css-values-4#calc-syntax>
+                if (0 === \strpos($from, '(') && false !== \strpos(',abs,acos,asin,atan,atan2,calc,clamp,cos,exp,hypot,log,max,min,mod,pow,rem,round,sign,sin,sqrt,tan,', ',' . $m[0] . ',') && \preg_match('/^\([^;}]+\)/', $from, $n)) {
+                    $from = \substr($from, \strlen($n[0]));
+                    // Remove space(s) around `*` and `/`
+                    $to .= $m[0] . \preg_replace('/\s*([*\/])\s*/', '$1', c_s_s($n[0]));
+                    continue;
+                }
                 $to .= \preg_replace('/\s+/', ' ', $m[0]);
                 continue;
             }
