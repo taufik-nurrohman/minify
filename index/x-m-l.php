@@ -36,12 +36,21 @@ namespace x\minify {
                     $from = \trim(\substr($from, \strlen($m[0])));
                     $to = \trim($to);
                     // <https://www.w3.org/TR/xml#dt-etag>
-                    if ('/' === $chop[1] && '>' === \substr($to, -1) && \preg_match('/<' . \substr(\strtok($m[0], $c2 . '>'), 2) . '>$/', $to)) {
+                    if ('/' === $chop[1] && '>' === \substr($to, -1) && \preg_match('/<' . \substr(\strtok($m[0], $c2 . '>'), 2) . '(\s(?>' . $r3 . '|[^\/>])++)?>$/', $to)) {
                         // <https://www.w3.org/TR/xml#dt-empty>
                         $to = \substr($to, 0, -1) . '/>';
                         continue;
                     }
                     foreach (\preg_split('/(' . $r3 . '|\s+)/', $m[0], -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+                        if (false !== \strpos('"\'', $v[0]) && false !== \strpos($v, '&')) {
+                            $v = \preg_replace_callback('/&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', static function ($m) use ($v) {
+                                $test = \html_entity_decode($m[0], \ENT_HTML5 | \ENT_QUOTES, 'UTF-8');
+                                if (false !== \strpos('&<>' . $v[0], $test)) {
+                                    return $m[0];
+                                }
+                                return $test;
+                            }, $v);
+                        }
                         $to .= "" === ($v = \trim($v)) ? ' ' : $v;
                     }
                     if ('/>' === \substr($to, -2)) {

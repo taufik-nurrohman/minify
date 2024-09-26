@@ -10,7 +10,15 @@ namespace x\minify {
         foreach ($tokens as $k => $v) {
             if (\is_array($v)) {
                 if ('_CAST' === \substr(\token_name($v[0]), -5)) {
-                    $to .= '(' . \trim(\substr($v[1], 1, -1)) . ')';
+                    $test = \trim(\substr($v[1], 1, -1));
+                    if ('boolean' === $test) {
+                        $test = 'bool';
+                    } else if ('double' === $test || 'real' === $test) {
+                        $test = 'float';
+                    } else if ('integer' === $test) {
+                        $test = 'int';
+                    }
+                    $to .= '(' . $test . ')';
                     continue;
                 }
                 // echo \token_name($v[0]) . '<br/>' . \htmlspecialchars(\json_encode($v[1])) . '<br/><br/>';
@@ -34,6 +42,9 @@ namespace x\minify {
                     continue;
                 }
                 if (\T_CONSTANT_ENCAPSED_STRING === $v[0]) {
+                    if ('(binary)' === \substr($to, -8)) {
+                        $to = \substr($to, 0, -8) . 'b';
+                    }
                     $to = \trim($to) . $v[1];
                     continue;
                 }
@@ -44,6 +55,10 @@ namespace x\minify {
                     }
                     if ('(int)' === \substr($to, -5)) {
                         $to = \substr($to, 0, -5) . \var_export((int) $test, true);
+                        continue;
+                    }
+                    if ('(string)' === \substr($to, -8)) {
+                        $to = \substr($to, 0, -8) . "'" . $test . "'";
                         continue;
                     }
                     $to .= $test;
@@ -69,7 +84,12 @@ namespace x\minify {
                         $to = \substr($to, 0, -7) . \var_export((float) $test, true);
                         continue;
                     }
-                    $to .= "" !== $test ? $test : '0';
+                    $test = "" !== $test ? $test : '0';
+                    if ('(string)' === \substr($to, -8)) {
+                        $to = \substr($to, 0, -8) . "'" . $test . "'";
+                        continue;
+                    }
+                    $to .= $test;
                     continue;
                 }
                 if (\T_OPEN_TAG === $v[0]) {
@@ -86,16 +106,38 @@ namespace x\minify {
                 }
                 if (\T_STRING === $v[0]) {
                     $test = \strtolower($v[1]);
-                    if (false !== \strpos(',false,null,true,', ',' . $test . ',')) {
+                    if ('false' === $test) {
+                        $to = \trim($to) . '!1';
+                    } else if ('null' === $test) {
                         $to .= $test;
-                        continue;
+                    } else if ('true' === $test) {
+                        $to = \trim($to) . '!0';
+                    } else {
+                        $to .= $v[1];
                     }
-                    $to .= $v[1];
                     continue;
                 }
                 if (\T_WHITESPACE === $v[0]) {
                     $to .= false !== \strpos(' "/!#%&()*+,-.:;<=>?@[\]^`{|}~' . "'", \substr($to, -1)) ? "" : ' ';
                     continue;
+                }
+                // <https://stackoverflow.com/a/16606419/1163000>
+                if (\T_VARIABLE === $v[0]) {
+                    if ('(bool)' === \substr($to, -6)) {
+                        $to = \substr($to, 0, -6) . '!!' . $v[1];
+                    } else if ('(float)' === \substr($to, -7)) {
+                        $to = \substr($to, 0, -7) . $v[1] . '+0';
+                    } else if ('(int)' === \substr($to, -5)) {
+                        $to = \substr($to, 0, -5) . $v[1] . '+0';
+                    } else if ('(string)' === \substr($to, -8)) {
+                        $to = \substr($to, 0, -8) . $v[1] . '.""';
+                    } else {
+                        $to = \trim($to) . $v[1];
+                    }
+                    continue;
+                }
+                if (false !== \strpos('!%&*+-./<=>?|', $v[1][0])) {
+                    $to = \trim($to);
                 }
                 $to .= $v[1];
                 continue;
@@ -104,6 +146,11 @@ namespace x\minify {
             if (false !== \strpos(')]', $v)) {
                 $to = \trim(\trim($to, ',')) . $v;
                 continue;
+            }
+            if ('new \stdclass' === \strtolower(\substr($to, -13))) {
+                $to = \substr($to, 0, -13) . '(object)[]';
+            } else if ('new stdclass' === \strtolower(\substr($to, -12))) {
+                $to = \substr($to, 0, -12) . '(object)[]';
             }
             $to = \trim($to) . $v;
         }

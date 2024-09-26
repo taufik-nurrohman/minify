@@ -2,6 +2,14 @@
 
 return [
     ( asdf ) $asdf,
+    ( asdf ) 1,
+    ( binary ) "asdf",
+    ( binary ) $asdf,
+    ( binary ) 'asdf',
+    ( bool ) $asdf,
+    ( bool ) 1,
+    ( boolean ) 1,
+    ( double ) 1,
     ( float ) $asdf,
     ( float ) 0,
     ( float ) 1,
@@ -9,4 +17,6 @@ return [
     ( int ) 0.0,
     ( int ) 1.0,
     ( string ) $asdf,
+    ( string ) 1,
+    ( string ) 1.0,
 ];
