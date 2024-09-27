@@ -1,5 +1,7 @@
 <?php
 
+// TODO: Minify `array()` syntax
+
 namespace x\minify {
     function p_h_p(?string $from): ?string {
         if ("" === ($from = \trim($from ?? ""))) {
@@ -8,6 +10,9 @@ namespace x\minify {
         $count = \count($tokens = \token_get_all($from));
         $to = "";
         foreach ($tokens as $k => $v) {
+            if ('stdclass' === \strtolower(\substr($to, -8)) && \preg_match('/\bnew \\\\?stdclass$/i', $to, $m)) {
+                $to = \trim(\substr($to, 0, -\strlen($m[0]))) . '(object)[]';
+            }
             if (\is_array($v)) {
                 if ('_CAST' === \substr(\token_name($v[0]), -5)) {
                     $test = \trim(\substr($v[1], 1, -1));
@@ -21,7 +26,6 @@ namespace x\minify {
                     $to .= '(' . $test . ')';
                     continue;
                 }
-                // echo \token_name($v[0]) . '<br/>' . \htmlspecialchars(\json_encode($v[1])) . '<br/><br/>';
                 if (\T_CLOSE_TAG === $v[0]) {
                     if ($k === $count - 1) {
                         $to = \trim($to, ';') . ';';
@@ -76,6 +80,10 @@ namespace x\minify {
                 }
                 if (\T_END_HEREDOC === $v[0]) {
                     $to .= 'S';
+                    continue;
+                }
+                if (\T_INLINE_HTML === $v[0] || \T_OPEN_TAG_WITH_ECHO === $v[0]) {
+                    $to .= $v[1];
                     continue;
                 }
                 if (\T_LNUMBER === $v[0]) {
@@ -136,21 +144,28 @@ namespace x\minify {
                     }
                     continue;
                 }
-                if (false !== \strpos('!%&*+-./<=>?|', $v[1][0])) {
+                if (false !== \strpos('!%&*+-./<=>?|~', $v[1][0])) {
                     $to = \trim($to);
                 }
                 $to .= $v[1];
                 continue;
             }
-            // echo \htmlspecialchars(\json_encode($v)) . '<br/><br/>';
-            if (false !== \strpos(')]', $v)) {
+            if (')' === $v) {
+                if ('array(' === \substr($to, -6)) {
+                    $to = \trim(\substr($to, 0, -6)) . '[]';
+                    continue;
+                }
+                // Case of `new stdclass()` → `(object)[]()`
+                if ('(object)[](' === \substr($to, -11)) {
+                    $to = \substr($to, 0, -1);
+                    continue;
+                }
                 $to = \trim(\trim($to, ',')) . $v;
                 continue;
             }
-            if ('new \stdclass' === \strtolower(\substr($to, -13))) {
-                $to = \substr($to, 0, -13) . '(object)[]';
-            } else if ('new stdclass' === \strtolower(\substr($to, -12))) {
-                $to = \substr($to, 0, -12) . '(object)[]';
+            if (']' === $v) {
+                $to = \trim(\trim($to, ',')) . $v;
+                continue;
             }
             $to = \trim($to) . $v;
         }
