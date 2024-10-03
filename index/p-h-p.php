@@ -7,23 +7,23 @@ namespace x\minify {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
-        $count = \count($tokens = \token_get_all($from));
+        $count = \count($lot = \token_get_all($from));
         $to = "";
-        foreach ($tokens as $k => $v) {
+        foreach ($lot as $k => $v) {
             if ('stdclass' === \strtolower(\substr($to, -8)) && \preg_match('/\bnew \\\\?stdclass$/i', $to, $m)) {
                 $to = \trim(\substr($to, 0, -\strlen($m[0]))) . '(object)[]';
             }
             if (\is_array($v)) {
                 if ('_CAST' === \substr(\token_name($v[0]), -5)) {
-                    $test = \trim(\substr($v[1], 1, -1));
-                    if ('boolean' === $test) {
-                        $test = 'bool';
-                    } else if ('double' === $test || 'real' === $test) {
-                        $test = 'float';
-                    } else if ('integer' === $test) {
-                        $test = 'int';
+                    $cast = \trim(\substr($v[1], 1, -1));
+                    if ('boolean' === $cast) {
+                        $cast = 'bool';
+                    } else if ('double' === $cast || 'real' === $cast) {
+                        $cast = 'float';
+                    } else if ('integer' === $cast) {
+                        $cast = 'int';
                     }
-                    $to .= '(' . $test . ')';
+                    $to .= '(' . $cast . ')';
                     continue;
                 }
                 if (\T_CLOSE_TAG === $v[0]) {
@@ -31,7 +31,7 @@ namespace x\minify {
                         $to = \trim($to, ';') . ';';
                         continue;
                     }
-                    // <https://www.php.net/manual/en/language.basic-syntax.instruction-separation.php>
+                    // <https://www.php.net/language.basic-syntax.instruction-separation>
                     $to = \trim(\trim($to, ';')) . $v[1];
                     continue;
                 }
@@ -69,7 +69,7 @@ namespace x\minify {
                     continue;
                 }
                 if (\T_ECHO === $v[0] || \T_PRINT === $v[0]) {
-                    if ('<?' . 'php ' === \substr($to, -6)) {
+                    if ('<?php ' === \substr($to, -6)) {
                         // Replace `<?php echo` with `<?=`
                         $to = \substr($to, 0, -4) . '=';
                         continue;
@@ -78,11 +78,20 @@ namespace x\minify {
                     $to .= 'echo ';
                     continue;
                 }
+                if (\T_ENCAPSED_AND_WHITESPACE === $v[0]) {
+                    // `asdf { $asdf } asdf`
+                    if ('}' === (\trim($v[1])[0] ?? 0) && false !== ($test = \strrchr($to, '{'))) {
+                        $to = \substr($to, 0, -\strlen($test)) . '{' . \trim(\substr($test, 1)) . \trim($v[1]);
+                        continue;
+                    }
+                    $to .= $v[1] . (false !== \strpos(" \n\r\t", \substr($v[1], -1)) ? "\x1a" : "");
+                    continue;
+                }
                 if (\T_END_HEREDOC === $v[0]) {
                     $to .= 'S';
                     continue;
                 }
-                if (\T_INLINE_HTML === $v[0] || \T_OPEN_TAG_WITH_ECHO === $v[0]) {
+                if (\T_INLINE_HTML === $v[0]) {
                     $to .= $v[1];
                     continue;
                 }
@@ -125,10 +134,6 @@ namespace x\minify {
                     }
                     continue;
                 }
-                if (\T_WHITESPACE === $v[0]) {
-                    $to .= false !== \strpos(' "/!#%&()*+,-.:;<=>?@[\]^`{|}~' . "'", \substr($to, -1)) ? "" : ' ';
-                    continue;
-                }
                 // <https://stackoverflow.com/a/16606419/1163000>
                 if (\T_VARIABLE === $v[0]) {
                     if ('(bool)' === \substr($to, -6)) {
@@ -139,23 +144,40 @@ namespace x\minify {
                         $to = \substr($to, 0, -5) . $v[1] . '+0';
                     } else if ('(string)' === \substr($to, -8)) {
                         $to = \substr($to, 0, -8) . $v[1] . '.""';
+                    } else if ("\x1a" === \substr($to, -1)) {
+                        $to = \substr($to, 0, -1) . $v[1];
                     } else {
-                        $to = \trim($to) . $v[1];
+                        if ('<?php ' === \substr($to, -6)) {
+                            $to .= $v[1];
+                        } else {
+                            $to = \trim($to) . $v[1];
+                        }
                     }
                     continue;
                 }
+                if (\T_WHITESPACE === $v[0]) {
+                    $to .= false !== \strpos(' "/!#%&()*+,-.:;<=>?@[\]^`{|}~' . "'", \substr($to, -1)) ? "" : ' ';
+                    continue;
+                }
+                // Math operator(s)
                 if (false !== \strpos('!%&*+-./<=>?|~', $v[1][0])) {
-                    $to = \trim($to);
+                    $to = \trim($to) . $v[1];
+                    continue;
                 }
                 $to .= $v[1];
                 continue;
             }
-            if (')' === $v) {
+            if (false !== \strpos('([', $v)) {
+                $to = \trim($to) . $v;
+                continue;
+            }
+            if (false !== \strpos(')]', $v)) {
+                // `array()` to `[]`
                 if ('array(' === \substr($to, -6)) {
-                    $to = \trim(\substr($to, 0, -6)) . '[]';
+                    $to = \substr($to, 0, -6) . '[]';
                     continue;
                 }
-                // Case of `new stdclass()` → `(object)[]()`
+                // `new stdclass()` to `(object)[]()` to `(object)[]`
                 if ('(object)[](' === \substr($to, -11)) {
                     $to = \substr($to, 0, -1);
                     continue;
@@ -163,12 +185,8 @@ namespace x\minify {
                 $to = \trim(\trim($to, ',')) . $v;
                 continue;
             }
-            if (']' === $v) {
-                $to = \trim(\trim($to, ',')) . $v;
-                continue;
-            }
             $to = \trim($to) . $v;
         }
-        return "" !== ($to = \trim($to)) ? $to : null;
+        return "" !== ($to = \trim(\strtr($to, ["\x1a" => ""]))) ? $to : null;
     }
 }

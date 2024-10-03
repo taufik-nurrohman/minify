@@ -1,19 +1,24 @@
 <?php
 
+$asdf = "asdf asdf ' $asdf ' asdf";
+$asdf = "asdf asdf { $asdf } asdf";
+$asdf = 'asdf asdf " $asdf " asdf';
+$asdf = 'asdf asdf { $asdf } asdf';
+
 $asdf = <<<TEXT
-asdf
-asdf
-asdf
+asdf asdf " $asdf " asdf
+asdf asdf { $asdf } asdf
+asdf asdf asdf asdf asdf
 TEXT;
 
 $asdf = <<<"TEXT"
-asdf
-asdf
-asdf
+asdf asdf " $asdf " asdf
+asdf asdf { $asdf } asdf
+asdf asdf asdf asdf asdf
 TEXT;
 
 $asdf = <<<'TEXT'
-asdf
-asdf
-asdf
+asdf asdf " $asdf " asdf
+asdf asdf { $asdf } asdf
+asdf asdf asdf asdf asdf
 TEXT;
