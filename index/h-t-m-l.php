@@ -72,10 +72,10 @@ namespace x\minify {
             if ($n = \strspn($chop, $c2)) {
                 $r = \substr($from, 0, $n);
                 $from = \substr($from, $n);
-                // `</asdf>  asdf`
+                // `</asdf>…`
                 if ('>' === \substr($to, -1) && '/' === \substr(\strrchr($to, '<'), 1, 1)) {
-                    if (' ' === $r && '<' !== ($from[0] ?? 0)) { // TODO
-                        $to .= $r;
+                    if (' ' === $r && '</' !== \substr($from, 0, 2)) {
+                        $to .= $r; // Keep space after close tag if it is a space and is not followed by close tag
                     }
                     continue;
                 }
