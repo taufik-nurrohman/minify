@@ -100,12 +100,12 @@ namespace x\minify {
                 }
                 // `<asdf>…`
                 if ('>' === \substr($to, -1) && '/' !== \substr(\strrchr($to, '<'), 1, 1)) {
-                    continue;
+                    continue; // Always remove space(s) after open tag
                 }
                 // `…<asdf>`
                 if ('<' === ($from[0] ?? 0) && '/' !== ($from[1] ?? 0) && \strpos($from, '>') > 2) {
                     if (' ' !== $r) {
-                        continue;
+                        continue; // Remove space(s) before open tag if it is not a space
                     }
                 }
                 // `…`
