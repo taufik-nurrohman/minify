@@ -10,6 +10,7 @@ namespace x\minify {
         $r1 = '"[^"]+"';
         $r2 = "'[^']+'";
         $r3 = $r1 . '|' . $r2;
+        $r4 = '<(?>' . $r3 . '|[^>])++>';
         $to = "";
         while (false !== ($chop = \strpbrk($from, $c1 . $c2))) {
             if ("" !== ($v = \strstr($from, $c = $chop[0], true))) {
@@ -32,7 +33,7 @@ namespace x\minify {
                     $to .= $v;
                     continue;
                 }
-                if (\preg_match('/^<(?>' . $r3 . '|[^>])++>/', $chop, $m)) {
+                if (\preg_match('/^' . $r4 . '/', $chop, $m)) {
                     $from = \trim(\substr($from, \strlen($m[0])));
                     $to = \trim($to);
                     // <https://www.w3.org/TR/xml#dt-etag>
