@@ -7,10 +7,9 @@ namespace x\minify {
         }
         $c1 = '<&';
         $c2 = " \n\r\t";
-        $r1 = '"[^"]+"';
-        $r2 = "'[^']+'";
+        $r1 = '"[^"]*"';
+        $r2 = "'[^']*'";
         $r3 = $r1 . '|' . $r2;
-        $r4 = '<(?>' . $r3 . '|[^>])++>';
         $to = "";
         while (false !== ($chop = \strpbrk($from, $c1 . $c2))) {
             if ("" !== ($v = \strstr($from, $c = $chop[0], true))) {
@@ -33,7 +32,7 @@ namespace x\minify {
                     $to .= $v;
                     continue;
                 }
-                if (\preg_match('/^' . $r4 . '/', $chop, $m)) {
+                if (\preg_match('/^<(?>' . $r3 . '|[^>])++>/', $chop, $m)) {
                     $from = \substr($from, \strlen($m[0]));
                     foreach (\preg_split('/(' . $r3 . '|\s+)/', $m[0], -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
                         if (false !== \strpos('"\'', $v[0]) && false !== \strpos($v, '&')) {
@@ -72,43 +71,42 @@ namespace x\minify {
             if ($n = \strspn($chop, $c2)) {
                 $r = \substr($from, 0, $n);
                 $from = \substr($from, $n);
-                // `</asdf>…`
-                if ('>' === \substr($to, -1) && '/' === \substr(\strrchr($to, '<'), 1, 1)) {
-                    if (' ' === $r && '</' !== \substr($from, 0, 2)) {
-                        $to .= $r; // Keep space after close tag if it is a space and is not followed by close tag
+                if ('>' === \substr($to, -1) && ($v = \strrchr($to, '<'))) {
+                    // Previous is close tag
+                    if ('/' === ($v[1] ?? 0) && false === \strpos($v, '"') && false === \strpos($v, "'")) {
+                        if (' ' === $r) {
+                            // Next is close tag
+                            if ('</' === \substr($from, 0, 2)) {
+                                continue;
+                            }
+                            $to .= $r;
+                        }
+                        continue;
                     }
-                    continue;
-                }
-                // `<asdf> `
-                if ('<' === ($to[0] ?? 0) && '/' !== ($to[1] ?? 0) && '>' === \substr($to, -1)) {
-                    if (' ' === $r && (
-                        // `<asdf/> `
-                        '/>' === \substr($to, -2) ||
-                        // `<asdf> </asdf>`
-                        '</' === \substr($from, 0, 2) && \substr(\strtok(\strrchr($to, '<'), $c2 . '>'), 1) === \substr(\strtok($from, $c2 . '>'), 2)
-                    )) {
+                    // Previous is void tag
+                    if ('/' === \substr($v, -2, 1)) {
+                        if (' ' === $r) {
+                            $to .= $r;
+                        }
+                        continue;
+                    }
+                    // Previous is open tag, next is close tag of the open tag
+                    if (' ' === $r && \substr(\strtok($v, $c2 . '>'), 1) === \substr(\strtok($from, $c2 . '>'), 2)) {
                         $to .= $r;
                     }
+                    // Previous is open tag
                     continue;
                 }
-                // ` </asdf>`
-                if ('</' === \substr($from, 0, 2) && \strpos($from, '>') > 2) {
-                    if (' ' === $r && '>' === \substr($to, -1) && \substr(\strtok(\strrchr($to, '<'), $c2 . '>'), 1) === \substr(\strtok($from, $c2 . '>'), 2)) {
-                        $to .= $r;
+                if ('<' === ($from[0] ?? 0) && \strpos($from, '>') > 1) {
+                    // Next is close tag
+                    if ('/' === ($from[1] ?? 0)) {
+                        continue;
                     }
-                    continue;
-                }
-                // `<asdf>…`
-                if ('>' === \substr($to, -1) && '/' !== \substr(\strrchr($to, '<'), 1, 1)) {
-                    continue; // Always remove space(s) after open tag
-                }
-                // `…<asdf>`
-                if ('<' === ($from[0] ?? 0) && '/' !== ($from[1] ?? 0) && \strpos($from, '>') > 2) {
+                    // Next is open tag
                     if (' ' !== $r) {
-                        continue; // Remove space(s) before open tag if it is not a space
+                        continue;
                     }
                 }
-                // `…`
                 $to .= ' ';
                 continue;
             }
