@@ -103,8 +103,8 @@ namespace x\minify {
                 // `/*…*/`
                 if ('*' === $test && \preg_match('/^\/\*[^*]*\*+([^\/*][^*]*\*+)*\//', $chop, $m)) {
                     $from = \substr($from, \strlen($m[0]));
-                    // `/*!…*/` or `/**…*/`
-                    if (false !== \strpos('!*', $m[0][2])) {
+                    // `/*!…*/` or `/**…*/` or <https://en.wikipedia.org/wiki/Conditional_comment>
+                    if (false !== \strpos('!*', $m[0][2]) || false !== \strpos($m[0], '@cc_on')) {
                         if (false !== \strpos($m[0], "\n")) {
                             $to .= '/*' . \substr($m[0], 3);
                         } else {
