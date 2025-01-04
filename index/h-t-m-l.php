@@ -47,7 +47,7 @@ namespace x\minify {
                 if (\preg_match('/^<(?>' . $r3 . '|[^>])++>/', $chop, $m)) {
                     $from = \substr($from, \strlen($m[0]));
                     $q = \substr(\strtok($m[0], $c2 . '>'), 1);
-                    foreach (\preg_split('/(' . $r3 . '|\s+)/', $m[0], -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+                    foreach (\preg_split('/(' . $r3 . '|[!\/<=>?]|\s+)/', $m[0], -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
                         $f = \ENT_HTML5 | \ENT_QUOTES;
                         if (' style=' === \substr($to, -7) && $x_minify_c_s_s) {
                             if (false !== \strpos('"\'', $v[0])) {
@@ -62,6 +62,43 @@ namespace x\minify {
                                 $v = \rtrim(\htmlspecialchars(\x\minify\j_s(\htmlspecialchars_decode($v, $f)), $f), ';');
                             }
                         }
+                        // <https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#boolean-attributes>
+                        if ('=' === \substr($to, -1)) {
+                            $attr = [
+                                'allowfullscreen',
+                                'allowpaymentrequest',
+                                'async',
+                                'autofocus',
+                                'autoplay',
+                                'checked',
+                                'controls',
+                                'default',
+                                'defer',
+                                'disabled',
+                                'formnovalidate',
+                                'hidden',
+                                'ismap',
+                                'itemscope',
+                                'loop',
+                                'multiple',
+                                'muted',
+                                'nomodule',
+                                'novalidate',
+                                'open',
+                                'playsinline',
+                                'readonly',
+                                'required',
+                                'reversed',
+                                'selected',
+                                'truespeed'
+                            ];
+                            while ($k = \array_pop($attr)) {
+                                if (' ' . $k . '=' === \substr($to, -(\strlen($k) + 2)) && ("''" === $v || '""' === $v || "'" . $k . "'" === $v || '"' . $k . '"' === $v || $k === $v)) {
+                                    $to = \substr($to, 0, -1);
+                                    continue 2;
+                                }
+                            }
+                        }
                         if (false !== \strpos('"\'', $v[0]) && false !== \strpos($v, '&')) {
                             // <https://html.spec.whatwg.org/multipage/syntax.html#character-references>
                             $v = \preg_replace_callback('/&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', static function ($m) use ($f, $v) {
@@ -72,14 +109,13 @@ namespace x\minify {
                                 return $test;
                             }, $v);
                         }
+                        if (false !== \strpos('/>?', $v)) {
+                            $to = \rtrim($to) . $v;
+                            continue;
+                        }
                         $to .= "" === ($v = \trim($v)) ? ' ' : $v;
                     }
-                    if ('/>' === \substr($to, -2)) {
-                        $to = \trim(\substr($to, 0, -2)) . '/>';
-                    } else if ('?>' === \substr($to, -2)) {
-                        $to = \trim(\substr($to, 0, -2)) . '?>';
-                    } else {
-                        $to = \trim(\substr($to, 0, -1)) . '>';
+                    if (false === \strpos('/?', \substr($to, -2, 1))) {
                         if (false !== \strpos(',pre,script,style,svg,textarea,', ',' . $q . ',') && false !== ($n = \strpos($from, '</' . $q . '>'))) {
                             $content = \substr($from, 0, $n);
                             // <https://html.spec.whatwg.org/multipage/scripting.html#attr-script-type>
@@ -159,6 +195,10 @@ namespace x\minify {
                         if (false !== \strpos(',br,hr,wbr,', ',' . \substr(\strtok($v, $c2 . '>/'), 1) . ',')) {
                             continue;
                         }
+                        // Next is close tag
+                        if ('</' === \substr($from, 0, 2)) {
+                            continue;
+                        }
                         if (' ' === $r) {
                             $to .= $r;
                         }
@@ -170,6 +210,10 @@ namespace x\minify {
                     }
                     // Previous is `<img>`, or `<input>` tag
                     if (' ' === $r && false !== \strpos(',img,input,', ',' . \substr(\strtok($v, $c2 . '>'), 1) . ',')) {
+                        // Next is close tag
+                        if ('</' === \substr($from, 0, 2)) {
+                            continue;
+                        }
                         $to .= $r;
                     }
                     // Previous is open tag
