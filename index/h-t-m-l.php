@@ -93,7 +93,7 @@ namespace x\minify {
                                 'truespeed'
                             ];
                             while ($k = \array_pop($attr)) {
-                                if (' ' . $k . '=' === \substr($to, -(\strlen($k) + 2)) && ("''" === $v || '""' === $v || "'" . $k . "'" === $v || '"' . $k . '"' === $v || $k === $v)) {
+                                if (' ' . $k . '=' === \substr($to, -(\strlen($k) + 2)) && ("''" === $v || '""' === $v || "'" . $k . "'" === $v || '"' . $k . '"' === $v || $k === $v || false !== \strpos($c2 . '/>', $v))) {
                                     $to = \substr($to, 0, -1);
                                     continue 2;
                                 }

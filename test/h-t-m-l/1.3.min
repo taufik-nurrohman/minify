@@ -1,0 +1,1 @@
+keep space in element if it is the only space <asdf> </asdf>drop space(s) in element if it is not the only space <asdf></asdf>drop space in element if it is not a space <asdf></asdf>
