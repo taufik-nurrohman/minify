@@ -1,0 +1,1 @@
+for(;;){asdf(1,2,[!0,NaN],{asdf:1,asdf:2,asdf:!1});asdf()}

@@ -1,0 +1,3 @@
+<?php require'enter.php'?>
+<p>Remove the last <code>?&gt;</code>.</p>
+<?php require'exit.php';

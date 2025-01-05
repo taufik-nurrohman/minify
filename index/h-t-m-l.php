@@ -29,7 +29,7 @@ namespace x\minify {
                     $from = \substr($from, \strlen($v = \substr($chop, 0, $n + 3)));
                     // <https://en.wikipedia.org/wiki/Conditional_comment>
                     if ('<![endif]-->' === \substr($v, -12)) {
-                        $to .= $v;
+                        $to .= \substr($v, 0, $n = \strpos($v, '>') + 1) . \x\minify\h_t_m_l(\substr($v, $n, -12)) . \substr($v, -12);
                         continue;
                     }
                     if (' ' === \substr($to, -1) && '-->') {
@@ -181,11 +181,7 @@ namespace x\minify {
                     // Previous is close tag
                     if ('/' === ($v[1] ?? 0) && false === \strpos($v, '"') && false === \strpos($v, "'")) {
                         if (' ' === $r) {
-                            // Next is close tag
-                            if ('</' === \substr($from, 0, 2)) {
-                                continue;
-                            }
-                            $to .= $r;
+                            $to .= '</' === \substr($from, 0, 2) ? "" : $r;
                         }
                         continue;
                     }
@@ -195,12 +191,8 @@ namespace x\minify {
                         if (false !== \strpos(',br,hr,wbr,', ',' . \substr(\strtok($v, $c2 . '>/'), 1) . ',')) {
                             continue;
                         }
-                        // Next is close tag
-                        if ('</' === \substr($from, 0, 2)) {
-                            continue;
-                        }
                         if (' ' === $r) {
-                            $to .= $r;
+                            $to .= '</' === \substr($from, 0, 2) ? "" : $r;
                         }
                         continue;
                     }
@@ -210,11 +202,7 @@ namespace x\minify {
                     }
                     // Previous is `<img>`, or `<input>` tag
                     if (' ' === $r && false !== \strpos(',img,input,', ',' . \substr(\strtok($v, $c2 . '>'), 1) . ',')) {
-                        // Next is close tag
-                        if ('</' === \substr($from, 0, 2)) {
-                            continue;
-                        }
-                        $to .= $r;
+                        $to .= '</' === \substr($from, 0, 2) ? "" : $r;
                     }
                     // Previous is open tag
                     continue;

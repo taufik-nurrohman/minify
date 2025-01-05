@@ -1,0 +1,1 @@
+keep space before open tag if it is the only space <asdf>drop space(s) before open tag if it is not the only space<asdf>keep space before void tag if it is the only space <asdf/>drop space(s) before void tag if it is not the only space<asdf/>drop space before close tag</asdf>drop space(s) before close tag</asdf>

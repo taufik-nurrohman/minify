@@ -1,0 +1,1 @@
+asdf :asdf{/*keep space before pseudo selector*/}asdf :asdf{/*convert space(s) to a space before pseudo selector*/}asdf:asdf{asdf:asdf}asdf+:asdf{asdf:asdf}

@@ -1,0 +1,11 @@
+<?php $asdf="asdf asdf ' $asdf ' asdf";$asdf="asdf asdf {$asdf} asdf";$asdf='asdf asdf " $asdf " asdf';$asdf='asdf asdf { $asdf } asdf';$asdf=<<<S
+asdf asdf " $asdf " asdf
+asdf asdf {$asdf} asdf
+asdf asdf asdf asdf asdfS;$asdf=<<<S
+asdf asdf " $asdf " asdf
+asdf asdf {$asdf} asdf
+asdf asdf asdf asdf asdfS;$asdf=<<<'S'
+asdf asdf " $asdf " asdf
+asdf asdf { $asdf } asdf
+asdf asdf asdf asdf asdf
+S;
