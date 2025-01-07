@@ -79,6 +79,7 @@ namespace x\minify {
                     continue;
                 }
                 if (\T_ENCAPSED_AND_WHITESPACE === $v[0]) {
+                    $v[1] = \strtr($v[1], ["S\n" => "\\x53\n"]);
                     // `asdf { $asdf } asdf`
                     if ('}' === (\trim($v[1])[0] ?? 0) && false !== ($test = \strrchr($to, '{'))) {
                         $to = \substr($to, 0, -\strlen($test)) . '{' . \trim(\substr($test, 1)) . \trim($v[1]);

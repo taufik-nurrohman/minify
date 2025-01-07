@@ -1,25 +1,25 @@
 <?php
 
-$asdf = <<<S
+$asdf = <<<TEXT
 S
-S;
+TEXT;
 
-$asdf = <<<S
+$asdf = <<<TEXT
   S
-  S;
+  TEXT;
 
-$asdf = <<<S
+$asdf = <<<TEXT
   S
-S;
+TEXT;
 
-$asdf = <<<S
+$asdf = <<<TEXT
 SSS
-S;
+TEXT;
 
-$asdf = <<<S
+$asdf = <<<TEXT
   SSS
-  S;
+  TEXT;
 
-$asdf = <<<S
+$asdf = <<<TEXT
   SSS
-S;
+TEXT;

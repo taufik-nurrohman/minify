@@ -1,10 +1,13 @@
 <?php $asdf=<<<S
-S S;$asdf=<<<S
-S S;$asdf=<<<S
-S S;$asdf=<<<S
-SSS
+\x53
 S;$asdf=<<<S
-  SSS
+  \x53
 S;$asdf=<<<S
-  SSS
+  \x53
+S;$asdf=<<<S
+SS\x53
+S;$asdf=<<<S
+  SS\x53
+S;$asdf=<<<S
+  SS\x53
 S;

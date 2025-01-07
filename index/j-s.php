@@ -117,7 +117,13 @@ namespace x\minify {
                 }
                 // `//…`
                 if ('/' === $test) {
-                    $from = \substr($from, \strpos($chop . "\n", "\n") + 1);
+                    $n = \strpos($chop . "\n", "\n") + 1;
+                    if (false !== \strpos($v = \substr($from, 0, $n), '@cc_on')) {
+                        $from = \substr($from, $n);
+                        $to .= '//' . \trim(\substr($v, 2)) . "\n";
+                        continue;
+                    }
+                    $from = \substr($from, $n);
                     continue;
                 }
                 // `/…/i`

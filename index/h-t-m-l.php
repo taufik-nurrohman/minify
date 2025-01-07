@@ -164,7 +164,7 @@ namespace x\minify {
                 continue;
             }
             if ($n = \strspn($chop, $c2)) {
-                $r = \substr($from, 0, $n);
+                $w = \substr($from, 0, $n);
                 $from = \substr($from, $n);
                 if ('>' === \substr($to, -1) && ($v = \strrchr($to, '<'))) {
                     // Previous is comment or character data section
@@ -173,15 +173,15 @@ namespace x\minify {
                         if ('</' === \substr($from, 0, 2)) {
                             continue;
                         }
-                        if (false === \strpos($r, "\n")) {
+                        if (false === \strpos($w, "\n")) {
                             $to .= ' ';
                         }
                         continue;
                     }
                     // Previous is close tag
                     if ('/' === ($v[1] ?? 0) && false === \strpos($v, '"') && false === \strpos($v, "'")) {
-                        if (' ' === $r) {
-                            $to .= '</' === \substr($from, 0, 2) ? "" : $r;
+                        if (' ' === $w) {
+                            $to .= '</' === \substr($from, 0, 2) ? "" : $w;
                         }
                         continue;
                     }
@@ -191,18 +191,18 @@ namespace x\minify {
                         if (false !== \strpos(',br,hr,wbr,', ',' . \substr(\strtok($v, $c2 . '>/'), 1) . ',')) {
                             continue;
                         }
-                        if (' ' === $r) {
-                            $to .= '</' === \substr($from, 0, 2) ? "" : $r;
+                        if (' ' === $w) {
+                            $to .= '</' === \substr($from, 0, 2) ? "" : $w;
                         }
                         continue;
                     }
                     // Previous is open tag, next is close tag of the open tag
-                    if (' ' === $r && \substr(\strtok($v, $c2 . '>'), 1) === \substr(\strtok($from, $c2 . '>'), 2)) {
-                        $to .= $r;
+                    if (' ' === $w && \substr(\strtok($v, $c2 . '>'), 1) === \substr(\strtok($from, $c2 . '>'), 2)) {
+                        $to .= $w;
                     }
                     // Previous is `<img>`, or `<input>` tag
-                    if (' ' === $r && false !== \strpos(',img,input,', ',' . \substr(\strtok($v, $c2 . '>'), 1) . ',')) {
-                        $to .= '</' === \substr($from, 0, 2) ? "" : $r;
+                    if (' ' === $w && false !== \strpos(',img,input,', ',' . \substr(\strtok($v, $c2 . '>'), 1) . ',')) {
+                        $to .= '</' === \substr($from, 0, 2) ? "" : $w;
                     }
                     // Previous is open tag
                     continue;
@@ -213,7 +213,7 @@ namespace x\minify {
                         continue;
                     }
                     // Next is open tag
-                    if (' ' !== $r) {
+                    if (' ' !== $w) {
                         // Next is comment or character data section
                         if ('<!--' === \substr($from, 0, 4) || '<![CDATA[' === \substr($from, 0, 9)) {
                             $to .= ' ';
