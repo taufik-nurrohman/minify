@@ -1,0 +1,1 @@
+<?php switch($asdf){case!123:break;case 1234:break;case!0:break;}foreach($asdf as$k=>$v){$asdf+=1;}foreach(asdf()as$k=>$v){$asdf+=1;}

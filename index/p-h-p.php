@@ -53,9 +53,11 @@ namespace x\minify {
                     continue;
                 }
                 if (\T_DNUMBER === $v[0]) {
-                    $test = \rtrim(\trim(\strtr($v[1], ['_' => ""]), '0'), '.');
+                    $test = \strtolower(\rtrim(\trim(\strtr($v[1], ['_' => ""]), '0'), '.'));
                     if (false === \strpos($test = "" !== $test ? $test : '0', '.')) {
-                        $test .= '.0';
+                        if (false === \strpos($test, 'e')) {
+                            $test .= '.0';
+                        }
                     }
                     if ('(int)' === \substr($to, -5)) {
                         $to = \substr($to, 0, -5) . \var_export((int) $test, true);
@@ -97,7 +99,7 @@ namespace x\minify {
                     continue;
                 }
                 if (\T_LNUMBER === $v[0]) {
-                    $test = \ltrim(\strtr($v[1], ['_' => ""]), '0');
+                    $test = \strtolower(\ltrim(\strtr($v[1], ['_' => ""]), '0'));
                     if ('(float)' === \substr($to, -7)) {
                         $to = \substr($to, 0, -7) . \var_export((float) $test, true);
                         continue;
@@ -112,6 +114,10 @@ namespace x\minify {
                 }
                 if (\T_OPEN_TAG === $v[0]) {
                     $to .= \trim($v[1]) . ' ';
+                    continue;
+                }
+                if (\T_OPEN_TAG_WITH_ECHO === $v[0]) {
+                    $to .= $v[1];
                     continue;
                 }
                 if (\T_START_HEREDOC === $v[0]) {

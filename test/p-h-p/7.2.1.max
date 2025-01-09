@@ -1,0 +1,7 @@
+<?php
+
+#[asdf]
+function asdf() {}
+
+# [asdf]
+function asdf() {}

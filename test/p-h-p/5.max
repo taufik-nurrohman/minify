@@ -1,0 +1,15 @@
+<?php
+
+switch ( $asdf ) {
+    case !123: break;
+    case 1234: break;
+    case true: break;
+}
+
+foreach ( $asdf as $k => $v ) {
+    $asdf += 1;
+}
+
+foreach ( asdf ( ) as $k => $v ) {
+    $asdf += 1;
+}

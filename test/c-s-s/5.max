@@ -1,4 +1,4 @@
-/* TODO: drop empty selector(s) */
+/* drop empty selector(s) */
 asdf-1 {}
 asdf-2 {/* asdf */}
 asdf-3 {/** asdf */}
