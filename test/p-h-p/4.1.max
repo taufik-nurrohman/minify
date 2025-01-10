@@ -6,6 +6,10 @@ return [
     array ( 1 , array ( 1 , 2 , '3 , 4 , )' , ) , ) ,
 ];
 
+function asdf ( array $asdf = array ( 1 , array (' array ( 1 , 2 , 3 , )') , true, 123 ), array | int $asdf = [ 1 , 2 , array ( "" ) ] ): ? array {
+    return [ array ( $asdf , ( array ) $asdf ) ] ;
+}
+
 return [
     new \stdClass ( ) ,
     new \stdClass ,
