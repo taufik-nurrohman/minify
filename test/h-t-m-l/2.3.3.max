@@ -1,5 +1,11 @@
-<asdf class=" a asdf s asdf  asdf
+<asdf
 
-asdf d
+onmousedown="return onMouseDown.call( this , 1 ) , false ;"
 
-asdf f "></asdf>
+onmousemove="return onMouseMove.call(this , 2 ) , false ;"
+
+onmouseup="return onMouseUp.call(this , 3 ) , false ;"
+
+>
+
+</asdf>
