@@ -1,1 +1,1 @@
-<?php #[asdf]function asdf(){}function asdf(){}
+<?php #[asdf([NAN,!0,[1,2,3]])]function asdf(){}function asdf(){}

@@ -1,7 +1,7 @@
 <?php
 
-#[asdf]
+#[ asdf ( array ( NAN , true , [ 1 , 2 , 3 , ] , ) , ) ]
 function asdf() {}
 
-# [asdf]
+# [ asdf ]
 function asdf() {}
