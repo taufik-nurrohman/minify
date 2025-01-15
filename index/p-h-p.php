@@ -9,6 +9,7 @@ namespace x\minify {
         $in_array = $is_array = 0;
         $to = "";
         foreach ($lot as $k => $v) {
+            $start = '<?php ' === \substr($to, -6);
             if ('stdclass' === \strtolower(\substr($to, -8)) && \preg_match('/\bnew \\\\?stdclass$/i', $to, $m)) {
                 $to = \trim(\substr($to, 0, -\strlen($m[0]))) . '(object)[]';
             }
@@ -81,7 +82,10 @@ namespace x\minify {
                     if ('(string)' === \substr($to, -8)) {
                         $to = \substr($to, 0, -8);
                     }
-                    $to = \trim($to) . $v[1];
+                    if (!$start) {
+                        $to = \trim($to);
+                    }
+                    $to .= $v[1];
                     continue;
                 }
                 if (\T_DNUMBER === $v[0]) {
@@ -103,7 +107,7 @@ namespace x\minify {
                     continue;
                 }
                 if (\T_ECHO === $v[0] || \T_PRINT === $v[0]) {
-                    if ('<?php ' === \substr($to, -6)) {
+                    if ($start) {
                         // Replace `<?php echo` with `<?=`
                         $to = \substr($to, 0, -4) . '=';
                         continue;
@@ -166,14 +170,20 @@ namespace x\minify {
                         if ('!!' === \substr($to, -2)) {
                             $to = \substr($to, 0, -2);
                         }
-                        $to = \trim($to) . '!1';
+                        if (!$start) {
+                            $to = \trim($to);
+                        }
+                        $to .= '!1';
                     } else if ('null' === $test) {
                         $to .= $test;
                     } else if ('true' === $test) {
                         if ('!!' === \substr($to, -2)) {
                             $to = \substr($to, 0, -2);
                         }
-                        $to = \trim($to) . '!0';
+                        if (!$start) {
+                            $to = \trim($to);
+                        }
+                        $to .= '!0';
                     } else {
                         $to .= $v[1];
                     }
@@ -190,11 +200,10 @@ namespace x\minify {
                     } else if ("\x1a" === \substr($to, -1)) {
                         $to = \substr($to, 0, -1) . $v[1];
                     } else {
-                        if ('<?php ' === \substr($to, -6)) {
-                            $to .= $v[1];
-                        } else {
-                            $to = \trim($to) . $v[1];
+                        if (!$start) {
+                            $to = \trim($to);
                         }
+                        $to .= $v[1];
                     }
                     continue;
                 }
@@ -204,7 +213,10 @@ namespace x\minify {
                 }
                 // Math operator(s)
                 if (false !== \strpos('!%&*+-./<=>?|~', $v[1][0])) {
-                    $to = \trim($to) . $v[1];
+                    if (!$start) {
+                        $to = \trim($to);
+                    }
+                    $to .= $v[1];
                     continue;
                 }
                 $to .= $v[1];
@@ -212,19 +224,29 @@ namespace x\minify {
             }
             if ($is_array && '(' === $v) {
                 $in_array += 1;
-                $to = \trim($to) . '[';
+                if (!$start) {
+                    $to = \trim($to);
+                }
+                $to .= '[';
                 continue;
             }
             if ($is_array && ')' === $v) {
                 if ($in_array === $is_array) {
                     $in_array -= 1;
                     $is_array -= 1;
-                    $to = \trim(\trim($to, ',')) . ']';
+                    $to = \trim($to, ',');
+                    if (!$start) {
+                        $to = \trim($to);
+                    }
+                    $to .= ']';
                     continue;
                 }
             }
             if (false !== \strpos('([', $v)) {
-                $to = \trim($to) . $v;
+                if (!$start) {
+                    $to = \trim($to);
+                }
+                $to .= $v;
                 continue;
             }
             if (false !== \strpos(')]', $v)) {
@@ -233,10 +255,17 @@ namespace x\minify {
                     $to = \substr($to, 0, -1);
                     continue;
                 }
-                $to = \trim(\trim($to, ',')) . $v;
+                $to = \trim($to, ',');
+                if (!$start) {
+                    $to = \trim($to);
+                }
+                $to .= $v;
                 continue;
             }
-            $to = \trim($to) . $v;
+            if (!$start) {
+                $to = \trim($to);
+            }
+            $to .= $v;
         }
         return "" !== ($to = \trim(\strtr($to, ["\x1a" => ""]))) ? $to : null;
     }

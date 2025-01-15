@@ -2,7 +2,9 @@
 
 return [
     ( asdf ) "asdf",
+    ( asdf ) $asdf(),
     ( asdf ) $asdf,
+    ( asdf ) $asdf[0],
     ( asdf ) 'asdf',
     ( asdf ) +1,
     ( asdf ) +1.0,
@@ -12,7 +14,9 @@ return [
     ( asdf ) 1.0,
     ( asdf ) [ 1 ],
     ( asdf ) array ( 1 ),
+    ( asdf ) asdf(),
     ( asdf ) asdf,
+    ( asdf ) asdf[0],
     ( asdf ) false,
     ( asdf ) new asdf,
     ( asdf ) null,
@@ -21,7 +25,9 @@ return [
 
 return [
     ( binary ) "asdf",
+    ( binary ) $asdf(0),
     ( binary ) $asdf,
+    ( binary ) $asdf[0],
     ( binary ) 'asdf',
     ( binary ) +1,
     ( binary ) +1.0,
@@ -31,7 +37,9 @@ return [
     ( binary ) 1.0,
     ( binary ) [ 1 ],
     ( binary ) array ( 1 ),
+    ( binary ) asdf(),
     ( binary ) asdf,
+    ( binary ) asdf[0],
     ( binary ) false,
     ( binary ) new asdf,
     ( binary ) null,
@@ -40,7 +48,9 @@ return [
 
 return [
     ( bool ) "asdf",
+    ( bool ) $asdf(),
     ( bool ) $asdf,
+    ( bool ) $asdf[0],
     ( bool ) 'asdf',
     ( bool ) +1,
     ( bool ) +1.0,
@@ -50,7 +60,9 @@ return [
     ( bool ) 1.0,
     ( bool ) [ 1 ],
     ( bool ) array ( 1 ),
+    ( bool ) asdf(),
     ( bool ) asdf,
+    ( bool ) asdf[0],
     ( bool ) false,
     ( bool ) new asdf,
     ( bool ) null,
@@ -59,7 +71,9 @@ return [
 
 return [
     ( boolean ) "asdf",
+    ( boolean ) $asdf(),
     ( boolean ) $asdf,
+    ( boolean ) $asdf[0],
     ( boolean ) 'asdf',
     ( boolean ) +1,
     ( boolean ) +1.0,
@@ -69,7 +83,9 @@ return [
     ( boolean ) 1.0,
     ( boolean ) [ 1 ],
     ( boolean ) array ( 1 ),
+    ( boolean ) asdf(),
     ( boolean ) asdf,
+    ( boolean ) asdf[0],
     ( boolean ) false,
     ( boolean ) new asdf,
     ( boolean ) null,
@@ -78,7 +94,9 @@ return [
 
 return [
     ( double ) "asdf",
+    ( double ) $asdf(),
     ( double ) $asdf,
+    ( double ) $asdf[0],
     ( double ) 'asdf',
     ( double ) +1,
     ( double ) +1.0,
@@ -88,7 +106,9 @@ return [
     ( double ) 1.0,
     ( double ) [ 1 ],
     ( double ) array ( 1 ),
+    ( double ) asdf(),
     ( double ) asdf,
+    ( double ) asdf[0],
     ( double ) false,
     ( double ) new asdf,
     ( double ) null,
@@ -97,7 +117,9 @@ return [
 
 return [
     ( float ) "asdf",
+    ( float ) $asdf(),
     ( float ) $asdf,
+    ( float ) $asdf[0],
     ( float ) 'asdf',
     ( float ) +1,
     ( float ) +1.0,
@@ -107,7 +129,9 @@ return [
     ( float ) 1.0,
     ( float ) [ 1 ],
     ( float ) array ( 1 ),
+    ( float ) asdf(),
     ( float ) asdf,
+    ( float ) asdf[0],
     ( float ) false,
     ( float ) new asdf,
     ( float ) null,
@@ -116,7 +140,9 @@ return [
 
 return [
     ( int ) "asdf",
+    ( int ) $asdf(),
     ( int ) $asdf,
+    ( int ) $asdf[0],
     ( int ) 'asdf',
     ( int ) +1,
     ( int ) +1.0,
@@ -126,7 +152,9 @@ return [
     ( int ) 1.0,
     ( int ) [ 1 ],
     ( int ) array ( 1 ),
+    ( int ) asdf(),
     ( int ) asdf,
+    ( int ) asdf[0],
     ( int ) false,
     ( int ) new asdf,
     ( int ) null,
@@ -135,7 +163,9 @@ return [
 
 return [
     ( real ) "asdf",
+    ( real ) $asdf(),
     ( real ) $asdf,
+    ( real ) $asdf[0],
     ( real ) 'asdf',
     ( real ) +1,
     ( real ) +1.0,
@@ -145,7 +175,9 @@ return [
     ( real ) 1.0,
     ( real ) [ 1 ],
     ( real ) array ( 1 ),
+    ( real ) asdf(),
     ( real ) asdf,
+    ( real ) asdf[0],
     ( real ) false,
     ( real ) new asdf,
     ( real ) null,
@@ -154,7 +186,9 @@ return [
 
 return [
     ( string ) "asdf",
+    ( string ) $asdf(),
     ( string ) $asdf,
+    ( string ) $asdf[0],
     ( string ) 'asdf',
     ( string ) +1,
     ( string ) +1.0,
@@ -164,7 +198,9 @@ return [
     ( string ) 1.0,
     ( string ) [ 1 ],
     ( string ) array ( 1 ),
+    ( string ) asdf(),
     ( string ) asdf,
+    ( string ) asdf[0],
     ( string ) false,
     ( string ) new asdf,
     ( string ) null,
