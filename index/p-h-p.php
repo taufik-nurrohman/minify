@@ -9,7 +9,7 @@ namespace x\minify {
         $in_array = $is_array = 0;
         $to = "";
         foreach ($lot as $k => $v) {
-            $start = '<?php ' === \substr($to, -6);
+            $open = '<?php ' === \substr($to, -6);
             if ('stdclass' === \strtolower(\substr($to, -8)) && \preg_match('/\bnew \\\\?stdclass$/i', $to, $m)) {
                 $to = \trim(\substr($to, 0, -\strlen($m[0]))) . '(object)[]';
             }
@@ -82,7 +82,7 @@ namespace x\minify {
                     if ('(string)' === \substr($to, -8)) {
                         $to = \substr($to, 0, -8);
                     }
-                    if (!$start) {
+                    if (!$open) {
                         $to = \trim($to);
                     }
                     $to .= $v[1];
@@ -107,7 +107,7 @@ namespace x\minify {
                     continue;
                 }
                 if (\T_ECHO === $v[0] || \T_PRINT === $v[0]) {
-                    if ($start) {
+                    if ($open) {
                         // Replace `<?php echo` with `<?=`
                         $to = \substr($to, 0, -4) . '=';
                         continue;
@@ -170,7 +170,7 @@ namespace x\minify {
                         if ('!!' === \substr($to, -2)) {
                             $to = \substr($to, 0, -2);
                         }
-                        if (!$start) {
+                        if (!$open) {
                             $to = \trim($to);
                         }
                         $to .= '!1';
@@ -180,7 +180,7 @@ namespace x\minify {
                         if ('!!' === \substr($to, -2)) {
                             $to = \substr($to, 0, -2);
                         }
-                        if (!$start) {
+                        if (!$open) {
                             $to = \trim($to);
                         }
                         $to .= '!0';
@@ -200,7 +200,7 @@ namespace x\minify {
                     } else if ("\x1a" === \substr($to, -1)) {
                         $to = \substr($to, 0, -1) . $v[1];
                     } else {
-                        if (!$start) {
+                        if (!$open) {
                             $to = \trim($to);
                         }
                         $to .= $v[1];
@@ -213,7 +213,7 @@ namespace x\minify {
                 }
                 // Math operator(s)
                 if (false !== \strpos('!%&*+-./<=>?|~', $v[1][0])) {
-                    if (!$start) {
+                    if (!$open) {
                         $to = \trim($to);
                     }
                     $to .= $v[1];
@@ -224,7 +224,7 @@ namespace x\minify {
             }
             if ($is_array && '(' === $v) {
                 $in_array += 1;
-                if (!$start) {
+                if (!$open) {
                     $to = \trim($to);
                 }
                 $to .= '[';
@@ -235,7 +235,7 @@ namespace x\minify {
                     $in_array -= 1;
                     $is_array -= 1;
                     $to = \trim($to, ',');
-                    if (!$start) {
+                    if (!$open) {
                         $to = \trim($to);
                     }
                     $to .= ']';
@@ -243,7 +243,7 @@ namespace x\minify {
                 }
             }
             if (false !== \strpos('([', $v)) {
-                if (!$start) {
+                if (!$open) {
                     $to = \trim($to);
                 }
                 $to .= $v;
@@ -256,13 +256,13 @@ namespace x\minify {
                     continue;
                 }
                 $to = \trim($to, ',');
-                if (!$start) {
+                if (!$open) {
                     $to = \trim($to);
                 }
                 $to .= $v;
                 continue;
             }
-            if (!$start) {
+            if (!$open) {
                 $to = \trim($to);
             }
             $to .= $v;
