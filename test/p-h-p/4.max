@@ -1,22 +1,22 @@
 <?php
 
 return [
-    ( asdf ) $asdf,
-    ( asdf ) 1,
-    ( binary ) "asdf",
-    ( binary ) $asdf,
-    ( binary ) 'asdf',
-    ( bool ) $asdf,
-    ( bool ) 1,
-    ( boolean ) 1,
-    ( double ) 1,
-    ( float ) $asdf,
-    ( float ) 0,
-    ( float ) 1,
-    ( int ) $asdf,
-    ( int ) 0.0,
-    ( int ) 1.0,
-    ( string ) $asdf,
-    ( string ) 1,
-    ( string ) 1.0,
+    array ( ) ,
+    array ( 1 , 2 , 3 , ) ,
+    array ( 1 , array ( 1 , 2 , '3 , 4 , )' , ) , ) ,
+];
+
+function asdf ( array$asdf = array( 1 , array(' array( 1 , 2 , 3 , )') , true, 123 ), array|int $asdf = [ 1 , 2 , array( "" ) ] ): ? array {
+    return [ array( $asdf , (array) $asdf ) ] ;
+}
+
+function asdf ( array $asdf = array ( 1 , array (' array ( 1 , 2 , 3 , )') , true, 123 ), array | int $asdf = [ 1 , 2 , array ( "" ) ] ): ? array {
+    return [ array ( $asdf , ( array ) $asdf ) ] ;
+}
+
+return [
+    new \stdClass ( ) ,
+    new \stdClass ,
+    new stdClass ( ) ,
+    new stdClass ,
 ];

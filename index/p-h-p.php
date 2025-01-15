@@ -35,9 +35,11 @@ namespace x\minify {
                 }
                 if ('_CAST' === \substr(\token_name($v[0]), -5)) {
                     $cast = \trim(\substr($v[1], 1, -1));
-                    if ('boolean' === $cast) {
-                        $cast = 'bool';
-                    } else if ('double' === $cast || 'real' === $cast) {
+                    if ('bool' === $cast || 'boolean' === $cast) {
+                        $to .= '!!';
+                        continue;
+                    }
+                    if ('double' === $cast || 'real' === $cast) {
                         $cast = 'float';
                     } else if ('integer' === $cast) {
                         $cast = 'int';
@@ -67,6 +69,17 @@ namespace x\minify {
                 if (\T_CONSTANT_ENCAPSED_STRING === $v[0]) {
                     if ('(binary)' === \substr($to, -8)) {
                         $to = \substr($to, 0, -8) . 'b';
+                    }
+                    if ('(float)' === \substr($to, -7) && "" !== ($test = \filter_var($v[1], \FILTER_SANITIZE_NUMBER_FLOAT, \FILTER_FLAG_ALLOW_FRACTION | \FILTER_FLAG_ALLOW_SCIENTIFIC))) {
+                        $to = \substr($to, 0, -7) . '0+' . $test;
+                        continue;
+                    }
+                    if ('(int)' === \substr($to, -5) && "" !== ($test = \filter_var($v[1], \FILTER_SANITIZE_NUMBER_INT))) {
+                        $to = \substr($to, 0, -5) . '0+' . $test;
+                        continue;
+                    }
+                    if ('(string)' === \substr($to, -8)) {
+                        $to = \substr($to, 0, -8);
                     }
                     $to = \trim($to) . $v[1];
                     continue;
@@ -150,10 +163,16 @@ namespace x\minify {
                 if (\T_STRING === $v[0]) {
                     $test = \strtolower($v[1]);
                     if ('false' === $test) {
+                        if ('!!' === \substr($to, -2)) {
+                            $to = \substr($to, 0, -2);
+                        }
                         $to = \trim($to) . '!1';
                     } else if ('null' === $test) {
                         $to .= $test;
                     } else if ('true' === $test) {
+                        if ('!!' === \substr($to, -2)) {
+                            $to = \substr($to, 0, -2);
+                        }
                         $to = \trim($to) . '!0';
                     } else {
                         $to .= $v[1];
@@ -162,14 +181,12 @@ namespace x\minify {
                 }
                 // <https://stackoverflow.com/a/16606419/1163000>
                 if (\T_VARIABLE === $v[0]) {
-                    if ('(bool)' === \substr($to, -6)) {
-                        $to = \substr($to, 0, -6) . '!!' . $v[1];
-                    } else if ('(float)' === \substr($to, -7)) {
-                        $to = \substr($to, 0, -7) . $v[1] . '+0';
+                    if ('(float)' === \substr($to, -7)) {
+                        $to = \substr($to, 0, -7) . '0+' . $v[1];
                     } else if ('(int)' === \substr($to, -5)) {
-                        $to = \substr($to, 0, -5) . $v[1] . '+0';
+                        $to = \substr($to, 0, -5) . '0+' . $v[1];
                     } else if ('(string)' === \substr($to, -8)) {
-                        $to = \substr($to, 0, -8) . $v[1] . '.""';
+                        $to = \substr($to, 0, -8) . '"".' . $v[1];
                     } else if ("\x1a" === \substr($to, -1)) {
                         $to = \substr($to, 0, -1) . $v[1];
                     } else {
