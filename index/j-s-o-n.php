@@ -8,40 +8,40 @@ namespace x\minify {
         if ('""' === $from || '[]' === $from || 'false' === $from || 'null' === $from || 'true' === $from || '{}' === $from || \is_numeric($from)) {
             return $from;
         }
-        $count = \strlen($from);
-        $i = 0;
+        $c1 = ',:[]{}';
+        $c2 = " \n\r\t";
         $to = "";
-        while ($i < $count) {
-            $c = $from[$i];
-            if (' ' === $c || "\n" === $c || "\r" === $c || "\t" === $c) {
-                $i++;
+        while ("" !== $from) {
+            if ($n = \strspn($from, $c2)) {
+                $from = \substr($from, $n);
                 continue;
             }
-            if ('"' === $c) {
-                $i++;
-                $to .= $c;
-                while ($i < $count) {
-                    if ('"' === ($c = $from[$i])) {
-                        $j = $i - 1;
-                        $x = 0;
-                        while ($j >= 0 && "\\" === $from[$j]) {
-                            $j--;
-                            $x++;
-                        }
-                        if (0 === $x % 2) {
-                            $i++;
-                            $to .= $c;
-                            break;
-                        }
+            if ('"' === ($c = $from[0])) {
+                $count = \strlen($from);
+                $n = 1;
+                while ($n < $count) {
+                    if ("\\" === $from[$n] && $n + 1 < $count) {
+                        $n += 2;
+                        continue;
                     }
-                    $i++;
-                    $to .= $c;
+                    if ('"' === $from[$n]) {
+                        ++$n;
+                        break;
+                    }
+                    ++$n;
                 }
+                $to .= \substr($from, 0, $n);
+                $from = \substr($from, $n);
                 continue;
             }
-            $i++;
-            $to .= $c;
+            if (false !== \strpos($c1, $c)) {
+                $to .= $c;
+                $from = \substr($from, 1);
+                continue;
+            }
+            $to .= \substr($from, 0, $n = \strcspn($from, $c1 . $c2));
+            $from = \substr($from, $n);
         }
-        return "" !== ($to = \trim($to)) ? $to : null;
+        return "" !== $to ? $to : null;
     }
 }
