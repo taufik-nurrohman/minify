@@ -17,10 +17,10 @@ namespace x\minify {
                 continue;
             }
             if ('"' === ($c = $from[0])) {
-                $count = \strlen($from);
+                $max = \strlen($from);
                 $n = 1;
-                while ($n < $count) {
-                    if ("\\" === $from[$n] && $n + 1 < $count) {
+                while ($n < $max) {
+                    if ("\\" === $from[$n] && $n + 1 < $max) {
                         $n += 2;
                         continue;
                     }
