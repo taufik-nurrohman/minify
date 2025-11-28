@@ -3,7 +3,7 @@
   "asdf-2" : 1 ,
   "asdf-3" : true ,
   "asdf-4" : {
-	  	"asdf" : "asdf"
+	  	"asdf" : "\"asdf\":	[ 1, 2, 3 ]"
   } ,
   "asdf-5" : [ 1 , 2 , 3 ] ,
   "asdf-6" : false ,
