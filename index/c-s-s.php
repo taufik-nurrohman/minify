@@ -85,20 +85,20 @@ namespace x\minify {
             }
             if ($n = \strspn($chop, $c4)) {
                 $from = \substr($from, $n);
-                $a = $from[0] ?? "";
-                $b = \substr($to, -1);
-                if (\strlen($from) > 1 && ('[' === $a || ':' === $a && false === \strpos($c4, $from[1]))) {
-                    if ("" !== $b && false === \strpos('+,>}', $b)) {
-                        $to .= ' '; // Case of `asdf :asdf` and `asdf [asdf]`
+                if ("" !== ($a = $from[0] ?? "") && "" !== ($b = \substr($to, -1))) {
+                    if (\strlen($from) > 1 && ('[' === $a || ':' === $a && isset($from[1]) && false === \strpos($c4, $from[1]))) {
+                        if (false === \strpos('+,>}', $b)) {
+                            $to .= ' '; // Case of `asdf :asdf` and `asdf [asdf]`
+                        }
+                    } else if (
+                        // Case of `@asdf "asdf"` and `"asdf" asdf` or `@asdf (asdf)` and `(asdf) asdf`
+                        false !== \strpos('"\'(', $a) && false === \strpos($c3, $b) ||
+                        false !== \strpos('"\')', $b) && false === \strpos($c3, $a)
+                    ) {
+                        $to .= ' ';
+                    } else if ("" !== $a . $b && false === \strpos($c3, $a) && false === \strpos($c3, $b)) {
+                        $to .= ' ';
                     }
-                } else if (
-                    // Case of `@asdf "asdf"` and `"asdf" asdf` or `@asdf (asdf)` and `(asdf) asdf`
-                    false !== \strpos('"\'(', $a) && false === \strpos($c3, $b) ||
-                    false !== \strpos('"\')', $b) && false === \strpos($c3, $a)
-                ) {
-                    $to .= ' ';
-                } else if ("" !== $a . $b && false === \strpos($c3, $a) && false === \strpos($c3, $b)) {
-                    $to .= ' ';
                 }
                 continue;
             }
