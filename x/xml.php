@@ -1,7 +1,7 @@
 <?php
 
-namespace x\minify {
-    function x_m_l(?string $from): ?string {
+namespace x\minify\x {
+    function xml(?string $from): ?string {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }

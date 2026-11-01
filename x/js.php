@@ -1,7 +1,7 @@
 <?php
 
-namespace x\minify {
-    function j_s(?string $from): ?string {
+namespace x\minify\x {
+    function js(?string $from): ?string {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
@@ -79,7 +79,7 @@ namespace x\minify {
                     if (false !== \strpos($m[0], '${')) {
                         // `${…}`
                         $m[0] = \preg_replace_callback('/\$(\{[^}\\\\]*(?>\\\\.[^}\\\\]*)*\})/', static function ($m) {
-                            return j_s($m[0]);
+                            return js($m[0]);
                         }, $m[0]);
                     } else if (false === \strpos($m[0], "\n") && false === \strpos($m[0], "'")) {
                         $m[0] = "'" . \strtr(\substr($m[0], 1, -1), ["\\" . '`' => '`']) . "'";

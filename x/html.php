@@ -1,7 +1,7 @@
 <?php
 
-namespace x\minify {
-    function h_t_m_l(?string $from): ?string {
+namespace x\minify\x {
+    function html(?string $from): ?string {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
@@ -11,10 +11,10 @@ namespace x\minify {
         $r2 = "'[^']*'";
         $r3 = $r1 . '|' . $r2;
         $to = "";
-        $w1 = \function_exists(__NAMESPACE__ . "\\c_s_s");
-        $w2 = \function_exists(__NAMESPACE__ . "\\j_s");
-        $w3 = \function_exists(__NAMESPACE__ . "\\j_s_o_n");
-        $w4 = \function_exists(__NAMESPACE__ . "\\x_m_l");
+        $w1 = \function_exists(__NAMESPACE__ . "\\css");
+        $w2 = \function_exists(__NAMESPACE__ . "\\js");
+        $w3 = \function_exists(__NAMESPACE__ . "\\json");
+        $w4 = \function_exists(__NAMESPACE__ . "\\xml");
         // <https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#boolean-attributes>
         $attr = [
             'allowfullscreen' => 1,
@@ -58,7 +58,7 @@ namespace x\minify {
                     $from = \substr($from, \strlen($v = \substr($chop, 0, $n + 3)));
                     // <https://en.wikipedia.org/wiki/Conditional_comment>
                     if ('<![endif]-->' === \substr($v, -12)) {
-                        $to .= \substr($v, 0, $n = \strpos($v, '>') + 1) . \x\minify\h_t_m_l(\substr($v, $n, -12)) . \substr($v, -12);
+                        $to .= \substr($v, 0, $n = \strpos($v, '>') + 1) . \x\minify\x\html(\substr($v, $n, -12)) . \substr($v, -12);
                         continue;
                     }
                     if (' ' === \substr($to, -1) && '-->') {
@@ -84,15 +84,15 @@ namespace x\minify {
                                 $v = $v[0] . \trim(\implode(' ', \array_unique(\preg_split('/\s+/', \trim(\substr($v, 1, -1)))))) . $v[0];
                             } else if ('style' === $test && $w1) {
                                 if (false !== \strpos('"\'', $v[0])) {
-                                    $v = $v[0] . \rtrim(\htmlspecialchars(\substr(\x\minify\c_s_s('x{' . \htmlspecialchars_decode(\substr($v, 1, -1), $f) . '}'), 2, -1), $f), ';') . $v[0];
+                                    $v = $v[0] . \rtrim(\htmlspecialchars(\substr(\x\minify\x\css('x{' . \htmlspecialchars_decode(\substr($v, 1, -1), $f) . '}'), 2, -1), $f), ';') . $v[0];
                                 } else {
-                                    $v = \rtrim(\htmlspecialchars(\substr(\x\minify\c_s_s('x{' . \htmlspecialchars_decode(\substr($v, 1, -1), $f) . '}'), 2, -1), $f), ';');
+                                    $v = \rtrim(\htmlspecialchars(\substr(\x\minify\x\css('x{' . \htmlspecialchars_decode(\substr($v, 1, -1), $f) . '}'), 2, -1), $f), ';');
                                 }
                             } else if (0 === \strpos($test, 'on') && \preg_match('/^on\S+$/', $test) && $w2) {
                                 if (false !== \strpos('"\'', $v[0])) {
-                                    $v = $v[0] . \rtrim(\htmlspecialchars(\x\minify\j_s(\htmlspecialchars_decode(\substr($v, 1, -1), $f)), $f), ';') . $v[0];
+                                    $v = $v[0] . \rtrim(\htmlspecialchars(\x\minify\x\js(\htmlspecialchars_decode(\substr($v, 1, -1), $f)), $f), ';') . $v[0];
                                 } else {
-                                    $v = \rtrim(\htmlspecialchars(\x\minify\j_s(\htmlspecialchars_decode($v, $f)), $f), ';');
+                                    $v = \rtrim(\htmlspecialchars(\x\minify\x\js(\htmlspecialchars_decode($v, $f)), $f), ';');
                                 }
                             } else if (isset($attr[$test]) && ("''" === $v || '""' === $v || "'" . $test . "'" === $v || '"' . $test . '"' === $v || $test === $v || false !== \strpos($c2 . '/>', $v))) {
                                 $to = \substr($to, 0, -1);
@@ -128,22 +128,22 @@ namespace x\minify {
                                     // <https://html.spec.whatwg.org/multipage/webappapis.html#import-maps>
                                     // <https://www.w3.org/TR/json-ld1>
                                     if ($w3 && \preg_match('/\stype=(["\']?)(?>application\/ld\+json|importmap)\1/', $m[0])) {
-                                        $content = \x\minify\j_s_o_n($content);
+                                        $content = \x\minify\x\json($content);
                                     } else if ($w2) {
-                                        $content = \x\minify\j_s($content);
+                                        $content = \x\minify\x\js($content);
                                     }
                                 } else if ($w2) {
-                                    $content = \x\minify\j_s($content);
+                                    $content = \x\minify\x\js($content);
                                 }
-                                $content = \x\minify\j_s($content);
+                                $content = \x\minify\x\js($content);
                             } else if ('style' === $q && $w1) {
                                 $content = \trim($content);
                                 if ('<![CDATA[' === \substr($content, 0, 9) && ']]>' === \substr($content, -3)) {
                                     $content = \substr($content, 9, -3); // Remove character data section
                                 }
-                                $content = \x\minify\c_s_s($content);
+                                $content = \x\minify\x\css($content);
                             } else if ('svg' === $q && $w4) {
-                                $content = \x\minify\x_m_l($content);
+                                $content = \x\minify\x\xml($content);
                             }
                             $to .= $content;
                             $from = \substr($from, $n);

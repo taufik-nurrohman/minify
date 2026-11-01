@@ -1,7 +1,7 @@
 <?php
 
-namespace x\minify {
-    function c_s_s(?string $from): ?string {
+namespace x\minify\x {
+    function css(?string $from): ?string {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
@@ -37,7 +37,7 @@ namespace x\minify {
                     $k = ($n + $h / 30) % 12;
                     return $l - $a * \max(-1, \min($k - 3, 9 - $k, 1));
                 };
-                $to .= c_s_s(\sprintf('#%02x%02x%02x%02x', $f(0) * 255, $f(8) * 255, $f(4) * 255, $a * 255));
+                $to .= css(\sprintf('#%02x%02x%02x%02x', $f(0) * 255, $f(8) * 255, $f(4) * 255, $a * 255));
                 continue;
             }
             // <https://www.w3.org/TR/css-color-4#rgb-functions>
@@ -48,7 +48,7 @@ namespace x\minify {
                 $b = 'none' === $m[3] ? 0 : ('%' === \substr($m[3], -1) ? (255 * (((float) \substr($m[3], 0, -1)) / 100)) : (float) $m[3]);
                 $a = (isset($m[4]) ? ('none' === $m[4] ? 0 : ('%' === \substr($m[4], -1) ? (1 * (((float) \substr($m[4], 0, -1)) / 100)) : (float) $m[4])) : 1) * 255;
                 $x = \sprintf('#%02x%02x%02x%02x', $r < 0 ? 0 : ($r > 255 ? 255 : $r), $g < 0 ? 0 : ($g > 255 ? 255 : $g), $b < 0 ? 0 : ($b > 255 ? 255 : $b), $a < 0 ? 0 : ($a > 255 ? 255 : $a));
-                $to .= c_s_s($x);
+                $to .= css($x);
                 continue;
             }
             // <https://www.w3.org/TR/css-values-4#numeric-types>
@@ -64,7 +64,7 @@ namespace x\minify {
                 if (0 === \strpos($from, '(') && false !== \strpos(',abs,acos,asin,atan,atan2,calc,clamp,cos,exp,hypot,log,max,min,mod,pow,rem,round,sign,sin,sqrt,tan,', ',' . $m[0] . ',') && \preg_match('/^\([^;}]+\)/', $from, $n)) {
                     $from = \substr($from, \strlen($n[0]));
                     // Remove space(s) around `*` and `/`
-                    $to .= $m[0] . \preg_replace('/\s*([*\/])\s*/', '$1', c_s_s($n[0]));
+                    $to .= $m[0] . \preg_replace('/\s*([*\/])\s*/', '$1', css($n[0]));
                     continue;
                 }
                 $to .= \preg_replace('/\s+/', ' ', $m[0]);

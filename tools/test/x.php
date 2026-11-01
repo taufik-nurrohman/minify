@@ -1,6 +1,6 @@
 <?php
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 
 ini_set('display_errors', true);
 ini_set('display_startup_errors', true);
@@ -10,26 +10,26 @@ define('D', DIRECTORY_SEPARATOR);
 define('P', "\u{001A}");
 define('PATH', __DIR__);
 
-require __DIR__ . D . 'index.php';
+require __DIR__ . D . '..' . D . '..' . D . 'x.php';
 
-$of = basename($_GET['of'] ?? 'h-t-m-l');
+$x = basename($_GET['x'] ?? 'html');
 
-$files = glob(__DIR__ . D . 'test' . D . $of . D . '*.max', GLOB_NOSORT);
+$files = glob(__DIR__ . D . 'x' . D . $x . D . '*.max', GLOB_NOSORT);
 usort($files, static function ($a, $b) {
     $a = dirname($a) . D . basename($a, '.max');
     $b = dirname($b) . D . basename($b, '.max');
     return strnatcmp($a, $b);
 });
 
-$out = '<!DOCTYPE html>';
-$out .= '<html dir="ltr">';
-$out .= '<head>';
-$out .= '<meta charset="utf-8">';
-$out .= '<title>';
-$out .= 'Minify ' . strtoupper(strtr($of, ['-' => ""]));
-$out .= '</title>';
-$out .= '<style>';
-$out .= <<<CSS
+$s = '<!DOCTYPE html>';
+$s .= '<html dir="ltr">';
+$s .= '<head>';
+$s .= '<meta charset="utf-8">';
+$s .= '<title>';
+$s .= 'Minify ' . strtoupper($x);
+$s .= '</title>';
+$s .= '<style>';
+$s .= <<<CSS
 
 .char-space,
 .char-tab {
@@ -58,40 +58,40 @@ $out .= <<<CSS
 }
 
 CSS;
-$out .= '</style>';
-$out .= '</head>';
-$out .= '<body>';
+$s .= '</style>';
+$s .= '</head>';
+$s .= '<body>';
 
-$out .= '<form method="get">';
-$out .= '<fieldset>';
-$out .= '<legend>';
-$out .= 'Tests';
-$out .= '</legend>';
-foreach (glob(__DIR__ . D . 'test' . D . '*', GLOB_ONLYDIR) as $v) {
-    $out .= ' ';
-    $out .= '<button' . ($of === ($n = basename($v)) ? ' disabled' : "") . ' name="of" type="submit" value="' . htmlspecialchars($n) . '">';
-    $out .= htmlspecialchars(strtoupper(strtr($n, ['-' => ""])));
-    $out .= '</button>';
+$s .= '<form method="get">';
+$s .= '<fieldset>';
+$s .= '<legend>';
+$s .= 'Tests';
+$s .= '</legend>';
+foreach (glob(__DIR__ . D . 'x' . D . '*', GLOB_ONLYDIR) as $v) {
+    $s .= ' ';
+    $s .= '<button' . ($x === ($n = basename($v)) ? ' disabled' : "") . ' name="x" type="submit" value="' . htmlspecialchars($n) . '">';
+    $s .= htmlspecialchars(strtoupper(strtr($n, ['-' => ""])));
+    $s .= '</button>';
 }
-$out .= '</fieldset>';
-$out .= '</form>';
+$s .= '</fieldset>';
+$s .= '</form>';
 
 $error_count = 0;
 foreach ($files as $v) {
     $raw = file_get_contents($v);
-    $out .= '<h1 id="' . ($n = basename($v, '.max')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . strtr($v, [PATH . D => '.' . D]) . '</h1>';
-    $out .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
-    $out .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
-    $out .= strtr(htmlspecialchars($raw), [
+    $s .= '<h1 id="' . ($n = basename($v, '.max')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . strtr($v, [PATH . D => '.' . D]) . '</h1>';
+    $s .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
+    $s .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
+    $s .= strtr(htmlspecialchars($raw), [
         "\t" => '<span class="char-tab">' . "\t" . '</span>',
         ' ' => '<span class="char-space"> </span>'
     ]);
-    $out .= '</pre>';
-    $out .= '<div style="flex:1;min-width:0;">';
+    $s .= '</pre>';
+    $s .= '<div style="flex:1;min-width:0;">';
     $a = $b = "";
     $a .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $start = microtime(true);
-    $content = call_user_func("x\\minify\\" . \strtr($of, '-', '_'), $raw) ?? "";
+    $content = call_user_func("x\\minify\\x\\" . \strtr($x, '-', '_'), $raw) ?? "";
     $end = microtime(true);
     $a .= strtr(htmlspecialchars($content), [
         "\t" => '<span class="char-tab">' . "\t" . '</span>',
@@ -111,21 +111,21 @@ foreach ($files as $v) {
     } else {
         $error = false; // No test file to compare
     }
-    $out .= ($error ? strtr($a, [':#cfc;' => ':#fcc;']) : $a) . $b . '</div>';
-    $out .= '</div>';
+    $s .= ($error ? strtr($a, [':#cfc;' => ':#fcc;']) : $a) . $b . '</div>';
+    $s .= '</div>';
     $time = round(($end - $start) * 1000, 2);
     if ($error) {
         $error_count += 1;
     }
     $slow = $time >= 1;
-    $out .= '<p style="color:#' . ($error || $slow ? '800' : '080') . ';">Parsed in ' . $time . ' ms.</p>';
+    $s .= '<p style="color:#' . ($error || $slow ? '800' : '080') . ';">Parsed in ' . $time . ' ms.</p>';
 }
 
-$out .= '</body>';
-$out .= '</html>';
+$s .= '</body>';
+$s .= '</html>';
 
 if ($error_count) {
-    $out = strtr($out, ['</title>' => ' (' . $error_count . ')</title>']);
+    $s = strtr($s, ['</title>' => ' (' . $error_count . ')</title>']);
 }
 
-echo $out;
+echo $s;
