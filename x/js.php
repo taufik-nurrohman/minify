@@ -1,7 +1,104 @@
 <?php
 
 namespace x\minify\x {
-    function js(?string $from): ?string {
+    function js(?string $value): ?string {
+        if ("" === ($value = $value ?? "")) {
+            return null;
+        }
+        $i = 0;
+        $limit = \strlen($value);
+        $s = "";
+        $c1 = " \n\r\t";
+        $c2 = '"' . "'`";
+        $c3 = "\\";
+        $c4 = $c2 . $c3;
+        $c5 = '`"\'/!#%&()*+,-.:;<=>?@[\]^`{|}~'; // Punctuation(s) but `$` and `_`
+        $c6 = '0123456789';
+        $c7 = $c6 . 'abcdef';
+        while ($i < $limit) {
+            $c = $value[$i += \strspn($value, $c1, $i)];
+            if ('/' === $c) {
+                $next = $value[$i + 1] ?? 0;
+                if ('*' === $next) {
+                    // TODO
+                }
+                if ('/' === $next) {
+                    $i += \strcspn($value, "\n\r", $i);
+                    continue;
+                }
+                $s .= $c;
+                ++$i;
+                continue;
+            }
+            if (false !== \strpos($c2, $c)) {
+                $start = $i++;
+                while ($i < $limit) {
+                    $i += \strcspn($value, $c4, $i);
+                    if ($c === ($value[$i] ?? "")) {
+                        break;
+                    }
+                    $i += 2;
+                }
+                $str = \substr($value, $start, $i - $start + 1);
+                if ("'" === $str[0] && false === \strpos($str, '"')) {
+                    $str = '"' . \strtr(\substr($str, 1, -1), [$c3 . "'" => "'"]) . '"';
+                } else if ('"' === $str[0] && false === \strpos($str, "'")) {
+                    $str = "'" . \strtr(\substr($str, 1, -1), [$c3 . '"' => '"']) . "'";
+                } else if ('`' === $str[0] && false === \strpos($str, "'")) {
+                    if (false !== \strpos($str, '${')) {
+                        $str = \preg_replace_callback('/\$\{(?<content>(?:[^{}]++|\{(?&content)\})*)\}/', function ($m) {
+                            return '${' . js($m['content']) . '}';
+                        }, $str);
+                    } else {
+                        $str = "'" . \strtr(\substr($str, 1, -1), [$c3 . '`' => '`']) . "'";
+                    }
+                }
+                echo '<pre style="border:1px solid"><code>'.$str.'</code></pre>';
+                $s .= $str;
+                ++$i;
+                continue;
+            }
+            if (',' === $c) {
+                $n = \strspn($value, $c1, $i + 1) + 1;
+                if ($i + $n < $limit && false !== \strpos(')]}', $value[$i + $n])) {
+                    ++$i;
+                    continue;
+                }
+            }
+            if (';' === $c) {
+                $n = \strspn($value, $c1, $i + 1) + 1;
+                if ($i + $n < $limit && false !== \strpos('}', $value[$i + $n])) {
+                    ++$i;
+                    continue;
+                }
+            }
+            if (false !== \strpos($c5, $c)) {
+                $s .= $c;
+                ++$i;
+                continue;
+            }
+            $n = \strcspn($value, $c1 . $c5, $i);
+            if ('.' === ($value[$i + $n] ?? 0)) {
+                $n += \strspn($value, $c6 . '_', $i + $n + 1) + 1;
+            }
+            $c = \substr($value, $i, $n);
+            if ('false' === $c) {
+                $s = \rtrim($s) . '!1';
+            } else if ('true' === $c) {
+                $s = \rtrim($s) . '!0';
+            } else {
+                $s .= false !== \strpos($c6, $c[0]) ? js\n($c) : $c;
+            }
+            if ($n = \strspn($value, $c1, $i += $n)) {
+                $i += $n;
+                if ($i < $limit && false === \strpos($c5, $value[$i])) {
+                    $s .= ' ';
+                }
+            }
+        }
+        return "" !== $s ? $s : null;
+    }
+    function js2(?string $from): ?string {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }
@@ -148,5 +245,19 @@ namespace x\minify\x {
             $to .= $from;
         }
         return "" !== ($to = \trim($to)) ? $to : null;
+    }
+}
+
+namespace x\minify\x\js {
+    function n(string $n) {
+        $f = '0' === $n[0];
+        $n = false === \strpos($n, '.') ? \ltrim($n, '0') : \trim($n, '0');
+        if ("" === $n || '.' === $n) {
+            return '0';
+        }
+        if ($f && $n && false !== \strpos('box', $n[0])) {
+            $n = '0' . $n;
+        }
+        return \strtr(\rtrim($n, '.'), ['_' => ""]);
     }
 }
