@@ -5,22 +5,21 @@ namespace x\minify\x {
         if ("" === ($value = $value ?? "")) {
             return null;
         }
-        if ('""' === $value || '[]' === $value || 'false' === $value || 'null' === $value || 'true' === $value || '{}' === $value || \is_numeric($value)) {
+        if ('""' === $value || '[]' === $value || 'false' === $value || 'null' === $value || 'true' === $value || '{}' === $value) {
             return $value;
+        }
+        if (\is_numeric($value)) {
+            return \trim($value);
         }
         $i = 0;
         $limit = \strlen($value);
         $s = "";
-        $c1 = " \n\r\t";
-        $c2 = '"';
-        $c3 = "\\";
-        $c4 = $c2 . $c3;
         while ($i < $limit) {
-            $c = $value[$i += \strspn($value, $c1, $i)];
-            if ($c2 === $c) {
+            $c = $value[$i += \strspn($value, json\c1, $i)];
+            if (json\c2 === $c) {
                 $start = $i++;
                 while ($i < $limit) {
-                    $i += \strcspn($value, $c4, $i);
+                    $i += \strcspn($value, json\c4, $i);
                     if ($c === ($value[$i] ?? "")) {
                         break;
                     }
@@ -35,4 +34,11 @@ namespace x\minify\x {
         }
         return "" !== $s ? $s : null;
     }
+}
+
+namespace x\minify\x\json {
+    const c1 = " \n\r\t";
+    const c2 = '"';
+    const c3 = "\\";
+    const c4 = c2 . c3;
 }

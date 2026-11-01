@@ -5,256 +5,238 @@ namespace x\minify\x {
         if ("" === ($value = $value ?? "")) {
             return null;
         }
-        $i = 0;
+        $d = $i = 0;
         $limit = \strlen($value);
         $s = "";
-        $c1 = " \n\r\t";
-        $c2 = '"' . "'`";
-        $c3 = "\\";
-        $c4 = $c2 . $c3;
-        $c5 = '`"\'/!#%&()*+,-.:;<=>?@[\]^`{|}~'; // Punctuation(s) but `$` and `_`
-        $c6 = '0123456789';
-        $c7 = $c6 . 'abcdef';
         while ($i < $limit) {
-            $c = $value[$i += \strspn($value, $c1, $i)];
+            $c = $value[$i += \strspn($value, js\c1, $i)] ?? 0;
             if ('/' === $c) {
                 $next = $value[$i + 1] ?? 0;
+                // <https://tc39.es/ecma262#prod-MultiLineComment>
                 if ('*' === $next) {
-                    // TODO
-                }
-                if ('/' === $next) {
-                    $i += \strcspn($value, "\n\r", $i);
+                    if (false === ($e = \strpos($value, '@cc_on', $i + 2))) {
+                        $e = \strpos($value, '@license', $i + 2);
+                    }
+                    $end = \strpos($value, '*/', $i + 2);
+                    $end = false !== $end ? $end + 2 : $limit;
+                    if (false !== \strpos('!*', $value[$i + 2] ?? "\0") || false !== $e && $e < $end - 2) {
+                        $str = \substr($value, $i + 3, $end - $i - 5);
+                        if (\strcspn($str, "\n\r") === \strlen($str)) {
+                            $str = \trim($str);
+                        }
+                        $s .= '/*' . $str . '*/';
+                    }
+                    $i = $end;
+                    $last = \substr($s, -1);
+                    if (false !== \strpos('+-', $last) && $last === ($value[$i] ?? 0)) {
+                        $s .= ' ';
+                    } else {
+                        $i += \strspn($value, js\c1, $i);
+                        if (false === \strpos(js\c5, $last) && false === \strpos(js\c5, $value[$i] ?? "\0")) {
+                            $s .= ' ';
+                        }
+                    }
                     continue;
                 }
-                $s .= $c;
-                ++$i;
-                continue;
-            }
-            if (false !== \strpos($c2, $c)) {
+                // <https://tc39.es/ecma262#prod-SingleLineComment>
+                if ('/' === $next) {
+                    if (false === ($e = \strpos($value, '@cc_on', $i + 2))) {
+                        $e = \strpos($value, '@license', $i + 2);
+                    }
+                    $end = \strcspn($value, "\n\r", $i);
+                    if (false !== $e && $e < $i + $end) {
+                        $s .= '//' . \trim(\substr($value, $i + 2, $end - 2));
+                        $end += \strspn($value, js\c1, $end + $i);
+                        if ($end + $i < $limit) {
+                            $s .= "\n";
+                        }
+                    }
+                    $i += $end;
+                    continue;
+                }
+                $last = \substr($s, -1);
+                // Number(s) before the `/` automatically invalidates the potential regular expression token
+                if ("" !== $last && false !== \strpos(js\c6, $last)) {
+                    $s .= $c;
+                    ++$i;
+                    continue;
+                }
+                // <https://tc39.es/ecma262#prod-RegularExpressionLiteral>
+                $g = 0;
                 $start = $i++;
                 while ($i < $limit) {
-                    $i += \strcspn($value, $c4, $i);
-                    if ($c === ($value[$i] ?? "")) {
+                    $c1 = $value[$i];
+                    if (js\c3 === $c1) {
+                        $i += 2;
+                        continue;
+                    }
+                    // <https://tc39.es/ecma262#prod-RegularExpressionNonTerminator>
+                    if ("\n" === $c1 || "\r" === $c1) {
+                        break;
+                    }
+                    if ('[' === $c1) {
+                        $g = 1;
+                    } else if (']' === $c1) {
+                        $g = 0;
+                    } else if ('/' === $c1 && !$g) {
+                        ++$i;
+                        break;
+                    }
+                    ++$i;
+                }
+                // <https://tc39.es/ecma262#prod-RegularExpressionFlags>
+                $i += \strspn($value, 'dgimsuvy', $i);
+                $i += \strspn($value, js\c1, $i);
+                // It must be the last non-white-space character or it must be followed by one of `),.;]}`
+                if ($i === $limit || false !== \strpos('),.;]}', $value[$i] ?? "\0")) {
+                    $str = \rtrim(\substr($value, $start, $i - $start));
+                    // Unclosed potential regular expression token
+                    if ('/' !== \substr(\rtrim($str, 'dgimsuvy'), -1)) {
+                        $s .= $c;
+                        $i = $start + 1;
+                        continue;
+                    }
+                    $s .= $str;
+                    continue;
+                }
+                // Not a regular expression token
+                $s .= $c;
+                $i = $start + 1;
+                continue;
+            }
+            if ('`' === $c && !$d) {
+                $start = $i++;
+                while ($i < $limit) {
+                    $c = $value[$i += \strcspn($value, "\\$`", $i)] ?? 0;
+                    if ('`' === $c) {
+                        break;
+                    }
+                    if ('$' === $c && '{' === ($value[$i + 1] ?? 0)) {
+                        ++$d;
+                        ++$i;
+                        break;
+                    }
+                    $i += 2;
+                }
+                $str = \substr($value, $start, ++$i - $start);
+                $s .= $str;
+                continue;
+            }
+            if ($d) {
+                if ('{' === $c) {
+                    ++$d;
+                } else if ('}' === $c) {
+                    $s .= $c;
+                    ++$i;
+                    if (0 === --$d) {
+                        $start = $i;
+                        while ($i < $limit) {
+                            $c = $value[$i += \strcspn($value, "\\`", $i)] ?? 0;
+                            if ('`' === $c) {
+                                break;
+                            }
+                        }
+                        $str = \substr($value, $start, ++$i - $start);
+                        $s .= $str;
+                    }
+                    continue;
+                }
+            }
+            if (false !== \strpos(js\c2, $c)) {
+                $start = $i++;
+                while ($i < $limit) {
+                    $i += \strcspn($value, js\c4, $i);
+                    if ($c === ($value[$i] ?? 0)) {
                         break;
                     }
                     $i += 2;
                 }
                 $str = \substr($value, $start, $i - $start + 1);
-                if ("'" === $str[0] && false === \strpos($str, '"')) {
-                    $str = '"' . \strtr(\substr($str, 1, -1), [$c3 . "'" => "'"]) . '"';
-                } else if ('"' === $str[0] && false === \strpos($str, "'")) {
-                    $str = "'" . \strtr(\substr($str, 1, -1), [$c3 . '"' => '"']) . "'";
-                } else if ('`' === $str[0] && false === \strpos($str, "'")) {
-                    if (false !== \strpos($str, '${')) {
-                        $str = \preg_replace_callback('/\$\{(?<content>(?:[^{}]++|\{(?&content)\})*)\}/', function ($m) {
-                            return '${' . js($m['content']) . '}';
-                        }, $str);
-                    } else {
-                        $str = "'" . \strtr(\substr($str, 1, -1), [$c3 . '`' => '`']) . "'";
-                    }
+                if ("'" === $str[0] && false === \strpos($str, '"') && false !== \strpos($str, js\c3 . "'")) {
+                    $str = '"' . \strtr(\substr($str, 1, -1), [js\c3 . "'" => "'"]) . '"';
+                } else if ('"' === $str[0] && false === \strpos($str, "'") && false !== \strpos($str, js\c3 . '"')) {
+                    $str = "'" . \strtr(\substr($str, 1, -1), [js\c3 . '"' => '"']) . "'";
                 }
-                echo '<pre style="border:1px solid"><code>'.$str.'</code></pre>';
                 $s .= $str;
                 ++$i;
                 continue;
             }
+            // Remove trailing `,`
             if (',' === $c) {
-                $n = \strspn($value, $c1, $i + 1) + 1;
+                $n = \strspn($value, js\c1, $i + 1) + 1;
                 if ($i + $n < $limit && false !== \strpos(')]}', $value[$i + $n])) {
                     ++$i;
                     continue;
                 }
             }
+            // Remove trailing `;`
             if (';' === $c) {
-                $n = \strspn($value, $c1, $i + 1) + 1;
+                $n = \strspn($value, js\c1, $i + 1) + 1;
                 if ($i + $n < $limit && false !== \strpos('}', $value[$i + $n])) {
                     ++$i;
                     continue;
                 }
             }
-            if (false !== \strpos($c5, $c)) {
-                $s .= $c;
-                ++$i;
+            if ('.' === $c && ($n = \strspn($value, js\c6 . '_', $i + 1))) {
+                ++$n;
+                if ('n' === ($value[$i + $n] ?? 0)) {
+                    ++$n;
+                }
+                $s .= js\n(\substr($value, $i, $n));
+                $i += $n;
                 continue;
             }
-            $n = \strcspn($value, $c1 . $c5, $i);
+            if (false !== \strpos(js\c5, $c)) {
+                $last = \substr($s .= $c, -1);
+                ++$i;
+                if ($last === ($value[$i + 1] ?? 0) && false !== \strpos('+-', $last) && false !== \strpos(js\c1, $value[$i] ?? "\0")) {
+                    $s .= ' ';
+                }
+                continue;
+            }
+            $n = \strcspn($value, js\c1 . js\c5, $i);
             if ('.' === ($value[$i + $n] ?? 0)) {
-                $n += \strspn($value, $c6 . '_', $i + $n + 1) + 1;
+                $n += \strspn($value, js\c6 . '_', $i + $n + 1) + 1;
             }
             $c = \substr($value, $i, $n);
+            // <https://tc39.es/ecma262#prod-BooleanLiteral>
             if ('false' === $c) {
                 $s = \rtrim($s) . '!1';
             } else if ('true' === $c) {
                 $s = \rtrim($s) . '!0';
-            } else {
-                $s .= false !== \strpos($c6, $c[0]) ? js\n($c) : $c;
+            } else if ("" !== $c) {
+                $c = false !== \strpos(js\c6 . '.', $c[0]) ? js\n($c) : $c;
+                $s = '.' === $c[0] ? \rtrim($s) . $c : $s . $c;
             }
-            if ($n = \strspn($value, $c1, $i += $n)) {
+            if ($n = \strspn($value, js\c1, $i += $n)) {
                 $i += $n;
-                if ($i < $limit && false === \strpos($c5, $value[$i])) {
+                if ($i < $limit && false === \strpos(js\c5, $value[$i])) {
                     $s .= ' ';
                 }
             }
         }
         return "" !== $s ? $s : null;
     }
-    function js2(?string $from): ?string {
-        if ("" === ($from = \trim($from ?? ""))) {
-            return null;
-        }
-        $c1 = '$_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-        $c2 = '0123456789';
-        $c3 = '`"\'/!#%&()*+,-.:;<=>?@[\]^`{|}~'; // Punctuation(s) but `$` and `_`
-        $c4 = " \n\r\t";
-        $to = "";
-        while (false !== ($chop = \strpbrk($from, $c1 . $c2 . $c3 . $c4))) {
-            if ("" !== ($v = \strstr($from, $c = $chop[0], true))) {
-                $from = $chop;
-                $to .= $v;
-            }
-            // Have to capture the identifier token before the number token. This ensures that identifier(s) containing
-            // number(s) will not be compressed by mistake. Valid identifier syntax for JavaScript is actually quite
-            // extensive. However, I prefer to stick to a common pattern. If you use some Unicode character(s) in your
-            // identifier(s), some thing(s) may not get compressed well. This parser works by looking for the first
-            // possible character found in a token (which I have listed in the `$c*` variable), before it continues the
-            // step to the end of the token.
-            if (false !== \strpos($c1, $c) && \preg_match('/^[a-z$_][\w$]*\b/i', $chop, $m)) {
-                $from = \substr($from, \strlen($m[0]));
-                if ('false' === $m[0] && '$' !== ($from[0] ?? 0)) {
-                    $to = \rtrim($to) . '!1';
-                } else if ('true' === $m[0] && '$' !== ($from[0] ?? 0)) {
-                    $to = \rtrim($to) . '!0';
-                } else {
-                    $to .= $m[0];
-                }
-                continue;
-            }
-            if (false !== \strpos($c2, $c)) {
-                // `0b0`, `0o0`, `0x0`, `0b0n`, `0o0n`, `0x0n`
-                if (\preg_match('/^0(b[01]+(_[01]+)*|o[0-7]+(_[0-7]+)?|x[a-f\d]+(_[a-f\d]+)*)n?\b/i', $chop, $m)) {
-                    $from = \substr($from, \strlen($m[0]));
-                    $to .= \strtr($m[0], ['_' => ""]);
-                    continue;
-                }
-                // `0`, `0n`, `0e0`, `0e+0`, `0e-0`, `0.0`, `0.0e0`, `0.0e+0, `0.0e-0`
-                if (\preg_match('/^\d+(_\d+)*(n|(\.\d+(_\d+)*)?(e[+-]?\d+(_\d+)*)?)\b/i', $chop, $m)) {
-                    $from = \substr($from, \strlen($m[0]));
-                    $v = \strtr($m[0], ['_' => ""]);
-                    if (false !== \strpos($v, '.') || '.' === \substr($to, -1)) {
-                        $v = \rtrim(\trim($v, '0'), '.');
-                    } else {
-                        $v = \ltrim($v, '0');
-                    }
-                    // `return .123` to `return.123`
-                    if ("" !== $v && '.' === $v[0] && false === \strpos($c2, \substr(\rtrim($to), -1))) {
-                        $to = \rtrim($to);
-                    }
-                    $to .= "" === $v ? '0' : $v;
-                    continue;
-                }
-            }
-            if ($n = \strspn($chop, $c4)) {
-                $from = \substr($from, $n);
-                // Case of `1 + ++asdf` or `1 - --asdf`
-                if ("" !== ($v = \substr($to, -1)) && false !== \strpos('+-', $v) && 2 === \strspn($from, $v)) {
-                    $to .= ' ';
-                } else if ("" !== $from . $to && false === \strpos($c3, $from[0]) && false === \strpos($c3, $v)) {
-                    $to .= ' ';
-                }
-                continue;
-            }
-            if (
-                // ``…``
-                '`' === $c && \preg_match('/^`[^`\\\\]*(?>\\\\.[^`\\\\]*)*`/', $chop, $m) ||
-                // `"…"`
-                '"' === $c && \preg_match('/^"[^"\\\\]*(?>\\\\.[^"\\\\]*)*"/', $chop, $m) ||
-                // `'…'`
-                "'" === $c && \preg_match("/^'[^'\\\\]*(?>\\\\.[^'\\\\]*)*'/", $chop, $m)
-            ) {
-                $from = \substr($from, \strlen($m[0]));
-                if ('`' === $c) {
-                    if (false !== \strpos($m[0], '${')) {
-                        // `${…}`
-                        $m[0] = \preg_replace_callback('/\$(\{[^}\\\\]*(?>\\\\.[^}\\\\]*)*\})/', static function ($m) {
-                            return js($m[0]);
-                        }, $m[0]);
-                    } else if (false === \strpos($m[0], "\n") && false === \strpos($m[0], "'")) {
-                        $m[0] = "'" . \strtr(\substr($m[0], 1, -1), ["\\" . '`' => '`']) . "'";
-                    }
-                    $to .= $m[0];
-                    continue;
-                }
-                if ('"' === $c && false !== \strpos($m[0], $x = "\\" . '"') && false === \strpos($m[0], "'")) {
-                    $to .= "'" . \strtr(\substr($m[0], 1, -1), [$x => '"']) . "'";
-                    continue;
-                }
-                if ("'" === $c && false !== \strpos($m[0], $x = "\\" . "'") && false === \strpos($m[0], '"')) {
-                    $to .= '"' . \strtr(\substr($m[0], 1, -1), [$x => "'"]) . '"';
-                    continue;
-                }
-                $to .= $m[0];
-                continue;
-            }
-            if ('/' === $c) {
-                $test = $chop[1] ?? 0;
-                // `/*…*/`
-                if ('*' === $test && \preg_match('/^\/\*[^*]*\*+([^\/*][^*]*\*+)*\//', $chop, $m)) {
-                    $from = \substr($from, \strlen($m[0]));
-                    // `/*!…*/` or `/**…*/` or <https://en.wikipedia.org/wiki/Conditional_comment>
-                    if (false !== \strpos('!*', $m[0][2]) || false !== \strpos($m[0], '@cc_on')) {
-                        if (false !== \strpos($m[0], "\n")) {
-                            $to .= '/*' . \substr($m[0], 3);
-                        } else {
-                            $to .= '/*' . \trim(\substr($m[0], 3, -2)) . '*/';
-                        }
-                    } else if ("" !== $from . $to && "" !== ($v = \substr($to, -1)) && false !== \strpos('+-', $v) && $v === $from[0]) {
-                        $to .= ' ';
-                    }
-                    continue;
-                }
-                // `//…`
-                if ('/' === $test) {
-                    $n = \strpos($chop . "\n", "\n") + 1;
-                    if (false !== \strpos($v = \substr($from, 0, $n), '@cc_on')) {
-                        $from = \substr($from, $n);
-                        $to .= '//' . \trim(\substr($v, 2)) . "\n";
-                        continue;
-                    }
-                    $from = \substr($from, $n);
-                    continue;
-                }
-                // `/…/i`
-                if (\preg_match('/^\/[^\/\\\\]*(?>\\\\.[^\/\\\\]*)*\/[gimsuy]?\b/', $chop, $m)) {
-                    $from = \substr($from, \strlen($m[0]));
-                    $to .= $m[0];
-                    continue;
-                }
-                $from = \substr($from, 1);
-                $to .= $c;
-                continue;
-            }
-            $from = \substr($from, 1);
-            if (false !== \strpos(')]', $c)) {
-                $to = \trim($to, ','); // `(a,b,[a,b,c,],)` to `(a,b,[a,b,c])`
-            } else if ('}' === $c) {
-                $to = \trim($to, ',;'); // `{a;b;c;}` to `{a;b;c}`, `{a:1,b:1,}` to `{a:1,b:1}`
-            }
-            $to .= $c;
-        }
-        if ("" !== $from) {
-            $to .= $from;
-        }
-        return "" !== ($to = \trim($to)) ? $to : null;
-    }
 }
 
 namespace x\minify\x\js {
+    const c1 = " \n\r\t";
+    const c2 = '"' . "'`";
+    const c3 = "\\";
+    const c4 = c2 . c3;
+    const c5 = '`"\'/!#%&()*+,-.:;<=>?@[\]^`{|}~'; // Punctuation(s) but `$` and `_`
+    const c6 = '0123456789';
+    // <https://tc39.es/ecma262#sec-literals-numeric-literals>
     function n(string $n) {
-        $f = '0' === $n[0];
+        if ('_' === \substr($n, -1)) {
+            return $n;
+        }
+        $f = '0' === ($n = \strtolower($n))[0];
         $n = false === \strpos($n, '.') ? \ltrim($n, '0') : \trim($n, '0');
         if ("" === $n || '.' === $n) {
             return '0';
         }
+        // <https://tc39.es/ecma262#prod-NonDecimalIntegerLiteral>
         if ($f && $n && false !== \strpos('box', $n[0])) {
             $n = '0' . $n;
         }

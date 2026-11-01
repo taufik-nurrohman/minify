@@ -7,14 +7,14 @@ ini_set('display_startup_errors', true);
 ini_set('html_errors', 1);
 
 define('D', DIRECTORY_SEPARATOR);
-define('P', "\u{001A}");
 define('PATH', __DIR__);
 
 require __DIR__ . D . '..' . D . '..' . D . 'x.php';
 
+$batch = basename($_GET['batch'] ?? '1');
 $x = basename($_GET['x'] ?? 'html');
 
-$files = glob(__DIR__ . D . 'x' . D . $x . D . '*.max', GLOB_NOSORT);
+$files = glob(__DIR__ . D . 'x' . D . $x . D . $batch . D . '*.max', GLOB_NOSORT);
 usort($files, static function ($a, $b) {
     $a = dirname($a) . D . basename($a, '.max');
     $b = dirname($b) . D . basename($b, '.max');
@@ -65,14 +65,31 @@ $s .= '<body>';
 $s .= '<form method="get">';
 $s .= '<fieldset>';
 $s .= '<legend>';
-$s .= 'Tests';
+$s .= 'Navigation';
 $s .= '</legend>';
-foreach (glob(__DIR__ . D . 'x' . D . '*', GLOB_ONLYDIR) as $v) {
-    $s .= ' ';
+foreach (glob(__DIR__ . D . 'x' . D . '*', GLOB_ONLYDIR) as $k => $v) {
+    $s .= 0 === $k ? "" : ' ';
     $s .= '<button' . ($x === ($n = basename($v)) ? ' disabled' : "") . ' name="x" type="submit" value="' . htmlspecialchars($n) . '">';
-    $s .= htmlspecialchars(strtoupper(strtr($n, ['-' => ""])));
+    $s .= htmlspecialchars(strtoupper($n));
     $s .= '</button>';
 }
+$s .= '</fieldset>';
+$s .= '</form>';
+$s .= '<form method="get">';
+$s .= '<fieldset>';
+$s .= '<legend>';
+$s .= 'Batch';
+$s .= '</legend>';
+$s .= '<button' . ('*' === $batch ? ' disabled' : "") . ' name="batch" type="submit" value="*">';
+$s .= '*';
+$s .= '</button>';
+foreach (glob(__DIR__ . D . 'x' . D . $x . D . '*', GLOB_ONLYDIR) as $k => $v) {
+    $s .= ' ';
+    $s .= '<button' . ($batch === ($n = basename($v)) ? ' disabled' : "") . ' name="batch" type="submit" value="' . htmlspecialchars($n) . '">';
+    $s .= htmlspecialchars(ucfirst($n));
+    $s .= '</button>';
+}
+$s .= '<input name="x" type="hidden" value="' . htmlspecialchars($x) . '">';
 $s .= '</fieldset>';
 $s .= '</form>';
 

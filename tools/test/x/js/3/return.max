@@ -1,0 +1,3 @@
+return false;
+return null;
+return true;
