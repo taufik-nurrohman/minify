@@ -1,0 +1,12 @@
+asdf[ 'asdf' ] ;
+
+.asdf[ 'asdf' ] ;
+
+asdf || asdf[ 'asdf' ];
+
+for (asdf in [ 'asdf' ]) {}
+for (asdf of [ 'asdf' ]) {}
+
+asdf = [ 'asdf' ];
+
+return [ 'asdf' ];

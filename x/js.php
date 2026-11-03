@@ -214,6 +214,13 @@ namespace x\minify\x {
                     $s .= ' ';
                 }
             }
+            if ('[' === ($value[$i] ?? 0)) {
+                $n += \strspn($value, js\c1, $i + 1) + 1;
+                if (false !== \strpos(js\c2, $value[$i + $n] ?? "\0")) {
+                    // echo \json_encode([\substr($s, -1), $value[$i + $n]]);
+                    // echo '<br/>';
+                }
+            }
         }
         return "" !== $s ? $s : null;
     }
@@ -224,7 +231,7 @@ namespace x\minify\x\js {
     const c2 = '"' . "'`";
     const c3 = "\\";
     const c4 = c2 . c3;
-    const c5 = '`"\'/!#%&()*+,-.:;<=>?@[\]^`{|}~'; // Punctuation(s) but `$` and `_`
+    const c5 = '!"#%&()*+,-./:;<=>?@[]^`{|}~' . "\\'"; // Punctuation(s) but `$` and `_`
     const c6 = '0123456789';
     // <https://tc39.es/ecma262#sec-literals-numeric-literals>
     function n(string $n) {
