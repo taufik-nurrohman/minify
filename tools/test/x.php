@@ -18,7 +18,7 @@ require PATH . D . '..' . D . '..' . D . 'x.php';
 $view = basename($_GET['view'] ?? 'source');
 $x = basename($_GET['x'] ?? 'html');
 
-$batch = basename($_GET['batch'] ?? glob(PATH . D . 'x' . D . $x . D . '*', GLOB_ONLYDIR)[0]);
+$batch = basename($_GET['batch'] ?? glob(PATH . D . 'x' . D . $x . D . '*', GLOB_ONLYDIR)[0] ?? '*');
 
 $files = glob(PATH . D . 'x' . D . $x . D . $batch . D . '*.max', GLOB_NOSORT);
 usort($files, static function ($a, $b) {
@@ -92,7 +92,7 @@ foreach (['source', 'token'] as $v) {
 $s .= '</select>';
 $s .= ' ';
 $s .= '<button type="submit">';
-$s .= 'Update';
+$s .= 'View';
 $s .= '</button>';
 $s .= '</p>';
 $s .= '</fieldset>';
