@@ -1,5 +1,9 @@
 <?php
 
+if (!in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1'])) {
+    exit;
+}
+
 error_reporting(E_ALL);
 
 ini_set('display_errors', true);
@@ -9,14 +13,14 @@ ini_set('html_errors', 1);
 define('D', DIRECTORY_SEPARATOR);
 define('PATH', __DIR__);
 
-require __DIR__ . D . '..' . D . '..' . D . 'x.php';
+require PATH . D . '..' . D . '..' . D . 'x.php';
 
 $view = basename($_GET['view'] ?? 'source');
 $x = basename($_GET['x'] ?? 'html');
 
-$batch = basename($_GET['batch'] ?? glob(__DIR__ . D . 'x' . D . $x . D . '*', GLOB_ONLYDIR)[0]);
+$batch = basename($_GET['batch'] ?? glob(PATH . D . 'x' . D . $x . D . '*', GLOB_ONLYDIR)[0]);
 
-$files = glob(__DIR__ . D . 'x' . D . $x . D . $batch . D . '*.max', GLOB_NOSORT);
+$files = glob(PATH . D . 'x' . D . $x . D . $batch . D . '*.max', GLOB_NOSORT);
 usort($files, static function ($a, $b) {
     $a = dirname($a) . D . basename($a, '.max');
     $b = dirname($b) . D . basename($b, '.max');
@@ -71,7 +75,7 @@ $s .= 'Navigation';
 $s .= '</legend>';
 $s .= '<input name="x" type="hidden" value="' . htmlspecialchars($x) . '">';
 $s .= '<p>';
-foreach (glob(__DIR__ . D . 'x' . D . '*', GLOB_ONLYDIR) as $k => $v) {
+foreach (glob(PATH . D . 'x' . D . '*', GLOB_ONLYDIR) as $k => $v) {
     $s .= 0 === $k ? "" : ' ';
     $s .= '<button' . ($x === ($n = basename($v)) ? ' disabled' : "") . ' name="x" type="submit" value="' . htmlspecialchars($n) . '">';
     $s .= htmlspecialchars(strtoupper($n));
@@ -102,7 +106,7 @@ $s .= '<p>';
 $s .= '<button' . ('*' === $batch ? ' disabled' : "") . ' name="batch" type="submit" value="*">';
 $s .= '*';
 $s .= '</button>';
-foreach (glob(__DIR__ . D . 'x' . D . $x . D . '*', GLOB_ONLYDIR) as $k => $v) {
+foreach (glob(PATH . D . 'x' . D . $x . D . '*', GLOB_ONLYDIR) as $k => $v) {
     $s .= ' ';
     $s .= '<button' . ($batch === ($n = basename($v)) ? ' disabled' : "") . ' name="batch" type="submit" value="' . htmlspecialchars($n) . '">';
     $s .= htmlspecialchars($n);

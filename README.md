@@ -1,14 +1,14 @@
 PHP Minify
 ==========
 
-![c-s-s.php] ![h-t-m-l.php] ![j-s.php] ![j-s-o-n.php] ![p-h-p.php] ![x-m-l.php]
+![css.php] ![html.php] ![js.php] ![json.php] ![php.php] ![xml.php]
 
- [c-s-s.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/index/c-s-s.php?branch=main&color=%234f5d95&label=c-s-s.php&labelColor=%231f2328&style=flat-square
- [h-t-m-l.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/index/h-t-m-l.php?branch=main&color=%234f5d95&label=h-t-m-l.php&labelColor=%231f2328&style=flat-square
- [j-s.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/index/j-s.php?branch=main&color=%234f5d95&label=j-s.php&labelColor=%231f2328&style=flat-square
- [j-s-o-n.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/index/j-s-o-n.php?branch=main&color=%234f5d95&label=j-s-o-n.php&labelColor=%231f2328&style=flat-square
- [p-h-p.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/index/p-h-p.php?branch=main&color=%234f5d95&label=p-h-p.php&labelColor=%231f2328&style=flat-square
- [x-m-l.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/index/x-m-l.php?branch=main&color=%234f5d95&label=x-m-l.php&labelColor=%231f2328&style=flat-square
+ [css.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/x/css.php?branch=main&color=%234f5d95&label=css.php&labelColor=%231f2328&style=flat-square
+ [html.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/x/html.php?branch=main&color=%234f5d95&label=html.php&labelColor=%231f2328&style=flat-square
+ [js.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/x/js.php?branch=main&color=%234f5d95&label=js.php&labelColor=%231f2328&style=flat-square
+ [json.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/x/json.php?branch=main&color=%234f5d95&label=json.php&labelColor=%231f2328&style=flat-square
+ [php.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/x/php.php?branch=main&color=%234f5d95&label=php.php&labelColor=%231f2328&style=flat-square
+ [xml.php]: https://img.shields.io/github/size/taufik-nurrohman/minify/x/xml.php?branch=main&color=%234f5d95&label=xml.php&labelColor=%231f2328&style=flat-square
 
 Motivation
 ----------
@@ -126,60 +126,11 @@ space after it, even when it is possible to do so:
 The idea is that **you are responsible for the code you are going to compress**. If the original code works well, then
 it is likely that it will work well too after it has been compressed.
 
-Options
--------
-
-### CSS
-
-~~~ php
-<?php
-
-c_s_s(?string $from): ?string;
-~~~
-
-### HTML
-
-~~~ php
-<?php
-
-h_t_m_l(?string $from): ?string;
-~~~
-
-### JS
-
-~~~ php
-j_s(?string $from): ?string;
-~~~
-
-### JSON
-
-~~~ php
-<?php
-
-j_s_o_n(?string $from): ?string;
-~~~
-
-### PHP
-
-~~~ php
-<?php
-
-p_h_p(?string $from): ?string;
-~~~
-
-### XML
-
-~~~ php
-<?php
-
-x_m_l(?string $from): ?string;
-~~~
-
 Tests
 -----
 
-Clone this repository into the root of your web server that supports PHP and then you can open the `test.php` file with
-your browser to see the result and the performance of this converter in various cases.
+Clone this repository into the root of your web server that supports PHP and then you can open the `tools/test/x.php`
+file with your browser to see the result and the performance of this converter in various cases.
 
 Tweaks
 ------
@@ -191,33 +142,33 @@ You can use this method to shorten function names globally:
 ~~~ php
 <?php
 
-require 'index.php';
+require 'x.php';
 
 // Or, if you are using Composer…
 // require 'vendor/autoload.php';
 
 function minify_css(...$v) {
-    return x\minify\c_s_s(...$v);
+    return x\minify\x\css(...$v);
 }
 
 function minify_html(...$v) {
-    return x\minify\h_t_m_l(...$v);
+    return x\minify\x\html(...$v);
 }
 
 function minify_js(...$v) {
-    return x\minify\j_s(...$v);
+    return x\minify\x\js(...$v);
 }
 
 function minify_json(...$v) {
-    return x\minify\j_s_o_n(...$v);
+    return x\minify\x\json(...$v);
 }
 
 function minify_php(...$v) {
-    return x\minify\p_h_p(...$v);
+    return x\minify\x\php(...$v);
 }
 
 function minify_xml(...$v) {
-    return x\minify\x_m_l(...$v);
+    return x\minify\x\xml(...$v);
 }
 ~~~
 
