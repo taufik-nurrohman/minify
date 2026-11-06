@@ -182,6 +182,7 @@ namespace x\minify\x\js {
                 $i += $end;
                 continue;
             }
+            // Punctuation but `$`, `.`, and `_`
             if (false !== \strpos(c5, $c)) {
                 $r[] = $c;
                 ++$i;
