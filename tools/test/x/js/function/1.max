@@ -1,4 +1,4 @@
-function asdf ( ... asdf ) {
+function asdf ( asdf , ... asdf /* asdf */ , ) {
     return asdf ;
 }
 

@@ -3,8 +3,8 @@
     false
   ] ,
   {
-    false : asdf ,
+    false : false ,
   } ,
-  false : asdf ,
-  asdf .false [ 'asdf' ],
+  false : false ,
+  false .false [ 'false' ],
 ]
