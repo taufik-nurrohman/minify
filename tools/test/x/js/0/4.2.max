@@ -1,7 +1,0 @@
-asdf`
-  <asdf>
-    <asdf>
-      asdf ${ asdf + ( 1000.0 / 0.10 /* 1 */ ) }
-    </asdf>
-  </asdf>
-`;

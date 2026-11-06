@@ -1,0 +1,10 @@
+[
+  [
+    false
+  ] ,
+  {
+    false : asdf ,
+  } ,
+  false : asdf ,
+  asdf .false [ 'asdf' ],
+]

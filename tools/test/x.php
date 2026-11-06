@@ -86,7 +86,7 @@ $s .= '</button>';
 foreach (glob(__DIR__ . D . 'x' . D . $x . D . '*', GLOB_ONLYDIR) as $k => $v) {
     $s .= ' ';
     $s .= '<button' . ($batch === ($n = basename($v)) ? ' disabled' : "") . ' name="batch" type="submit" value="' . htmlspecialchars($n) . '">';
-    $s .= htmlspecialchars(ucfirst($n));
+    $s .= htmlspecialchars($n);
     $s .= '</button>';
 }
 $s .= '<input name="x" type="hidden" value="' . htmlspecialchars($x) . '">';

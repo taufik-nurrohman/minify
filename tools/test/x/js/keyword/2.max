@@ -1,0 +1,14 @@
+[
+  return ( ) ,
+  return ,
+  return .1 ,
+  return 0.1 ,
+  return 1 ,
+  return [ 'asdf' ] ,
+  return [ ] ,
+  return asdf ,
+  return false ,
+  return null ,
+  return true ,
+  return { } ,
+]

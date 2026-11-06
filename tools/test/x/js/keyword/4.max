@@ -1,0 +1,18 @@
+let asdf;
+
+switch ( asdf ) {
+  case ( asdf ) :
+  case 0 :
+  case 0.1 :
+  case 1 :
+  case [ 'asdf' ] :
+  case [ asdf ] :
+  case asdf :
+  case false :
+  case null :
+  case true :
+  case { 'asdf' : 1 } :
+  case { asdf : 1 } :
+    asdf = asdf ;
+    break ;
+}
