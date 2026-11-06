@@ -1,0 +1,13 @@
+<?php
+
+print $asdf ;
+
+?>
+
+<?php
+
+$asdf = 1 ;
+
+print $asdf ;
+
+?>

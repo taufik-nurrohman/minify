@@ -76,6 +76,10 @@ namespace x\minify\x\php {
                     $s .= 'echo';
                     continue;
                 }
+                if (\T_ENCAPSED_AND_WHITESPACE === $v[0]) {
+                    $s .= $v[1];
+                    continue;
+                }
                 if (\T_DNUMBER === $v[0] || \T_LNUMBER === $v[0]) {
                     if ('!!' === \substr($s, -2)) {
                         $c = \substr($v[1], 1, -1);
