@@ -71,7 +71,7 @@ $s .= '<body>';
 $s .= '<form method="get">';
 $s .= '<fieldset>';
 $s .= '<legend>';
-$s .= 'Navigation';
+$s .= 'Type';
 $s .= '</legend>';
 $s .= '<input name="x" type="hidden" value="' . htmlspecialchars($x) . '">';
 $s .= '<p>';
@@ -121,7 +121,7 @@ $s .= '</form>';
 $error_count = 0;
 foreach ($files as $v) {
     $raw = file_get_contents($v);
-    $s .= '<h1 id="' . ($n = basename($v, '.max')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . $n . '</h1>';
+    $s .= '<h1 id="' . ($n = basename($v, '.max')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . \strtr($v, [PATH . D => ".\\", D => "\\"]) . '</h1>';
     $s .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
     $s .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $s .= strtr(htmlspecialchars($raw), [

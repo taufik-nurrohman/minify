@@ -8,6 +8,8 @@ switch ( asdf ) {
   case [ 'asdf' ] :
   case [ asdf ] :
   case asdf :
+  case asdf[ 'asdf' ] :
+  case asdf[ asdf ] :
   case false :
   case null :
   case true :

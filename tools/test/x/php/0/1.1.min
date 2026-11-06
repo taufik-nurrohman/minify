@@ -8,4 +8,4 @@
   1
 <?php }else{?>
   0
-<?php };
+<?php }

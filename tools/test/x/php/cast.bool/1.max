@@ -1,0 +1,17 @@
+<?php [
+  ( bool ) $asdf ,
+  ( bool ) '0' ,
+  ( bool ) 'asdf' ,
+  ( bool ) 0 ,
+  ( bool ) 0.1 ,
+  ( bool ) 1 ,
+  ( bool ) 1.0 ,
+  ( bool ) 1.1 ,
+  ( bool ) [ ] ,
+  ( bool ) [ asdf ] ,
+  ( bool ) asdf ,
+  ( bool ) false ,
+  ( bool ) ( new asdf ) ,
+  ( bool ) null ,
+  ( bool ) true ,
+]

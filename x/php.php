@@ -1,6 +1,242 @@
 <?php
 
 namespace x\minify\x {
+    function php(?string $value): ?string {
+        return php\s(php\a($value ?? ""));
+    }
+}
+
+namespace x\minify\x\php {
+    const c1 = ' !"#$%&()*+,-./:;<=>?@[\]^_`{|}~' . "'";
+    function a(string $s) {
+        return "" !== $s ? \token_get_all($s) : [];
+    }
+    function s(array $a) {
+        if (!$a) {
+            return null;
+        }
+        $limit = \count($a);
+        $s = "";
+        foreach ($a as $k => $v) {
+            $next = $a[$k + 1] ?? 0;
+            $prev = $a[$k - 1] ?? 0;
+            if (\is_array($v)) {
+                echo json_encode([token_name($v[0]),htmlspecialchars($v[1])]);
+                echo '<br>';
+                if (\T_CLOSE_TAG === $v[0]) {
+                    if ($k === $limit - 1) {
+                        break;
+                    }
+                    if (';' === $s[-1]) {
+                        $s = \rtrim($s, ';');
+                    }
+                    $s .= $v[1];
+                    continue;
+                }
+                if (\T_COMMENT === $v[0] || \T_DOC_COMMENT === $v[0]) {
+                    if ('/*' === \substr($v[1], 0, 2)) {
+                        if (false !== \strpos('!*', $v[1][2]) || false !== \strpos($v[1], '@license')) {
+                            $c = \trim(\ltrim(\substr($v[1], 2, -2), '!*'));
+                            if (false !== \strpos($c, "\n")) {
+                                $c = "\n" . $c . "\n";
+                            }
+                            if ("" !== $c) {
+                                $s .= '/*' . $c . '*/';
+                            }
+                        }
+                    }
+                    continue;
+                }
+                if (\T_CONSTANT_ENCAPSED_STRING === $v[0]) {
+                    if ('!!' === \substr($s, -2)) {
+                        $s = \substr($s, 0, -2) . '!' . (\substr($v[1], 1, -1) ? '0' : '1');
+                        continue;
+                    }
+                    if ('"".' === \substr($s, -3)) {
+                        $s = \substr($s, 0, -3) . $v[1];
+                        continue;
+                    }
+                    if ('(float)' === \substr($s, -7) && \is_numeric(\substr($v[1], 1, -1))) {
+                        $c = (float) $c;
+                        $s = \substr($s, 0, -7) . $c . (false === \strpos($c, '.') ? '.0' : "");
+                        continue;
+                    }
+                    if ('(int)' === \substr($s, -5) && \is_numeric(\substr($v[1], 1, -1))) {
+                        $s = \substr($s, 0, -5) . ((int) $c);
+                        continue;
+                    }
+                    $s .= "''" === $v[1] ? '""' : $v[1];
+                    continue;
+                }
+                if (\T_ECHO === $v[0] || \T_PRINT === $v[0]) {
+                    if ('<?php ' === \substr($s, -6)) {
+                        $s = \substr($s, 0, -4) . '=';
+                        continue;
+                    }
+                    $s .= 'echo';
+                    continue;
+                }
+                if (\T_DNUMBER === $v[0] || \T_LNUMBER === $v[0]) {
+                    if ('!!' === \substr($s, -2)) {
+                        $c = \substr($v[1], 1, -1);
+                        $c = \T_DNUMBER ? (float) $c : (int) $c;
+                        $s = \substr($s, 0, -2) . '!' . ($c ? '0' : '1');
+                        continue;
+                    }
+                    if ('"".' === \substr($s, -3)) {
+                        $s = \substr($s, 0, -3) . "'" . $v[1] . "'";
+                        continue;
+                    }
+                    if ('(float)' === \substr($s, -7)) {
+                        $s = \substr($s, 0, -7) . $v[1];
+                        if (\T_LNUMBER === $v[0]) {
+                            $s .= '.0';
+                        }
+                        continue;
+                    }
+                    if ('(float)+' === \substr($s, -8)) {
+                        $s = \substr($s, 0, -8) . $v[1];
+                        if (\T_LNUMBER === $v[0]) {
+                            $s .= '.0';
+                        }
+                        continue;
+                    }
+                    if ('(float)-' === \substr($s, -8)) {
+                        $s = \substr($s, 0, -8) . '-' . $v[1];
+                        if (\T_LNUMBER === $v[0]) {
+                            $s .= '.0';
+                        }
+                        continue;
+                    }
+                    if ('(int)' === \substr($s, -5) && \T_LNUMBER === $v[0]) {
+                        $s = \substr($s, 0, -5) . $v[1];
+                        continue;
+                    }
+                    if ('(int)+' === \substr($s, -6) && \T_LNUMBER === $v[0]) {
+                        $s = \substr($s, 0, -6) . $v[1];
+                        continue;
+                    }
+                    if ('(int)-' === \substr($s, -6) && \T_LNUMBER === $v[0]) {
+                        $s = \substr($s, 0, -6) . '-' . $v[1];
+                        continue;
+                    }
+                    if (false === \strpos(c1, $s[-1])) {
+                        $s .= ' ';
+                    }
+                    // if ('+' === \substr($s, -1)) {
+                    //     $s = \substr($s, 0, -1);
+                    // }
+                    $s .= $v[1];
+                    continue;
+                }
+                if (\T_OPEN_TAG === $v[0]) {
+                    $s .= \trim($v[1]) . ' ';
+                    continue;
+                }
+                if (\T_STRING === $v[0]) {
+                    $c = \strtolower($v[1]);
+                    if ('false' === $c) {
+                        if ('!!' === \substr($s, -2)) {
+                            $s = \substr($s, 0, -2) . '!1';
+                            continue;
+                        }
+                        if ('"".' === \substr($s, -3)) {
+                            $s = \substr($s, 0, -3) . '""';
+                            continue;
+                        }
+                        if ('(int)' === \substr($s, -5)) {
+                            $s = \substr($s, 0, -5) . '0';
+                            continue;
+                        }
+                        $s .= '!1';
+                        continue;
+                    }
+                    if ('null' === $c) {
+                        if ('!!' === \substr($s, -2)) {
+                            $s = \substr($s, 0, -2) . '!1';
+                            continue;
+                        }
+                        if ('"".' === \substr($s, -3)) {
+                            $s = \substr($s, 0, -3) . '""';
+                            continue;
+                        }
+                        if ('(int)' === \substr($s, -5)) {
+                            $s = \substr($s, 0, -5) . '0';
+                            continue;
+                        }
+                        $s .= $c;
+                        continue;
+                    }
+                    if ('true' === $c) {
+                        if ('!!' === \substr($s, -2)) {
+                            $s = \substr($s, 0, -2) . '!0';
+                            continue;
+                        }
+                        if ('"".' === \substr($s, -3)) {
+                            $s = \substr($s, 0, -3) . "'1'";
+                            continue;
+                        }
+                        if ('(int)' === \substr($s, -5)) {
+                            $s = \substr($s, 0, -5) . '1';
+                            continue;
+                        }
+                        $s .= '!0';
+                        continue;
+                    }
+                    if (false === \strpos(c1, $s[-1])) {
+                        $s .= ' ';
+                    }
+                    $s .= $v[1];
+                    continue;
+                }
+                if (\T_WHITESPACE === $v[0]) {
+                    continue;
+                }
+                if ('_CAST' === \substr(\token_name($v[0]), -5)) {
+                    $c = match ($c = \strtolower(\trim(\substr($v[1], 1, -1)))) {
+                        'boolean' => 'bool',
+                        'double' => 'float',
+                        'integer' => 'int',
+                        'real' => 'float',
+                        default => $c
+                    };
+                    if ('bool' === $c) {
+                        $c = '!!';
+                    } else if ('string' === $c) {
+                        $c = '"".';
+                    } else {
+                        $c = '(' . $c . ')';
+                    }
+                    $s .= $c;
+                    continue;
+                }
+                $s .= $v[1];
+                continue;
+            }
+            if (']' === $v) {
+                if ('!![' === \substr($s, -3)) {
+                    $s = \substr($s, 0, -3) . '!1';
+                    continue;
+                }
+                $s = \rtrim($s, ',') . $v;
+                continue;
+            }
+            // `->{'asdf'}` → `->asdf`
+            if ('}' === $v && "" !== $s && \preg_match('/->\{([\'"])([a-zA-Z_\x80-\xff][\w\x80-\xff]*)\1/', $s, $m)) {
+                $s = \substr($s, 0, -(\strlen($m[0]) - 2)) . $m[2];
+                continue;
+            }
+            if (false !== \strpos(')]}', $v) && ',' === $s[-1]) {
+                $s = \rtrim($s, ',') . $v;
+                continue;
+            }
+            $s .= $v;
+        }
+        return $s;
+    }
+}
+
+namespace x\minify\xxx {
     function php(?string $from): ?string {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
