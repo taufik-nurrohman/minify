@@ -1,0 +1,11 @@
+/ asdf /;
+/ asdf /,
+/ asdf /.
+/ asdf /[
+/ asdf /)
+/ asdf /}
+/ asdf /:
+/ asdf / + 1234
+/ asdf / === 1234
+/ asdf / && 1234
+/ asdf / ? 1234 : 5678

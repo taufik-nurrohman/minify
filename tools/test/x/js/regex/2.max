@@ -1,0 +1,10 @@
+const a = / asdf /;
+return / asdf /;
+throw / asdf /;
+foo(/ asdf /);
+[/ asdf /];
+({ a: / asdf / });
+if (/ asdf /.test(1234)) {}
+foo / 1234;
+1234 / 2;
+a / b / c;

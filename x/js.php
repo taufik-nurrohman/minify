@@ -13,15 +13,39 @@ namespace x\minify\x\js {
     const c4 = c2 . c3;
     const c5 = '`"\'/!#%&()*+,-:;<=>?@[\]^`{|}~'; // Punctuation(s) but `$`, `.`, and `_`
     const c6 = '0123456789';
-    const m1 = '/^([' . c2 . '])([\p{ID_Start}_$][\p{ID_Continue}_$\x{200c}\x{200d}]*)\1$/u';
+    const m1 = '~\G([' . c2 . '])([\p{ID_Start}_$][\p{ID_Continue}_$\x{200c}\x{200d}]*)\1$~u';
+    const m2 = '~\G/(?>\\\\[\s\S]|\[(?>\\\\[\s\S]|[^\]\\\\])*\]|[^/\\\\[\n\r])+/[dgimsuvy]*(?=\s*(?>[(),.;\\[\\]{}\n\r]|$))~';
     function a(string $s) {
         $r = [];
         if ("" === $s) {
             return $r;
         }
-        $d = $i = 0;
+        $i = 0;
         $limit = \strlen($s);
+        $t = [];
         while ($i < $limit) {
+            if ($t && 0 === $t[$k = \array_key_last($t)]) {
+                $start = $i;
+                while ($i < $limit) {
+                    $c = $s[$i += \strcspn($s, c3 . '$`', $i)] ?? 0;
+                    if ('`' === $c) {
+                        $r[] = [2, \substr($s, $start, $i - $start)];
+                        $r[] = $c;
+                        ++$i;
+                        \array_pop($t);
+                        continue 2;
+                    }
+                    if ('$' === $c && '{' === ($s[$i + 1] ?? 0)) {
+                        $r[] = [2, \substr($s, $start, $i - $start + 2)];
+                        $i += 2;
+                        $t[$k] = 1;
+                        continue 2;
+                    }
+                    $i += c3 === $c ? 2 : 1;
+                }
+                $r[] = [2, \substr($s, $start)];
+                continue;
+            }
             $c = $s[$i += \strspn($s, c1, $i)] ?? 0;
             if ('/' === $c) {
                 // <https://tc39.es/ecma262#prod-MultiLineComment>
@@ -36,96 +60,36 @@ namespace x\minify\x\js {
                     $i += $end;
                     continue;
                 }
-                // Number(s) before the `/` automatically invalidates the potential regular expression token
-                // if (false !== ($end = \end($r)) && false !== \strpos(c6, $end)) {
-                //     $r[] = $c;
-                //     ++$i;
-                //     continue;
-                // }
                 // <https://tc39.es/ecma262#prod-RegularExpressionLiteral>
-                /*
-                $g = 0;
-                $start = $i++;
-                while ($i < $limit) {
-                    $c1 = $value[$i];
-                    if (js\c3 === $c1) {
-                        $i += 2;
-                        continue;
-                    }
-                    // <https://tc39.es/ecma262#prod-RegularExpressionNonTerminator>
-                    if ("\n" === $c1 || "\r" === $c1) {
-                        break;
-                    }
-                    if ('[' === $c1) {
-                        $g = 1;
-                    } else if (']' === $c1) {
-                        $g = 0;
-                    } else if ('/' === $c1 && !$g) {
-                        ++$i;
-                        break;
-                    }
-                    ++$i;
-                }
-                // <https://tc39.es/ecma262#prod-RegularExpressionFlags>
-                $i += \strspn($value, 'dgimsuvy', $i);
-                $i += \strspn($value, js\c1, $i);
-                // It must be the last non-white-space character or it must be followed by one of `),.;]}`
-                if ($i === $limit || false !== \strpos('),.;]}', $value[$i] ?? "\0")) {
-                    $str = \rtrim(\substr($value, $start, $i - $start));
-                    // Unclosed potential regular expression token
-                    if ('/' !== \substr(\rtrim($str, 'dgimsuvy'), -1)) {
-                        $s .= $c;
-                        $i = $start + 1;
-                        continue;
-                    }
-                    $s .= $str;
+                if (false !== \strpos($s, '/', $i + 1) && \preg_match(m2, $s, $m, \PREG_OFFSET_CAPTURE, $i)) {
+                    $r[] = [3, $m[0][0]];
+                    $i = $m[0][1] + \strlen($m[0][0]);
                     continue;
                 }
-                */
                 // `/=`
                 if ('=' === ($s[$i + 1] ?? 0)) {
                     $r[] = $c . $s[++$i];
                     continue;
                 }
-                // Not a regular expression token
                 $r[] = $c;
                 ++$i;
                 continue;
             }
-            if ('`' === $c && !$d) {
-                $start = $i++;
-                while ($i < $limit) {
-                    $c = $s[$i += \strcspn($s, "\\$`", $i)] ?? 0;
-                    if ('`' === $c) {
-                        break;
-                    }
-                    if ('$' === $c && '{' === ($s[$i + 1] ?? 0)) {
-                        ++$d;
-                        ++$i;
-                        break;
-                    }
-                    $i += 2;
-                }
-                $r[] = \substr($s, $start, ++$i - $start);
+            if ('`' === $c) {
+                $r[] = $c;
+                $t[] = 0;
+                ++$i;
                 continue;
             }
-            if ($d) {
+            if ($t && $t[$k = \array_key_last($t)]) {
                 if ('{' === $c) {
-                    ++$d;
+                    ++$t[$k];
                 } else if ('}' === $c) {
-                    $r[] = $c;
-                    ++$i;
-                    if (0 === --$d) {
-                        $start = $i;
-                        while ($i < $limit) {
-                            $c = $s[$i += \strcspn($s, "\\`", $i)] ?? 0;
-                            if ('`' === $c) {
-                                break;
-                            }
-                        }
-                        $r[] = \substr($s, $start, ++$i - $start);
+                    if (0 === --$t[$k]) {
+                        $r[] = '}';
+                        ++$i;
+                        continue;
                     }
-                    continue;
                 }
             }
             if (false !== \strpos(c2, $c)) {
@@ -137,11 +101,6 @@ namespace x\minify\x\js {
                     }
                     $i += 2;
                 }
-                // if ("'" === $w[0] && false === \strpos($w, '"') && false !== \strpos($w, c3 . "'")) {
-                //     $w = '"' . \strtr(\substr($w, 1, -1), [c3 . "'" => "'"]) . '"';
-                // } else if ('"' === $w[0] && false === \strpos($w, "'") && false !== \strpos($w, c3 . '"')) {
-                //     $w = "'" . \strtr(\substr($w, 1, -1), [c3 . '"' => '"']) . "'";
-                // }
                 $r[] = [2, \substr($s, $start, ++$i - $start)];
                 continue;
             }
@@ -256,26 +215,28 @@ namespace x\minify\x\js {
         }
         $s = "";
         foreach ($a as $k => $v) {
-            $prev = $a[$k - 1] ?? 0;
             $next = $a[$k + 1] ?? 0;
+            $prev = $a[$k - 1] ?? 0;
             if (\is_array($v)) {
                 if (0 === $v[0]) {
+                    $keep = 0;
                     if (false !== \strpos('!*', $v[1][2]) || false !== \strpos($v[1], '@cc_on') || false !== \strpos($v[1], '@license')) {
+                        $keep = 1;
                         if (0 === \strpos($v[1], '//')) {
                             $v[1] = '//' . \ltrim(\substr($v[1], 2));
                         } else {
                             if ("" !== \trim($v[1]) && false === \strpos($v[1], "\n")) {
-                                $v[1] = '/*' . \trim(\substr($v[1], 3, -2)) . '*/';
+                                $v[1] = '/*' . \trim(\ltrim(\substr($v[1], 2, -2), '!*')) . '*/';
                             } else {
-                                $v[1] = '/*' . \substr($v[1], 3, -2) . '*/';
+                                $v[1] = "/*\n" . \trim(\ltrim(\substr($v[1], 2, -2), '!*')) . "\n*/";
                             }
                         }
                         $s .= $v[1];
                     }
-                    if (\is_string($prev)) {
-                        if (\is_string($next) && false !== \strpos('+-', $w = \substr($prev, -1)) && $w === ($next[0] ?? 0)) {
+                    if (\is_string($next) && ($w = \substr($s, -1))) {
+                        if ("" !== $w && false !== \strpos('+-', $w) && $w === $next[0]) {
                             $s .= ' ';
-                        } else if (false === \strpos(c5, \substr($prev, -1)) && \is_string($next) && false === \strpos(c5, $next[0] ?? "\0")) {
+                        } else if (!$keep && false === \strpos(c5, $w) && false === \strpos(c5, $next[0])) {
                             $s .= ' ';
                         }
                     }
@@ -283,11 +244,11 @@ namespace x\minify\x\js {
                 }
                 if (1 === $v[0]) {
                     $n = n($v[1]);
-                    if ('.' !== ($n[0] ?? 0) && \is_string($prev) && false === \strpos(c5, \substr($prev, -1))) {
+                    if ('.' !== ($n = n($v[1]))[0] && "" !== $s && false === \strpos(c5, \substr($s, -1))) {
                         $s .= ' ';
                     }
                     $s .= $n;
-                    if (\is_array($next) && 1 === $next[0] || \is_string($next) && false === \strpos(c5, $next[0])) {
+                    if (\is_string($next) && false === \strpos(c5, $next[0])) {
                         $s .= ' ';
                     }
                     continue;
@@ -299,20 +260,17 @@ namespace x\minify\x\js {
                             continue;
                         }
                     }
-                    $s .= $v[1];
-                    continue;
                 }
                 $s .= $v[1];
                 continue;
             }
             // Remove trailing `,`
             if (',' === $v) {
-                $kk = $k;
-                $vv = $next;
-                while (\is_array($vv) && 0 === $vv[0]) {
-                    $vv = $a[++$kk] ?? 0;
+                $n = $k;
+                while (\is_array($next) && 0 === $next[0]) {
+                    $next = $a[++$n] ?? 0;
                 }
-                if (\is_string($vv) && false !== \strpos(')]}', $vv[0])) {
+                if (\is_string($next) && false !== \strpos(')]}', $next[0])) {
                     continue;
                 }
             }
@@ -322,12 +280,11 @@ namespace x\minify\x\js {
             }
             // Remove trailing `;`
             if (';' === $v) {
-                $kk = $k;
-                $vv = $next;
-                while (\is_array($vv) && 0 === $vv[0]) {
-                    $vv = $a[++$kk] ?? 0;
+                $n = $k;
+                while (\is_array($next) && 0 === $next[0]) {
+                    $next = $a[++$n] ?? 0;
                 }
-                if (\is_string($vv) && false !== \strpos('}', $vv[0])) {
+                if (\is_string($next) && false !== \strpos('}', $next[0])) {
                     continue;
                 }
             }
@@ -336,8 +293,10 @@ namespace x\minify\x\js {
                     'case',
                     'else',
                     'in',
+                    'instanceof',
                     'of',
-                    'return'
+                    'return',
+                    'typeof'
                 ], true)) {
                     $s .= $v;
                     continue;
@@ -352,7 +311,7 @@ namespace x\minify\x\js {
                     }
                 }
             }
-            if (!\is_string($prev) || false === \strpos(',.{', \substr($prev, -1))) {
+            if ("" !== $s && false === \strpos(',.{', \substr($s, -1))) {
                 if ('false' === $v) {
                     $s = \rtrim($s) . '!1';
                 } else if ('true' === $v) {

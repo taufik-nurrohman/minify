@@ -32,7 +32,7 @@ namespace x\minify\x\json {
                 $r[] = \substr($s, $start, ++$i - $start);
                 continue;
             }
-            $r[] = $c;
+            $r[] = \strtolower($c);
             ++$i;
         }
         return $r;

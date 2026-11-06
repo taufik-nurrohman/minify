@@ -11,8 +11,10 @@ define('PATH', __DIR__);
 
 require __DIR__ . D . '..' . D . '..' . D . 'x.php';
 
-$batch = basename($_GET['batch'] ?? '1');
+$view = basename($_GET['view'] ?? 'source');
 $x = basename($_GET['x'] ?? 'html');
+
+$batch = basename($_GET['batch'] ?? glob(__DIR__ . D . 'x' . D . $x . D . '*', GLOB_ONLYDIR)[0]);
 
 $files = glob(__DIR__ . D . 'x' . D . $x . D . $batch . D . '*.max', GLOB_NOSORT);
 usort($files, static function ($a, $b) {
@@ -67,12 +69,28 @@ $s .= '<fieldset>';
 $s .= '<legend>';
 $s .= 'Navigation';
 $s .= '</legend>';
+$s .= '<input name="x" type="hidden" value="' . htmlspecialchars($x) . '">';
+$s .= '<p>';
 foreach (glob(__DIR__ . D . 'x' . D . '*', GLOB_ONLYDIR) as $k => $v) {
     $s .= 0 === $k ? "" : ' ';
     $s .= '<button' . ($x === ($n = basename($v)) ? ' disabled' : "") . ' name="x" type="submit" value="' . htmlspecialchars($n) . '">';
     $s .= htmlspecialchars(strtoupper($n));
     $s .= '</button>';
 }
+$s .= '</p>';
+$s .= '<p>';
+$s .= '<select name="view">';
+foreach (['source', 'token'] as $v) {
+    $s .= '<option' . ($v === $view ? ' selected' : "") . ' value="' . $v . '">';
+    $s .= ucfirst($v);
+    $s .= '</option>';
+}
+$s .= '</select>';
+$s .= ' ';
+$s .= '<button type="submit">';
+$s .= 'Update';
+$s .= '</button>';
+$s .= '</p>';
 $s .= '</fieldset>';
 $s .= '</form>';
 $s .= '<form method="get">';
@@ -80,6 +98,7 @@ $s .= '<fieldset>';
 $s .= '<legend>';
 $s .= 'Batch';
 $s .= '</legend>';
+$s .= '<p>';
 $s .= '<button' . ('*' === $batch ? ' disabled' : "") . ' name="batch" type="submit" value="*">';
 $s .= '*';
 $s .= '</button>';
@@ -89,6 +108,8 @@ foreach (glob(__DIR__ . D . 'x' . D . $x . D . '*', GLOB_ONLYDIR) as $k => $v) {
     $s .= htmlspecialchars($n);
     $s .= '</button>';
 }
+$s .= '<p>';
+$s .= '<input name="view" type="hidden" value="' . htmlspecialchars($view) . '">';
 $s .= '<input name="x" type="hidden" value="' . htmlspecialchars($x) . '">';
 $s .= '</fieldset>';
 $s .= '</form>';
@@ -96,7 +117,7 @@ $s .= '</form>';
 $error_count = 0;
 foreach ($files as $v) {
     $raw = file_get_contents($v);
-    $s .= '<h1 id="' . ($n = basename($v, '.max')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . strtr($v, [PATH . D => '.' . D]) . '</h1>';
+    $s .= '<h1 id="' . ($n = basename($v, '.max')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . $n . '</h1>';
     $s .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
     $s .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $s .= strtr(htmlspecialchars($raw), [
@@ -108,7 +129,11 @@ foreach ($files as $v) {
     $a = $b = "";
     $a .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $start = microtime(true);
-    $content = call_user_func("x\\minify\\x\\" . \strtr($x, '-', '_'), $raw) ?? "";
+    if ('token' === $view) {
+        $content = json_encode(call_user_func("x\\minify\\x\\" . $x . "\\a", $raw), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    } else {
+        $content = call_user_func("x\\minify\\x\\" . $x, $raw) ?? "";
+    }
     $end = microtime(true);
     $a .= strtr(htmlspecialchars($content), [
         "\t" => '<span class="char-tab">' . "\t" . '</span>',
@@ -117,7 +142,7 @@ foreach ($files as $v) {
     $a .= '</pre>';
     if (is_file($f = dirname($v) . D . pathinfo($v, PATHINFO_FILENAME) . '.min')) {
         $test = file_get_contents($f);
-        if ($error = $content !== $test) {
+        if ($error = 'token' !== $view && $content !== $test) {
             $b .= '<pre style="background:#cff;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:1em 0 0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
             $b .= strtr(htmlspecialchars($test), [
                 "\t" => '<span class="char-tab">' . "\t" . '</span>',
