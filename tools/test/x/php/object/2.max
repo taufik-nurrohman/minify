@@ -1,0 +1,7 @@
+<?php [
+  new stdClass ,
+  new stdClass ( ) ,
+  new \stdClass ,
+  new \stdClass ( ) ,
+  ( object ) [ ] ,
+] ;

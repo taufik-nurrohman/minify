@@ -1,0 +1,25 @@
+<?php
+
+$asdf = <<<TEXT
+S
+TEXT;
+
+$asdf = <<<TEXT
+  S
+  TEXT;
+
+$asdf = <<<TEXT
+  S
+TEXT;
+
+$asdf = <<<TEXT
+SSS
+TEXT;
+
+$asdf = <<<TEXT
+  SSS
+  TEXT;
+
+$asdf = <<<TEXT
+  SSS
+TEXT;

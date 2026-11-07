@@ -1,0 +1,9 @@
+<?php
+
+#[
+  asdf (
+    'asdf' ,
+    array ( 1 , 2 , array ( 'asdf' ) , 4 , /* asdf */ ) ,
+  )
+]
+function asdf ( ... $asdf , ) { }
