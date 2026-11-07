@@ -1,0 +1,6 @@
+for ([ asdf ] in [ 'asdf' ]) { }
+for ([ asdf ] in asdf) { }
+for ([ asdf ] in asdf[ 'asdf' ]) { }
+for ([ asdf ] of [ 'asdf' ]) { }
+for ([ asdf ] of asdf) { }
+for ([ asdf ] of asdf[ 'asdf' ]) { }
