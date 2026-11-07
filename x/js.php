@@ -269,13 +269,11 @@ namespace x\minify\x\js {
                             }
                         }
                     }
-                    if ("" !== $s && \is_string($next) && ($w = $s[-1])) {
-                        if ("" !== $w && false !== \strpos('+-', $w) && $w === $next[0]) {
-                            $s .= ' ';
-                        } else if (!$keep && false === \strpos(c7, $w) && false === \strpos(c7, $next[0])) {
-                            $s .= ' ';
-                        }
-                    }
+                    // if ("" !== $s && \is_string($next) && ($w = $s[-1])) {
+                    //     if (!$keep && false === \strpos(c7, $w) && false === \strpos(c7, $next[0])) {
+                    //         $s .= ' ';
+                    //     }
+                    // }
                     continue;
                 }
                 if (1 === $v[0]) {
@@ -284,9 +282,6 @@ namespace x\minify\x\js {
                         $s .= ' ';
                     }
                     $s .= $n;
-                    if (\is_string($next) && false === \strpos(c7, $next[0])) {
-                        $s .= ' ';
-                    }
                     continue;
                 }
                 if (2 === $v[0]) {
@@ -327,6 +322,18 @@ namespace x\minify\x\js {
                 if (\is_string($next) && false !== \strpos('}', $next[0])) {
                     continue;
                 }
+            }
+            // `+ ++`
+            // `++ +`
+            // `- --`
+            // `-- -`
+            if ("" !== $s && false !== \strpos('+-', $v[0]) && $v[0] === $s[-1]) {
+                $s .= ' ' . $v;
+                continue;
+            }
+            // `asdf asdf`
+            if ("" !== $s && false === \strpos(c7 . '.', $v[0]) && false === \strpos(c7 . '.', $s[-1])) {
+                $s .= ' ';
             }
             if (']' === $v) {
                 if (\is_string($a[$k - 3] ?? 0) && \in_array($a[$k - 3], [
@@ -372,11 +379,6 @@ namespace x\minify\x\js {
                 }
             } else {
                 $s .= $v;
-            }
-            if (\is_string($next) && false !== \strpos('+-', $v[0]) && $v[0] === $next[0]) {
-                $s .= ' ';
-            } else if (false === \strpos(c7 . '.', $v[-1]) && \is_string($next) && false === \strpos(c7 . '.', $next[0] ?? "\0")) {
-                $s .= ' ';
             }
         }
         return $s;
