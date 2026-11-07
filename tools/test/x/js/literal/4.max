@@ -1,5 +1,3 @@
-let asdf;
-
 switch ( asdf ) {
   case ( asdf ) :
   case 0 :
