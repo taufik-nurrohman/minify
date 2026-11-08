@@ -212,23 +212,22 @@ namespace x\minify\x\js {
         foreach ($a as $k => $v) {
             if (\is_array($v)) {
                 if (0 === $v[0]) {
-                    $keep = 0;
-                    if (false !== \strpos('!*', $v[1][2]) || false !== \strpos($v[1], '@cc_on') || false !== \strpos($v[1], '@license')) {
-                        $keep = 1;
-                        if ('/' === $v[1][1]) {
-                            $c = \ltrim(\substr($v[1], 2));
-                            if ("" !== $c) {
-                                $s .= '//' . $c . (isset($a[$k + 1]) ? "\n" : "");
-                            }
-                        } else {
-                            $c = \trim(\ltrim(\substr($v[1], 2, -2), '!*'));
-                            if (false !== \strpos($c, "\n")) {
-                                $c = "\n" . $c . "\n";
-                            }
-                            if ("" !== $c) {
-                                $s .= '/*' . $c . ('*/' === \substr($v[1], -2) ? '*/' : "");
-                            }
+                    if (false === \strpos('!*', $v[1][2] ?? "\n") && false === \strpos($v[1], '@cc_on') && false === \strpos($v[1], '@license')) {
+                        continue;
+                    }
+                    if ('/' === $v[1][1]) {
+                        $c = \ltrim(\substr($v[1], 2));
+                        if ("" !== $c) {
+                            $s .= '//' . $c . (isset($a[$k + 1]) ? "\n" : "");
                         }
+                        continue;
+                    }
+                    $c = \trim(\ltrim(\substr($v[1], 2, -2), '!*'));
+                    if ("" !== $c) {
+                        if (false !== \strpos($c, "\n")) {
+                            $c = "\n" . $c . "\n";
+                        }
+                        $s .= '/*' . $c . ('*/' === \substr($v[1], -2) ? '*/' : "");
                     }
                     continue;
                 }
