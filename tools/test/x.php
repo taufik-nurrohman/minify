@@ -73,6 +73,7 @@ $s .= '<fieldset>';
 $s .= '<legend>';
 $s .= 'Type';
 $s .= '</legend>';
+$s .= '<input name="batch" type="hidden" value="' . htmlspecialchars($batch) . '">';
 $s .= '<input name="x" type="hidden" value="' . htmlspecialchars($x) . '">';
 $s .= '<p>';
 foreach (glob(PATH . D . 'x' . D . '*', GLOB_ONLYDIR) as $k => $v) {
