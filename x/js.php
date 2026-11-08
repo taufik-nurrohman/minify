@@ -13,9 +13,9 @@ namespace x\minify\x\js {
     const c4 = "\\";
     const c5 = c4 . c2;
     const c6 = c4 . '$`';
-    const c7 = '`"\'/!#%&()*+,-:;<=>?@[\]^`{|}~'; // But `$`, `.`, and `_`
+    const c7 = c4 . '!#%&*+-<=>?@^|~';
+    const c8 = c2 . c7 . '(),/:;[]{}'; // But `$`, `.`, and `_`
     const m1 = '~\G[\p{ID_Start}_$][\p{ID_Continue}_$\x{200c}\x{200d}]*$~u';
-    const m2 = '~\G/(?>\\\\[\s\S]|\[(?>\\\\[\s\S]|[^\]\\\\])*\]|[^/\\\\[\n\r])+/[dgimsuvy]*(?=\s*(?>[(),.;\\[\\]{}\n\r]|$))~';
     function a(string $s) {
         $r = [];
         if ("" === $s) {
@@ -42,7 +42,7 @@ namespace x\minify\x\js {
                     // <https://tc39.es/ecma262#prod-TemplateHead>
                     if ('$' === $c && '{' === ($s[$i + 1] ?? 0)) {
                         $r[] = [2, \substr($s, $start, $i - $start)];
-                        $r[] = \substr($s, $i, 2);
+                        $r[] = $c . '{';
                         $i += 2;
                         $stack[$k] = 1;
                         continue 2;
@@ -68,23 +68,40 @@ namespace x\minify\x\js {
                 }
                 // <https://tc39.es/ecma262#prod-SingleLineComment>
                 if ('/' === ($s[$i + 1] ?? 0) && ($end = \strcspn($s, "\n\r", $i))) {
-                    $r[] = [0, \substr($s, $i, $end) . ($end + $i < $limit ? "\n" : "")];
+                    $r[] = [0, \substr($s, $i, $end)];
                     $i += $end;
                     continue;
                 }
                 // <https://tc39.es/ecma262#prod-RegularExpressionLiteral>
-                if (false !== \strpos($s, '/', $i + 1) && \preg_match(m2, $s, $m, \PREG_OFFSET_CAPTURE, $i)) {
-                    $r[] = [3, $m[0][0]];
-                    $i = $m[0][1] + \strlen($m[0][0]);
-                    continue;
+                $b = 0;
+                if ($i > 0) {
+                    for ($b = $i - 1; $b >= 0 && false !== \strpos(c1, $s[$b]); --$b);
                 }
-                // `/=`
-                if ('=' === ($s[$i + 1] ?? 0)) {
-                    $r[] = $c . $s[++$i];
-                    continue;
+                if (0 === $i || $b >= 0 && (false !== \strpos('!%&(*+,-:;<=>?[^{|~', $s[$b]) || \preg_match('/\b(?>case|delete|return|throw|typeof|void)$/', \substr($s, 0, $b + 1))) && false !== \strpos($s, '/', $i + 2)) {
+                    $f = $i + 1;
+                    $x = $z = 0;
+                    while ($f < $limit) {
+                        $c1 = $s[$f];
+                        if ($x) {
+                            $x = 0;
+                        } else if (c4 === $c1) {
+                            $x = 1;
+                        } else if ('[' === $c1) {
+                            $z = 1;
+                        } else if (']' === $c1) {
+                            $z = 0;
+                        } else if ('/' === $c1 && !$z) {
+                            $f += \strspn($s, 'dgimsuvy', ++$f);
+                            $r[] = [3, \substr($s, $i, $f - $i)];
+                            $i = $f;
+                            continue 2;
+                        } else if ("\n" === $c1 || "\r" === $c1) {
+                            break;
+                        }
+                        ++$f;
+                    }
                 }
-                $r[] = $c;
-                ++$i;
+                $r[] = $c . \substr($s, ++$i, \strspn($s, c7, $i));
                 continue;
             }
             if ('`' === $c) {
@@ -100,83 +117,17 @@ namespace x\minify\x\js {
                     $r[] = $c;
                     // <https://tc39.es/ecma262#prod-TemplateTail>
                     if (0 === --$stack[$k]) {
-                        $r[] = [2, \substr($s, ++$i, $eat = \strcspn($s, '`', $i))];
-                        $i += $eat;
+                        $start = ++$i;
+                        while ($i < $limit) {
+                            if ('`' === $s[$i += \strcspn($s, c4 . '`', $i)]) {
+                                break;
+                            }
+                            $i += 2;
+                        }
+                        $r[] = [2, \substr($s, $start, $i - $start)];
                         continue;
                     }
                 }
-            }
-            // `!=`, `!==`
-            if ('!' === $c && '=' === ($s[$i + 1] ?? 0)) {
-                $r[] = $c . \substr($s, ++$i, $end = \strspn($s, '=', $i));
-                $i += $end;
-                continue;
-            }
-            // `%=`
-            if ('%' === $c && '=' === ($s[$i + 1] ?? 0)) {
-                $r[] = $c . $s[++$i];
-                ++$i;
-                continue;
-            }
-            // `&&`, `&=`, `&&=`
-            if ('&' === $c && false !== \strpos('&=', $s[$i + 1] ?? "\0")) {
-                $r[] = $c . \substr($s, ++$i, $end = \strspn($s, '&=', $i));
-                $i += $end;
-                continue;
-            }
-            // `**`, `*=`, `**=`
-            if ('*' === $c && false !== \strpos('*=', $s[$i + 1] ?? "\0")) {
-                $r[] = $c . \substr($s, ++$i, $end = \strspn($s, '*=', $i));
-                $i += $end;
-                continue;
-            }
-            // `++`, `+=`
-            if ('+' === $c && false !== \strpos('+=', $s[$i + 1] ?? "\0")) {
-                $r[] = $c . $s[++$i];
-                ++$i;
-                continue;
-            }
-            // `--`, `-=`
-            if ('-' === $c && false !== \strpos('-=', $s[$i + 1] ?? "\0")) {
-                $r[] = $c . $s[++$i];
-                ++$i;
-                continue;
-            }
-            // `<<`, `<=`, `<<=`
-            if ('<' === $c && false !== \strpos('<=', $s[$i + 1] ?? "\0")) {
-                $r[] = $c . \substr($s, ++$i, $end = \strspn($s, '<=', $i));
-                $i += $end;
-                continue;
-            }
-            // `=>`
-            if ('=' === $c && '>' === ($s[$i + 1] ?? 0)) {
-                $r[] = $c . $s[++$i];
-                ++$i;
-                continue;
-            }
-            // `==`, `===`
-            if ('=' === $c && '=' === ($s[$i + 1] ?? 0)) {
-                $r[] = $c . \substr($s, ++$i, $end = \strspn($s, '=', $i));
-                $i += $end;
-                continue;
-            }
-            // `>>`, `>>>`, `>=`, `>>=`, `>>>=`
-            if ('>' === $c && false !== \strpos('>=', $s[$i + 1] ?? "\0")) {
-                $r[] = $c . \substr($s, ++$i, $end = \strspn($s, '>=', $i));
-                $i += $end;
-                continue;
-            }
-            // `??`, `??=`
-            if ('?' === $c && false !== \strpos('?=', $s[$i + 1] ?? "\0")) {
-                $r[] = $c . \substr($s, ++$i, $end = \strspn($s, '?=', $i));
-                $i += $end;
-                continue;
-            }
-            // `||`, `|=`, `||=`
-            if ('|' === $c && false !== \strpos('|=', $s[$i + 1] ?? "\0")) {
-                $r[] = $c . \substr($s, ++$i, $end = \strspn($s, '|=', $i));
-                $i += $end;
-                continue;
             }
             // <https://tc39.es/ecma262#prod-StringLiteral>
             if (false !== \strpos(c2, $c)) {
@@ -192,31 +143,23 @@ namespace x\minify\x\js {
                 continue;
             }
             // Punctuation but `$`, `.`, and `_`
-            if (false !== \strpos(c7, $c)) {
-                $r[] = $c;
-                ++$i;
+            if (false !== \strpos(c8, $c)) {
+                $r[] = $c . \substr($s, ++$i, $eat = \strspn($s, c7, $i));
+                $i += $eat;
                 continue;
             }
-            $c = \substr($s, $i, $n = \strcspn($s, c1 . c7, $i));
+            $c = \substr($s, $i, $n = \strcspn($s, c1 . c8, $i));
             // <https://tc39.es/ecma262#prod-SignedInteger>
             if (false !== \strpos('+-', $s[$i + $n] ?? "\0")) {
                 // <https://tc39.es/ecma262#prod-ExponentIndicator>
                 if (false !== \strpos('Ee', $c[-1]) && \is_numeric(\strtr(\substr($c, 0, -1), ['_' => ""]))) {
-                    $c .= \substr($s, $i + $n, $m = \strcspn($s, c1 . c7, $i + $n + 1) + 1);
+                    $c .= \substr($s, $i + $n, $m = \strcspn($s, c1 . c8, $i + $n + 1) + 1);
                     $n += $m;
                 }
             }
             $i += $n;
-            if ('...' === $c) {
-                $r[] = $c;
-                continue;
-            }
             if ("" !== $c) {
-                if ('.' === $c[0] && false !== \strpos(c3, $c[1] ?? "\0")) {
-                    $r[] = [1, $c];
-                    continue;
-                }
-                if (false !== \strpos(c3, $c[0])) {
+                if (false !== \strpos(c3, $c[0]) || '.' === $c[0] && false !== \strpos(c3, $c[1] ?? "\0")) {
                     $r[] = [1, $c];
                     continue;
                 }
@@ -245,18 +188,20 @@ namespace x\minify\x\js {
         }
         return \rtrim($n, '.');
     }
-    function n2t(array $a, int $k) {
+    function n2t(array $a, int $k, int &$at = 0) {
         $r = $a[++$k] ?? 0;
         while (\is_array($r) && 0 === $r[0]) {
             $r = $a[++$k] ?? 0;
         }
+        $at = $k;
         return $r;
     }
-    function p2v(array $a, int $k) {
+    function p2v(array $a, int $k, int &$at = 0) {
         $r = $a[--$k] ?? 0;
         while (\is_array($r) && 0 === $r[0]) {
             $r = $a[--$k] ?? 0;
         }
+        $at = $k;
         return $r;
     }
     function s(array $a) {
@@ -270,10 +215,10 @@ namespace x\minify\x\js {
                     $keep = 0;
                     if (false !== \strpos('!*', $v[1][2]) || false !== \strpos($v[1], '@cc_on') || false !== \strpos($v[1], '@license')) {
                         $keep = 1;
-                        if (0 === \strpos($v[1], '//')) {
+                        if ('/' === $v[1][1]) {
                             $c = \ltrim(\substr($v[1], 2));
                             if ("" !== $c) {
-                                $s .= '//' . $c;
+                                $s .= '//' . $c . (isset($a[$k + 1]) ? "\n" : "");
                             }
                         } else {
                             $c = \trim(\ltrim(\substr($v[1], 2, -2), '!*'));
@@ -288,25 +233,17 @@ namespace x\minify\x\js {
                     continue;
                 }
                 if (1 === $v[0]) {
+                    // `+=1` → `++`
+                    // `-=1` → `--`
                     if ('1' === ($n = n($v[1])) && "" !== $s && '=' === $s[-1] && false !== \strpos('+-', $s[-2])) {
                         $s = \substr($s, 0, -1) . $s[-2];
                         continue;
                     }
-                    if ('.' !== $n[0] && "" !== $s && false === \strpos(c7, $s[-1])) {
+                    if ('.' !== $n[0] && "" !== $s && false === \strpos(c8, $s[-1])) {
                         $s .= ' ';
                     }
                     $s .= $n;
                     continue;
-                }
-                if (2 === $v[0]) {
-                    // `,'asdf':` → `,asdf:`
-                    // `{'asdf':` → `{asdf:`
-                    if ("" !== $s && false !== \strpos(',{', $s[-1]) && "" !== ($key = \substr($v[1], 1, -1))) {
-                        if (':' === n2t($a, $k) && \preg_match(m1, $key)) {
-                            $s .= $key;
-                            continue;
-                        }
-                    }
                 }
                 $s .= "''" === $v[1] ? '""' : $v[1];
                 continue;
@@ -319,9 +256,18 @@ namespace x\minify\x\js {
                     continue;
                 }
             }
-            if ('...' === $v) {
-                $s .= $v;
-                continue;
+            // `,'asdf':` → `,asdf:`
+            // `{'asdf':` → `{asdf:`
+            if (':' === $v) {
+                if (\is_array($p = p2v($a, $at = $k, $at)) && 2 === $p[0]) {
+                    $key = \substr($p[1], 1, -1);
+                    if (\is_string($p = p2v($a, $at)) && false !== \strpos(',{', $p[0])) {
+                        if (\preg_match(m1, $key)) {
+                            $s = \substr($s, 0, -(\strlen($key) + 2)) . $key . $v;
+                            continue;
+                        }
+                    }
+                }
             }
             // `;}` → `}`
             if (';' === $v) {
@@ -339,24 +285,29 @@ namespace x\minify\x\js {
                     continue;
                 }
                 // `asdf asdf`
-                if (false === \strpos(c7 . '.', $v[0]) && false === \strpos(c7 . '.', $s[-1])) {
+                if ('${' !== $v && false === \strpos(c8 . '.', $v[0]) && false === \strpos(c1 . c8 . '.', $s[-1])) {
                     $s .= ' ';
                 }
             }
             if (']' === $v) {
-                if (\is_string($p = p2v($a, $k - 2)) && \in_array($p, [
-                    'case',
-                    'else',
-                    'in',
-                    'instanceof',
-                    'of',
-                    'return',
-                    'typeof'
-                ], true)) {
-                    $s .= $v;
-                    continue;
-                }
-                if (\is_array($p = p2v($a, $k)) && 2 === $p[0] && "" !== ($key = \substr($p[1], 1, -1))) {
+                if (\is_array($p = p2v($a, $at = $k, $at)) && 2 === $p[0] && "" !== ($key = \substr($p[1], 1, -1))) {
+                    if ('[' !== ($p = p2v($a, $at, $at))) {
+                        $s .= $v;
+                        continue;
+                    }
+                    $c8 = \strtr(c8, [')' => "", ']' => "", '}' => ""]);
+                    if (0 === $at || \is_string($p = p2v($a, $at)) && false !== \strpos($c8, $p[0]) || \in_array($p, [
+                        'case',
+                        'else',
+                        'in',
+                        'of',
+                        'return',
+                        'throw',
+                        'yield'
+                    ], true)) {
+                        $s .= $v;
+                        continue;
+                    }
                     // `asdf['1234']` → `asdf[1234]`
                     if (\strspn($key, c3) === \strlen($key)) {
                         $s = \substr($s, 0, -(\strlen($key) + 2)) . $key . $v;
@@ -364,18 +315,13 @@ namespace x\minify\x\js {
                     }
                     // `asdf['asdf']` → `asdf.asdf`
                     if (\preg_match(m1, $key)) {
-                        if ('[' === ($a[$k - 2] ?? 0)) {
-                            $c7 = \strtr(c7, [')' => "", ']' => "", '}' => ""]);
-                            if ("" !== ($c = \substr($s, -(\strlen($key) + 4), 1)) && false === \strpos($c7, $c)) {
-                                $s = \substr($s, 0, -(\strlen($key) + 3)) . '.' . $key;
-                                continue;
-                            }
-                        }
+                        $s = \substr($s, 0, -(\strlen($key) + 3)) . '.' . $key;
+                        continue;
                     }
                 }
             }
-            $c7 = \strtr(c7, [':' => ""]);
-            if ("" === $s || false === \strpos(',.{', $s[-1]) || \is_string($p = n2t($a, $k)) && false !== \strpos($c7, $p[0])) {
+            $c8 = \strtr(c8, [':' => ""]);
+            if ("" === $s || false === \strpos(',.{', $s[-1]) || \is_string($p = n2t($a, $k)) && false !== \strpos($c8, $p[0])) {
                 if ('false' === $v) {
                     $s = \rtrim($s) . '!1';
                 } else if ('true' === $v) {

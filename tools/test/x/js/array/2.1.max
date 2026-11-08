@@ -1,0 +1,7 @@
+[
+  yield [ '1234' ] ,
+  yield [ /* asdf */ '1234' ] ,
+  yield [ /* asdf */ /* asdf */ '1234' ] ,
+  yield /* asdf */ /* asdf */ [ '1234' ] ,
+  yield /* asdf */ [ '1234' ] ,
+]
