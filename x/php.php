@@ -7,6 +7,7 @@ namespace x\minify\x {
 }
 
 namespace x\minify\x\php {
+    const c111 = " \n\r\t";
     const c1 = '!"#$%&()*+,-./:;<=>?@[\]^_`{|}~' . "' \n\r\t";
     const c2 = '"' . "'";
     const m1 = '~[\w\x80-\xff)}\]]\[([' . c2 . '])([+-]?\d+)\1$~';
@@ -18,7 +19,44 @@ namespace x\minify\x\php {
             return $r;
         }
         foreach (\token_get_all($s) as $v) {
-            if (\is_array($v) && \T_WHITESPACE === $v[0]) {
+            if (\is_array($v)) {
+                $t = $v[0];
+                if (\T_CLOSE_TAG === $t) {
+                    $r[] = [4, \trim($v[1]) . (false !== \strpos(c111, $v[1][-1]) ? "\n" : ""), false];
+                    continue;
+                }
+                if (\T_COMMENT === $t || \T_DOC_COMMENT === $t) {
+                    $r[] = [0, $v[1]];
+                    continue;
+                }
+                if (\T_CONSTANT_ENCAPSED_STRING === $t || \T_ENCAPSED_AND_WHITESPACE === $t) {
+                    $r[] = [2, $v[1], \T_ENCAPSED_AND_WHITESPACE === $t];
+                    continue;
+                }
+                if (\T_DNUMBER === $t || \T_LNUMBER === $t) {
+                    $r[] = [1, $v[1], \T_LNUMBER === $t];
+                    continue;
+                }
+                if (\T_END_HEREDOC === $t || \T_START_HEREDOC === $t) {
+                    $r[] = [5, $v[1], \T_START_HEREDOC === $t];
+                    continue;
+                }
+                if (\T_OPEN_TAG === $t) {
+                    $r[] = [4, \trim($v[1]) . ' ', true];
+                    continue;
+                }
+                if (\T_OPEN_TAG_WITH_ECHO === $t) {
+                    $r[] = [4, $v[1], true];
+                    continue;
+                }
+                if (\T_WHITESPACE === $t) {
+                    continue;
+                }
+                if ('_CAST' === \substr(\token_name($t), -5)) {
+                    $r[] = [6, '(' . \trim(\substr($v[1], 1, -1)) . ')'];
+                    continue;
+                }
+                $r[] = $v[1];
                 continue;
             }
             $r[] = $v;
@@ -50,37 +88,63 @@ namespace x\minify\x\php {
         $stack = [];
         foreach ($a as $k => $v) {
             if (\is_array($v)) {
-                $t = $v[0];
-                // Can be `array $asdf` or `array (`
-                if (\T_ARRAY === $t) {
-                    if (!$array = '(' === n2t($a, $k)) {
-                        $s .= $v[1];
+                if (0 === $v[0]) {
+                    if (false === \strpos('!*', $v[1][2] ?? "\n") && false === \strpos($v[1], '@license')) {
+                        continue;
                     }
-                    continue;
-                }
-                if (\T_CLOSE_TAG === $t) {
-                    if ($k === \count($a) - 1) {
-                        break;
-                    }
-                    if (';' === $s[-1]) {
-                        $s = \rtrim($s, ';');
-                    }
-                    $s .= $v[1];
-                    continue;
-                }
-                if (\T_COMMENT === $t || \T_DOC_COMMENT === $t) {
-                    if ('/*' === \substr($v[1], 0, 2)) {
-                        if (false !== \strpos('!*', $v[1][2]) || false !== \strpos($v[1], '@license')) {
-                            $c = \rtrim(\trim(\ltrim(\substr($v[1], 2, -2), '!*'), "\n\r"));
-                            $c = false !== \strpos($c, "\n") ? "\n" . $c . "\n" : \trim($c);
-                            if ("" !== $c) {
-                                $s .= '/*' . $c . '*/';
-                            }
+                    if ('/' === $v[1][1]) {
+                        $c = \ltrim(\substr($v[1], 2));
+                        if ("" !== $c) {
+                            $s .= '//' . $c . (isset($a[$k + 1]) ? "\n" : "");
                         }
+                        continue;
+                    }
+                    $c = \trim(\ltrim(\substr($v[1], 2, -2), '!*'));
+                    if ("" !== $c) {
+                        if (false !== \strpos($c, "\n")) {
+                            $c = "\n" . $c . "\n";
+                        }
+                        $s .= '/*' . $c . '*/';
                     }
                     continue;
                 }
-                if (\T_CONSTANT_ENCAPSED_STRING === $t) {
+                if (1 === $v[0]) {
+                    $n = \strtolower(\strtr($v[1], ['_' => ""]));
+                    $n = false === \strpos($n, '.') ? $n : \trim($n, '0');
+                    if ("" === $n) {
+                        $n = '0';
+                    } else if ('.' === $n) {
+                        $n = '0.0';
+                    } else if ('.' === $n[-1]) {
+                        $n .= '0';
+                    }
+                    if ('!!' === \substr($s, -2)) {
+                        $s = \substr($s, 0, -2) . '!' . (($v[2] ? (int) $n : (float) $n) ? '0' : '1');
+                        continue;
+                    }
+                    if ('"".' === \substr($s, -3)) {
+                        $s = \substr($s, 0, -3) . "'" . $n . "'";
+                        continue;
+                    }
+                    if ('(float)' === \substr($s, -7)) {
+                        $s = \substr($s, 0, -7) . $n . ($v[2] ? '.0' : "");
+                        continue;
+                    }
+                    if ('(int)' === \substr($s, -5) && $v[2]) {
+                        $s = \substr($s, 0, -5) . $n;
+                        continue;
+                    }
+                    if (false === \strpos(c1, $s[-1]) && '.' !== $n[0]) {
+                        $s .= ' ';
+                    }
+                    $s .= $n;
+                    continue;
+                }
+                if (2 === $v[0]) {
+                    if ($v[2]) {
+                        $s .= \strtr($v[1], ["S\n" => "\\x53\n", "S\r" => "\\x53\r"]);
+                        continue;
+                    }
                     if ('!!' === \substr($s, -2)) {
                         $s = \substr($s, 0, -2) . '!' . (\substr($v[1], 1, -1) ? '0' : '1');
                         continue;
@@ -89,164 +153,47 @@ namespace x\minify\x\php {
                         $s = \substr($s, 0, -3) . $v[1];
                         continue;
                     }
-                    if ('(float)' === \substr($s, -7) && \is_numeric($c = \substr($v[1], 1, -1))) {
-                        $c = (string) ((float) $c);
-                        $s = \substr($s, 0, -7) . $c . (false === \strpos($c, '.') ? '.0' : "");
+                    $n = \strtr(\substr($v[1], 1, -1), ['_' => ""]);
+                    if ('(float)' === \substr($s, -7) && \is_numeric($n)) {
+                        $n = (string) ((float) $n);
+                        $s = \substr($s, 0, -7) . $n . (false === \strpos($n, '.') ? '.0' : "");
                         continue;
                     }
-                    if ('(int)' === \substr($s, -5) && \is_numeric($c = \substr($v[1], 1, -1))) {
-                        $c = (string) (((int) $c));
-                        $s = \substr($s, 0, -5) . $c;
+                    if ('(int)' === \substr($s, -5) && \is_numeric($n)) {
+                        $n = (string) (((int) $n));
+                        $s = \substr($s, 0, -5) . $n;
                         continue;
                     }
                     $s .= "''" === $v[1] ? '""' : $v[1];
                     continue;
                 }
-                if (\T_ECHO === $t || \T_PRINT === $t) {
-                    if ('<?php ' === \substr($s, -6)) {
-                        $s = \substr($s, 0, -4) . '=';
-                        continue;
+                // if (3 === $v[0]) {}
+                if (4 === $v[0]) {
+                    if (!$v[2] && $k === \count($a) - 1) {
+                        break;
                     }
-                    $s .= 'echo';
+                    if ($s && ';' === $s[-1]) {
+                        $s = \rtrim($s, ';');
+                    }
+                    $s .= \strtolower($v[1]);
                     continue;
                 }
-                if (\T_ENCAPSED_AND_WHITESPACE === $t) {
-                    $s .= \strtr($v[1], ["S\n" => "\\x53\n", "S\r" => "\\x53\r"]);
+                if (5 === $v[0]) {
+                    $s .= $v[2] ? '<<<' . ("'" === $v[1][3] ? "'S'" : 'S') . "\n" : 'S';
                     continue;
                 }
-                if (\T_DNUMBER === $t || \T_LNUMBER === $t) {
-                    $v[1] = \strtolower(\strtr($v[1], ['_' => ""]));
-                    $v[1] = false === \strpos($v[1], '.') ? $v[1] : \trim($v[1], '0');
-                    if ("" === $v[1]) {
-                        $v[1] = '0';
-                    } else if ('.' === $v[1]) {
-                        $v[1] = '0.0';
-                    } else if ('.' === $v[1][-1]) {
-                        $v[1] .= '0';
-                    }
-                    if ('!!' === \substr($s, -2)) {
-                        $c = \T_DNUMBER ? (float) $v[1] : (int) $v[1];
-                        $s = \substr($s, 0, -2) . '!' . ($c ? '0' : '1');
-                        continue;
-                    }
-                    if ('"".' === \substr($s, -3)) {
-                        $s = \substr($s, 0, -3) . "'" . $v[1] . "'";
-                        continue;
-                    }
-                    if ('(float)' === \substr($s, -7)) {
-                        $s = \substr($s, 0, -7) . $v[1] . (\T_LNUMBER === $t ? '.0' : "");
-                        continue;
-                    }
-                    if ('(int)' === \substr($s, -5) && \T_LNUMBER === $t) {
-                        $s = \substr($s, 0, -5) . $v[1];
-                        continue;
-                    }
-                    if (false === \strpos(c1, $s[-1]) && '.' !== $v[1][0]) {
-                        $s .= ' ';
-                    }
-                    $s .= $v[1];
-                    continue;
-                }
-                if (\T_DEC === $t && '-' === $s[-1]) {
-                    $s .= ' ' . $v[1];
-                    continue;
-                }
-                // `'1234'=>` → `1234=>`
-                if (\T_DOUBLE_ARROW === $t) {
-                    if (false !== \strpos(c2, $s[-1]) && \preg_match(m3, $s, $m)) {
-                        $s = \substr($s, 0, -(\strlen($m[0]))) . $m[2] . $v[1];
-                        continue;
-                    }
-                }
-                if (\T_END_HEREDOC === $t) {
-                    $s .= 'S';
-                    continue;
-                }
-                if (\T_INC === $t && '+' === $s[-1]) {
-                    $s .= ' ' . $v[1];
-                    continue;
-                }
-                if (\T_OPEN_TAG === $t) {
-                    $s .= \trim($v[1]) . ' ';
-                    continue;
-                }
-                if (\T_START_HEREDOC === $t) {
-                    $s .= '<<<' . ("'" === $v[1][3] ? "'S'" : 'S') . "\n";
-                    continue;
-                }
-                if (\T_STRING === $t) {
-                    $c = \strtolower($v[1]);
-                    if ('false' === $c) {
-                        if ('!!' === \substr($s, -2)) {
-                            $s = \substr($s, 0, -1) . '1';
-                            continue;
-                        }
-                        if ('"".' === \substr($s, -3)) {
-                            $s = \substr($s, 0, -1);
-                            continue;
-                        }
-                        if ('(int)' === \substr($s, -5)) {
-                            $s = \substr($s, 0, -5) . '0';
-                            continue;
-                        }
-                        $s .= '!1';
-                        continue;
-                    }
-                    if ('null' === $c) {
-                        if ('!!' === \substr($s, -2)) {
-                            $s = \substr($s, 0, -1) . '1';
-                            continue;
-                        }
-                        if ('"".' === \substr($s, -3)) {
-                            $s = \substr($s, 0, -1);
-                            continue;
-                        }
-                        if ('(int)' === \substr($s, -5)) {
-                            $s = \substr($s, 0, -5) . '0';
-                            continue;
-                        }
-                        if (false === \strpos(c1, $s[-1])) {
-                            $s .= ' ';
-                        }
-                        $s .= $c;
-                        continue;
-                    }
-                    if ('true' === $c) {
-                        if ('!!' === \substr($s, -2)) {
-                            $s = \substr($s, 0, -1) . '0';
-                            continue;
-                        }
-                        if ('"".' === \substr($s, -3)) {
-                            $s = \substr($s, 0, -3) . "'1'";
-                            continue;
-                        }
-                        if ('(int)' === \substr($s, -5)) {
-                            $s = \substr($s, 0, -5) . '1';
-                            continue;
-                        }
-                        $s .= '!0';
-                        continue;
-                    }
-                    if (false === \strpos(c1, $s[-1])) {
-                        $s .= ' ';
-                    }
-                    $s .= $v[1];
-                    continue;
-                }
-                if ('_CAST' === \substr(\token_name($t), -5)) {
-                    $c = match ($c = \strtolower(\trim(\substr($v[1], 1, -1)))) {
-                        'boolean' => 'bool',
-                        'double' => 'float',
-                        'integer' => 'int',
-                        'real' => 'float',
+                if (6 === $v[0]) {
+                    $c = match ($c = \strtolower($v[1])) {
+                        '(boolean)' => '(bool)',
+                        '(double)' => '(float)',
+                        '(integer)' => '(int)',
+                        '(real)' => '(float)',
                         default => $c
                     };
-                    if ('bool' === $c) {
+                    if ('(bool)' === $c) {
                         $c = '!!';
-                    } else if ('string' === $c) {
+                    } else if ('(string)' === $c) {
                         $c = '"".';
-                    } else {
-                        $c = '(' . $c . ')';
                     }
                     $s .= $c;
                     continue;
@@ -296,12 +243,75 @@ namespace x\minify\x\php {
                     continue;
                 }
             }
-            if (false !== \strpos('+-', $v) && $v === $s[-1]) {
+            if (false !== \strpos('+-', $v[0]) && $v[0] === $s[-1]) {
                 $s .= ' ' . $v;
                 continue;
             }
-            if (false !== \strpos(')]}', $v) && ',' === $s[-1]) {
-                $s = \rtrim($s, ',') . $v;
+            if (false === \strpos(c1, $v[0]) && false === \strpos(c1, $s[-1])) {
+                $s .= ' ';
+            }
+            $w = \strtolower($v);
+            // Can be `array $asdf` or `array (`
+            if ('array' === $w) {
+                if (!$array = '(' === n2t($a, $k)) {
+                    $s .= $w;
+                }
+                continue;
+            }
+            if ('echo' === $w || 'print' === $w) {
+                if (\is_array($p = p2v($a, $k)) && 4 === $p[0] && $p[2]) {
+                    $s = \substr($s, 0, -(\strlen($p[1]) - 2)) . '=';
+                    continue;
+                }
+                $s .= 'echo';
+                continue;
+            }
+            if ('false' === $w) {
+                if ('!!' === \substr($s, -2)) {
+                    $s = \substr($s, 0, -1) . '1';
+                    continue;
+                }
+                if ('"".' === \substr($s, -3)) {
+                    $s = \substr($s, 0, -1);
+                    continue;
+                }
+                if ('(int)' === \substr($s, -5)) {
+                    $s = \substr($s, 0, -5) . '0';
+                    continue;
+                }
+                $s .= '!1';
+                continue;
+            }
+            if ('null' === $w) {
+                if ('!!' === \substr($s, -2)) {
+                    $s = \substr($s, 0, -1) . '1';
+                    continue;
+                }
+                if ('"".' === \substr($s, -3)) {
+                    $s = \substr($s, 0, -1);
+                    continue;
+                }
+                if ('(int)' === \substr($s, -5)) {
+                    $s = \substr($s, 0, -5) . '0';
+                    continue;
+                }
+                $s .= $w;
+                continue;
+            }
+            if ('true' === $w) {
+                if ('!!' === \substr($s, -2)) {
+                    $s = \substr($s, 0, -1) . '0';
+                    continue;
+                }
+                if ('"".' === \substr($s, -3)) {
+                    $s = \substr($s, 0, -3) . "'1'";
+                    continue;
+                }
+                if ('(int)' === \substr($s, -5)) {
+                    $s = \substr($s, 0, -5) . '1';
+                    continue;
+                }
+                $s .= '!0';
                 continue;
             }
             $s .= $v;
