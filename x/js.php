@@ -297,8 +297,7 @@ namespace x\minify\x\js {
                         $s .= $v;
                         continue;
                     }
-                    $c8 = \strtr(c8, [')' => "", ']' => "", '}' => ""]);
-                    if (0 === $at || \is_string($p = p2v($a, $at)) && false !== \strpos($c8, $p[0]) || \in_array($p, a1, true)) {
+                    if (0 === $at || \is_string($p = p2v($a, $at)) && false !== \strpos(c8, $p[0]) && false === \strpos(')]}', $p[0]) || \in_array($p, a1, true)) {
                         $s .= $v;
                         continue;
                     }
@@ -314,8 +313,7 @@ namespace x\minify\x\js {
                     }
                 }
             }
-            $c8 = \strtr(c8, [':' => ""]);
-            if ("" === $s || false === \strpos(',.{', $s[-1]) || \is_string($p = n2t($a, $k)) && false !== \strpos($c8, $p[0])) {
+            if ("" === $s || false === \strpos(',.{', $s[-1]) || \is_string($p = n2t($a, $k)) && false !== \strpos(c8, $p[0]) && ':' !== $p[0]) {
                 if ('false' === $v) {
                     $s = \rtrim($s) . '!1';
                 } else if ('true' === $v) {
