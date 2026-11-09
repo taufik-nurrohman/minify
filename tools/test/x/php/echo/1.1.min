@@ -1,0 +1,3 @@
+<?=$asdf?>
+
+<?php $asdf=1;echo$asdf;

@@ -25,18 +25,20 @@ namespace x\minify\x\php {
         }
         return $r;
     }
-    function n2t(array $a, int $k) {
+    function n2t(array $a, int $k, int &$at = 0) {
         $r = $a[++$k] ?? 0;
         while (\is_array($r) && \in_array($r[0], [\T_COMMENT, \T_DOC_COMMENT], true)) {
             $r = $a[++$k] ?? 0;
         }
+        $at = $k;
         return $r;
     }
-    function p2v(array $a, int $k) {
+    function p2v(array $a, int $k, int &$at = 0) {
         $r = $a[--$k] ?? 0;
         while (\is_array($r) && \in_array($r[0], [\T_COMMENT, \T_DOC_COMMENT], true)) {
             $r = $a[--$k] ?? 0;
         }
+        $at = $k;
         return $r;
     }
     function s(array $a) {
@@ -264,6 +266,11 @@ namespace x\minify\x\php {
             if (')' === $v && $stack) {
                 $s = \rtrim($s, ',');
                 $s .= \array_pop($stack) ? ']' : $v;
+                continue;
+            }
+            // `,)` → `)`
+            // `,]` → `]`
+            if (',' === $v && \is_string($p = n2t($a, $k)) && false !== \strpos(')]', $p[0])) {
                 continue;
             }
             if (']' === $v) {

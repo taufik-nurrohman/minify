@@ -1,0 +1,1 @@
+switch(asdf){case/ asdf /.lastIndex:asdf=0;break}delete/ asdf /.asdf;return/ asdf /;throw/ asdf /;typeof/ asdf /.source;void/ asdf /.lastIndex;

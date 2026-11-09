@@ -1,0 +1,10 @@
+switch ( asdf ) {
+  case / [/]+ / .lastIndex :
+    asdf = 0 ; break ;
+}
+
+delete / [/]+ / .asdf ;
+return / [/]+ / ;
+throw / [/]+ / ;
+typeof / [/]+ / .source ;
+void / [/]+ / .lastIndex ;

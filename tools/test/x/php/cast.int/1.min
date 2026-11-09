@@ -1,0 +1,1 @@
+<?php [(int)$asdf('1234'),(int)$asdf(),(int)$asdf,(int)$asdf[1234],(int)$asdf[],0,(int)'asdf',(int)(new asdf),0,(int).1,1,(int)1.0,(int)1.1,(int)[1234],(int)[],(int)asdf('1234'),(int)asdf(),(int)asdf,(int)asdf[1234],(int)asdf[],0,0,1];

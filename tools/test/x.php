@@ -37,13 +37,13 @@ $s .= '</title>';
 $s .= '<style>';
 $s .= <<<CSS
 
-.char-space,
-.char-tab {
+.c-s,
+.c-t {
   opacity: 0.5;
   position: relative;
 }
 
-.char-space::before {
+.c-s::before {
   bottom: 0;
   content: '·';
   left: 0;
@@ -53,7 +53,7 @@ $s .= <<<CSS
   top: 0;
 }
 
-.char-tab::before {
+.c-t::before {
   bottom: 0;
   content: '→';
   left: 0;
@@ -74,7 +74,6 @@ $s .= '<legend>';
 $s .= 'Type';
 $s .= '</legend>';
 $s .= '<input name="batch" type="hidden" value="' . htmlspecialchars($batch) . '">';
-$s .= '<input name="x" type="hidden" value="' . htmlspecialchars($x) . '">';
 $s .= '<p>';
 foreach (glob(PATH . D . 'x' . D . '*', GLOB_ONLYDIR) as $k => $v) {
     $s .= 0 === $k ? "" : ' ';
@@ -92,7 +91,7 @@ foreach (['source', 'token'] as $v) {
 }
 $s .= '</select>';
 $s .= ' ';
-$s .= '<button type="submit">';
+$s .= '<button name="x" type="submit" value="' . htmlspecialchars($x) . '">';
 $s .= 'View';
 $s .= '</button>';
 $s .= '</p>';
@@ -126,8 +125,8 @@ foreach ($files as $v) {
     $s .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
     $s .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $s .= strtr(htmlspecialchars($raw), [
-        "\t" => '<span class="char-tab">' . "\t" . '</span>',
-        ' ' => '<span class="char-space"> </span>'
+        "\t" => '<span class="c-t">' . "\t" . '</span>',
+        ' ' => '<span class="c-s"> </span>'
     ]);
     $s .= '</pre>';
     $s .= '<div style="flex:1;min-width:0;">';
@@ -141,8 +140,8 @@ foreach ($files as $v) {
     }
     $end = microtime(true);
     $a .= strtr(htmlspecialchars($content), [
-        "\t" => '<span class="char-tab">' . "\t" . '</span>',
-        ' ' => '<span class="char-space"> </span>'
+        "\t" => '<span class="c-t">' . "\t" . '</span>',
+        ' ' => '<span class="c-s"> </span>'
     ]);
     $a .= '</pre>';
     if (is_file($f = dirname($v) . D . pathinfo($v, PATHINFO_FILENAME) . '.min')) {
@@ -150,13 +149,14 @@ foreach ($files as $v) {
         if ($error = 'token' !== $view && $content !== $test) {
             $b .= '<pre style="background:#cff;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:1em 0 0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
             $b .= strtr(htmlspecialchars($test), [
-                "\t" => '<span class="char-tab">' . "\t" . '</span>',
-                ' ' => '<span class="char-space"> </span>'
+                "\t" => '<span class="c-t">' . "\t" . '</span>',
+                ' ' => '<span class="c-s"> </span>'
             ]);
             $b .= '</pre>';
         }
     } else {
         $error = false; // No test file to compare
+        // file_put_contents($f, $content);
     }
     $s .= ($error ? strtr($a, [':#cfc;' => ':#fcc;']) : $a) . $b . '</div>';
     $s .= '</div>';

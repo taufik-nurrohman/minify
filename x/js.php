@@ -7,6 +7,8 @@ namespace x\minify\x {
 }
 
 namespace x\minify\x\js {
+    const a1 = ['case', 'else', 'in', 'of', 'return', 'throw', 'yield'];
+    const a2 = ['case', 'delete', 'return', 'throw', 'typeof', 'void', 'yield'];
     const c1 = " \n\r\t";
     const c2 = '"' . "'`";
     const c3 = '0123456789';
@@ -23,6 +25,7 @@ namespace x\minify\x\js {
         }
         $i = 0;
         $limit = \strlen($s);
+        $pat = 1;
         $stack = [];
         while ($i < $limit) {
             if ($stack && 0 === $stack[$k = \array_key_last($stack)]) {
@@ -73,15 +76,12 @@ namespace x\minify\x\js {
                     continue;
                 }
                 // <https://tc39.es/ecma262#prod-RegularExpressionLiteral>
-                $b = 0;
-                if ($i > 0) {
-                    for ($b = $i - 1; $b >= 0 && false !== \strpos(c1, $s[$b]); --$b);
-                }
-                if (0 === $i || $b >= 0 && (false !== \strpos('!%&(*+,-:;<=>?[^{|~', $s[$b]) || \preg_match('/\b(?>case|delete|return|throw|typeof|void)$/', \substr($s, 0, $b + 1))) && false !== \strpos($s, '/', $i + 2)) {
-                    $f = $i + 1;
+                if ($pat && false !== \strpos($s, '/', $i + 2)) {
+                    $n = $i + 1;
+                    $pat = 0;
                     $x = $z = 0;
-                    while ($f < $limit) {
-                        $c1 = $s[$f];
+                    while ($n < $limit) {
+                        $c1 = $s[$n];
                         if ($x) {
                             $x = 0;
                         } else if (c4 === $c1) {
@@ -91,17 +91,18 @@ namespace x\minify\x\js {
                         } else if (']' === $c1) {
                             $z = 0;
                         } else if ('/' === $c1 && !$z) {
-                            $f += \strspn($s, 'dgimsuvy', ++$f);
-                            $r[] = [3, \substr($s, $i, $f - $i)];
-                            $i = $f;
+                            $n += \strspn($s, 'dgimsuvy', ++$n);
+                            $r[] = [3, \substr($s, $i, $n - $i)];
+                            $i = $n;
                             continue 2;
                         } else if ("\n" === $c1 || "\r" === $c1) {
                             break;
                         }
-                        ++$f;
+                        ++$n;
                     }
                 }
-                $r[] = $c . \substr($s, ++$i, \strspn($s, c7, $i));
+                $r[] = $c . \substr($s, ++$i, $eat = \strspn($s, c7, $i));
+                $i += $eat;
                 continue;
             }
             if ('`' === $c) {
@@ -144,6 +145,7 @@ namespace x\minify\x\js {
             }
             // Punctuation but `$`, `.`, and `_`
             if (false !== \strpos(c8, $c)) {
+                $pat = false !== \strpos('!%&(*+,-:;<=>?[^{|~', $c);
                 $r[] = $c . \substr($s, ++$i, $eat = \strspn($s, c7, $i));
                 $i += $eat;
                 continue;
@@ -160,9 +162,11 @@ namespace x\minify\x\js {
             $i += $n;
             if ("" !== $c) {
                 if (false !== \strpos(c3, $c[0]) || '.' === $c[0] && false !== \strpos(c3, $c[1] ?? "\0")) {
+                    $pat = 0;
                     $r[] = [1, $c];
                     continue;
                 }
+                $pat = \in_array($c, a2, true);
                 $r[] = $c;
             }
         }
@@ -258,10 +262,9 @@ namespace x\minify\x\js {
             // `,'asdf':` → `,asdf:`
             // `{'asdf':` → `{asdf:`
             if (':' === $v) {
-                if (\is_array($p = p2v($a, $at = $k, $at)) && 2 === $p[0]) {
-                    $key = \substr($p[1], 1, -1);
+                if (\is_array($p = p2v($a, $at = $k, $at)) && 2 === $p[0] && "" !== ($key = \substr($p[1], 1, -1))) {
                     if (\is_string($p = p2v($a, $at)) && false !== \strpos(',{', $p[0])) {
-                        if (\preg_match(m1, $key)) {
+                        if (false === \strpos(c1 . c3 . c8 . '.', $key[0]) && \preg_match(m1, $key)) {
                             $s = \substr($s, 0, -(\strlen($key) + 2)) . $key . $v;
                             continue;
                         }
@@ -284,7 +287,7 @@ namespace x\minify\x\js {
                     continue;
                 }
                 // `asdf asdf`
-                if ('${' !== $v && false === \strpos(c8 . '.', $v[0]) && false === \strpos(c1 . c8 . '.', $s[-1])) {
+                if (false === \strpos(c8 . '.', $v[0]) && false === \strpos(c1 . c8 . '.', $s[-1])) {
                     $s .= ' ';
                 }
             }
@@ -295,15 +298,7 @@ namespace x\minify\x\js {
                         continue;
                     }
                     $c8 = \strtr(c8, [')' => "", ']' => "", '}' => ""]);
-                    if (0 === $at || \is_string($p = p2v($a, $at)) && false !== \strpos($c8, $p[0]) || \in_array($p, [
-                        'case',
-                        'else',
-                        'in',
-                        'of',
-                        'return',
-                        'throw',
-                        'yield'
-                    ], true)) {
+                    if (0 === $at || \is_string($p = p2v($a, $at)) && false !== \strpos($c8, $p[0]) || \in_array($p, a1, true)) {
                         $s .= $v;
                         continue;
                     }
@@ -313,7 +308,7 @@ namespace x\minify\x\js {
                         continue;
                     }
                     // `asdf['asdf']` → `asdf.asdf`
-                    if (\preg_match(m1, $key)) {
+                    if (false === \strpos(c1 . c3 . c8 . '.', $key[0]) && \preg_match(m1, $key)) {
                         $s = \substr($s, 0, -(\strlen($key) + 3)) . '.' . $key;
                         continue;
                     }

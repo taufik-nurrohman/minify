@@ -1,0 +1,8 @@
+let asdf , g = 1234 ;
+
+asdf = / asdf /g || [
+  asdf / asdf ,
+  ( asdf ) / asdf /g ,
+] ;
+
+1234 /= 1234 /g;
