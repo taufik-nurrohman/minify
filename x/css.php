@@ -1,7 +1,7 @@
 <?php
 
 namespace x\minify\x {
-    function css(?string $from): ?string {
+    function css2(?string $from): ?string {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
         }

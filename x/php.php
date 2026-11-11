@@ -65,7 +65,7 @@ namespace x\minify\x\php {
     }
     function n2t(array $a, int $k, int &$at = 0) {
         $r = $a[++$k] ?? 0;
-        while (\is_array($r) && (\T_COMMENT === $r[0] || \T_DOC_COMMENT === $r[0])) {
+        while (\is_array($r) && 0 === $r[0]) {
             $r = $a[++$k] ?? 0;
         }
         $at = $k;
@@ -73,7 +73,7 @@ namespace x\minify\x\php {
     }
     function p2v(array $a, int $k, int &$at = 0) {
         $r = $a[--$k] ?? 0;
-        while (\is_array($r) && (\T_COMMENT === $r[0] || \T_DOC_COMMENT === $r[0])) {
+        while (\is_array($r) && 0 === $r[0]) {
             $r = $a[--$k] ?? 0;
         }
         $at = $k;
@@ -99,12 +99,13 @@ namespace x\minify\x\php {
                         }
                         continue;
                     }
-                    $c = \trim(\ltrim(\substr($v[1], 2, -2), '!*'));
-                    if ("" !== $c) {
-                        if (false !== \strpos($c, "\n")) {
-                            $c = "\n" . $c . "\n";
+                    $c = '/*' . \strtr(\substr($v[1], 3), ["\r\n" => "\n", "\r" => "\n"]);
+                    if (false === \strpos($c, "\n")) {
+                        if ("" !== ($c = \trim(\substr($c, 2, -2)))) {
+                            $s .= '/*' . $c . '*/';
                         }
-                        $s .= '/*' . $c . '*/';
+                    } else {
+                        $s .= $c;
                     }
                     continue;
                 }
@@ -220,6 +221,13 @@ namespace x\minify\x\php {
             if (',' === $v && \is_string($p = n2t($a, $k)) && false !== \strpos(')]', $p[0])) {
                 continue;
             }
+            if ('=>' === $v) {
+                if (\is_array($p = p2v($a, $k)) && 2 === $p[0] && !$p[2] && \strspn($p[1], '0123456789', 1) === \strlen($p[1]) - 2) {
+                    $key = \substr($p[1], 1, -1);
+                    $s = \substr($s, 0, -\strlen($p[1])) . ("" !== $key ? $key : '""') . $v;
+                    continue;
+                }
+            }
             if (']' === $v) {
                 // `)['1234']` → `)[1234]`
                 // `]['1234']` → `][1234]`
@@ -247,9 +255,6 @@ namespace x\minify\x\php {
                 $s .= ' ' . $v;
                 continue;
             }
-            if (false === \strpos(c1, $v[0]) && false === \strpos(c1, $s[-1])) {
-                $s .= ' ';
-            }
             $w = \strtolower($v);
             // Can be `array $asdf` or `array (`
             if ('array' === $w) {
@@ -257,6 +262,9 @@ namespace x\minify\x\php {
                     $s .= $w;
                 }
                 continue;
+            }
+            if (false === \strpos(c1, $v[0]) && false === \strpos(c1, $s[-1])) {
+                $s .= ' ';
             }
             if ('echo' === $w || 'print' === $w) {
                 if (\is_array($p = p2v($a, $k)) && 4 === $p[0] && $p[2]) {
