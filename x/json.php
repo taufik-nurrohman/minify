@@ -12,6 +12,7 @@ namespace x\minify\x\json {
     const c3 = "\\";
     const c4 = c2 . c3;
     const c5 = c1 . ',]}';
+    const c6 = c2 . ',:[]{}';
     function a(string $s) {
         $r = [];
         if ("" === $s) {
@@ -49,7 +50,7 @@ namespace x\minify\x\json {
         }
         $s = "";
         foreach ($a as $v) {
-            $s .= false === \strpos('",:[]{}', $v[0]) ? \strtolower($v) : $v;
+            $s .= false === \strpos(c6, $v[0]) ? \strtolower($v) : $v;
         }
         return $s;
     }

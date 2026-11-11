@@ -65,7 +65,7 @@ namespace x\minify\x\php {
     }
     function n2t(array $a, int $k, int &$at = 0) {
         $r = $a[++$k] ?? 0;
-        while (\is_array($r) && \in_array($r[0], [\T_COMMENT, \T_DOC_COMMENT], true)) {
+        while (\is_array($r) && (\T_COMMENT === $r[0] || \T_DOC_COMMENT === $r[0])) {
             $r = $a[++$k] ?? 0;
         }
         $at = $k;
@@ -73,7 +73,7 @@ namespace x\minify\x\php {
     }
     function p2v(array $a, int $k, int &$at = 0) {
         $r = $a[--$k] ?? 0;
-        while (\is_array($r) && \in_array($r[0], [\T_COMMENT, \T_DOC_COMMENT], true)) {
+        while (\is_array($r) && (\T_COMMENT === $r[0] || \T_DOC_COMMENT === $r[0])) {
             $r = $a[--$k] ?? 0;
         }
         $at = $k;

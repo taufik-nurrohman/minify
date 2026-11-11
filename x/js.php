@@ -7,8 +7,8 @@ namespace x\minify\x {
 }
 
 namespace x\minify\x\js {
-    const a1 = ['case', 'else', 'in', 'of', 'return', 'throw', 'yield'];
-    const a2 = ['case', 'delete', 'return', 'throw', 'typeof', 'void', 'yield'];
+    const a1 = ['case' => 1, 'else' => 1, 'in' => 1, 'of' => 1, 'return' => 1, 'throw' => 1, 'yield' => 1];
+    const a2 = ['case' => 1, 'delete' => 1, 'return' => 1, 'throw' => 1, 'typeof' => 1, 'void' => 1, 'yield' => 1];
     const c1 = " \n\r\t";
     const c2 = '"' . "'`";
     const c3 = '0123456789';
@@ -57,6 +57,12 @@ namespace x\minify\x\js {
                 continue;
             }
             $c = $s[$i += \strspn($s, c1, $i)] ?? 0;
+            // <https://tc39.es/ecma262#prod-annexB-SingleLineHTMLCloseComment>
+            if ('-' === $c && 0 === \substr_compare($s, '-->', $i, 3) && ($end = \strcspn($s, "\n\r", $i))) {
+                $r[] = [0, \substr($s, $i, $end)];
+                $i += $end;
+                continue;
+            }
             if ('/' === $c) {
                 // <https://tc39.es/ecma262#prod-MultiLineComment>
                 if ('*' === ($s[$i + 1] ?? 0)) {
@@ -103,6 +109,12 @@ namespace x\minify\x\js {
                 }
                 $r[] = $c . \substr($s, ++$i, $eat = \strspn($s, c7, $i));
                 $i += $eat;
+                continue;
+            }
+            // <https://tc39.es/ecma262#prod-annexB-SingleLineHTMLOpenComment>
+            if ('<' === $c && 0 === \substr_compare($s, '<!--', $i, 4) && ($end = \strcspn($s, "\n\r", $i))) {
+                $r[] = [0, \substr($s, $i, $end)];
+                $i += $end;
                 continue;
             }
             if ('`' === $c) {
@@ -166,7 +178,7 @@ namespace x\minify\x\js {
                     $r[] = [1, $c];
                     continue;
                 }
-                $pat = \in_array($c, a2, true);
+                $pat = isset(a2[$c]);
                 $r[] = $c;
             }
         }
@@ -226,12 +238,14 @@ namespace x\minify\x\js {
                         }
                         continue;
                     }
-                    $c = \strtr(\trim(\ltrim(\substr($v[1], 2, -2), '!*')), ["\r\n" => "\n", "\r" => "\n"]);
-                    if ("" !== $c) {
-                        if (false !== \strpos($c, "\n")) {
-                            $c = "\n" . $c . "\n";
+                    $c = '/*' . \strtr(\substr($v[1], 3), ["\r\n" => "\n", "\r" => "\n"]);
+                    if (false === \strpos($c, "\n")) {
+                        $end = '*/' === \substr($c, -2);
+                        if ("" !== ($c = \trim(\substr($c, 2, $end ? -2 : null)))) {
+                            $s .= '/*' . $c . ($end ? '*/' : "");
                         }
-                        $s .= '/*' . $c . ('*/' === \substr($v[1], -2) ? '*/' : "");
+                    } else {
+                        $s .= $c;
                     }
                     continue;
                 }
@@ -297,7 +311,7 @@ namespace x\minify\x\js {
                         $s .= $v;
                         continue;
                     }
-                    if (0 === $at || \is_string($p = p2v($a, $at)) && false !== \strpos(c8, $p[0]) && false === \strpos(')]}', $p[0]) || \in_array($p, a1, true)) {
+                    if (0 === $at || \is_string($p = p2v($a, $at)) && false !== \strpos(c8, $p[0]) && false === \strpos(')]}', $p[0]) || isset(a1[$p])) {
                         $s .= $v;
                         continue;
                     }
