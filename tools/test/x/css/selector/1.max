@@ -1,0 +1,14 @@
+element:pseudo ,
+element :pseudo ,
+element :pseudo( args ) {
+  key : value ;
+  key: value ;
+  element:pseudo ,
+  element :pseudo ,
+  element :pseudo( args ) {
+    key : value ;
+    key: value ;
+    key:value ;
+  }
+  key:value ;
+}

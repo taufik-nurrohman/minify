@@ -226,6 +226,9 @@ namespace x\minify\x {
 
 namespace x\minify\x\css {
     const c1 = " \n\r\t";
+    const c2 = "'" . '"';
+    const c3 = "\\";
+    const c99 = c3 . c2;
     function a(string $s) {
         $r = [];
         if ("" === $s) {
@@ -236,9 +239,84 @@ namespace x\minify\x\css {
         while ($i < $limit) {
             // TODO
             $c = $s[$i += \strspn($s, c1, $i)];
-            if ($at = \strcspn($s, c1, $i)) {
-                $r[] = \substr($s, $i, $at);
+            if ('/' === $c && '*' === ($s[$i + 1] ?? 0)) {
+                if (false !== ($at = \strpos($s, '*/', $i + 2))) {
+                    $r[] = [0, \substr($s, $i, ($at += 2) - $i)];
+                    $i = $at;
+                    continue;
+                }
+                // Broken comment
+                $r[] = [0, \substr($s, $i)];
+                break;
+            }
+            if (':' === $c) {
+                $c = \substr($s, $i, $at = \strcspn($s, c1 . ',{', $i));
+                if ('(' === ($s[$i += $at] ?? 0)) {
+                    $c .= '(';
+                    ++$i;
+                }
+                $r[] = $c;
+                continue;
+            }
+            if (false !== \strpos(c2, $c)) {
+                $start = $i++;
+                while ($i < $limit) {
+                    $i += \strcspn($s, c3 . $c, $i);
+                    if ($c === ($s[$i] ?? 0)) {
+                        break;
+                    }
+                    $i += 2;
+                }
+                $r[] = [2, \substr($s, $start, ++$i - $start)];
+                continue;
+            }
+            if ($at = \strcspn($s, c1 . '(),/:;[]{}', $i)) {
+                $c = \substr($s, $i, $at);
                 $i += $at;
+                if ($i >= $limit) {
+                    break;
+                }
+                if (':' === $s[$i]) {
+                    $j = $i + 1;
+                    while ($j < $limit) {
+                        $j += \strspn($s, c1, $j);
+                        if ('/' === ($s[$j] ?? 0) && '*' === ($s[$j + 1] ?? 0)) {
+                            if (false === ($at = \strpos($s, '*/', $j + 2))) {
+                                $j = $limit;
+                                break;
+                            }
+                            $j = $at + 2;
+                            continue;
+                        }
+                        if (false !== \strpos(c2, $s[$j] ?? 0)) {
+                            $q = $s[$j++];
+                            while ($j < $limit) {
+                                $j += \strcspn($s, c3 . $q, $j);
+                                if ($q === ($s[$j] ?? 0)) {
+                                    ++$j;
+                                    break;
+                                }
+                                $j += 2;
+                            }
+                            continue;
+                        }
+                        break;
+                    }
+                    $at = \strcspn($s, ';}{', $j); // `{` must come last
+                    if (false !== \strpos(';}', $s[$j + $at] ?? 0)) {
+                        $r[] = $c;
+                        $c = $s[$i++];
+                    } else {
+                        $c .= \substr($s, $i, $at = \strcspn($s, c1 . ',{', $i));
+                        if ('(' === ($s[$i += $at] ?? 0)) {
+                            $c .= '(';
+                            ++$i;
+                        }
+                    }
+                } else if (false !== \strpos('([', $s[$i])) {
+                    $c .= $s[$i++];
+                }
+                $r[] = $c;
                 continue;
             }
             $r[] = $c;
