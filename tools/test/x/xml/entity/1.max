@@ -1,10 +1,12 @@
 <asdf
 
-asdf = "asdf &#10084; &amp; &apos; &gt; &lt; &quot; '"
+asdf = "&#10084; &amp; &apos; &gt; &lt; &quot; '"
+
+asdf = '&#10084; &amp; &apos; &gt; &lt; &quot; "'
 
 >
 
-  asdf " &#10084; &amp; &apos; &gt; &lt; &quot; '
+  &#10084; &amp; &apos; &gt; &lt; &quot; " '
 
 </asdf
 
