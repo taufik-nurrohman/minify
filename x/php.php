@@ -211,10 +211,17 @@ namespace x\minify\x\php {
                 $array = false;
                 continue;
             }
-            if (')' === $v && $stack) {
-                $s = \rtrim($s, ',');
-                $s .= \array_pop($stack) ? ']' : $v;
-                continue;
+            if (')' === $v) {
+                if ('(object)[](' === \substr($s, -11)) {
+                    $s = \substr($s, 0, -1);
+                    \array_pop($stack);
+                    continue;
+                }
+                if ($stack) {
+                    $s = \rtrim($s, ',');
+                    $s .= \array_pop($stack) ? ']' : $v;
+                    continue;
+                }
             }
             // `,)` → `)`
             // `,]` → `]`
@@ -320,6 +327,14 @@ namespace x\minify\x\php {
                     continue;
                 }
                 $s .= '!0';
+                continue;
+            }
+            if ("\\stdclass" === $w && 'new' === \substr($s, -3)) {
+                $s = \substr($s, 0, -3) . '(object)[]';
+                continue;
+            }
+            if ('stdclass' === $w && 'new ' === \substr($s, -4)) {
+                $s = \substr($s, 0, -4) . '(object)[]';
                 continue;
             }
             $s .= $v;

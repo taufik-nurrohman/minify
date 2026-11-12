@@ -4,96 +4,12 @@ namespace x\minify\x {
     function xml(?string $value): ?string {
         return xml\s(xml\a($value ?? ""));
     }
-    function xml2(?string $from): ?string {
-        if ("" === ($from = \trim($from ?? ""))) {
-            return null;
-        }
-        $c1 = '<&';
-        $c2 = " \n\r\t";
-        $r1 = '"[^"]*"';
-        $r2 = "'[^']*'";
-        $r3 = $r1 . '|' . $r2;
-        $to = "";
-        while (false !== ($chop = \strpbrk($from, $c1 . $c2))) {
-            if ("" !== ($v = \strstr($from, $c = $chop[0], true))) {
-                $from = $chop;
-                $to .= $v;
-            }
-            // <https://www.w3.org/TR/xml#dt-stag>
-            // `<…`
-            if ('<' === $c && isset($chop[1]) && false === \strpos($c2, $chop[1])) {
-                // <https://www.w3.org/TR/xml#d0e1149>
-                // `<!--…`
-                if (0 === \strpos($chop, '<!--') && false !== ($n = \strpos($chop, '-->'))) {
-                    $from = \substr($from, \strlen(\substr($chop, 0, $n + 3)));
-                    continue;
-                }
-                // <https://www.w3.org/TR/xml#d0e1271>
-                // `<![CDATA[…`
-                if (0 === \strpos($chop, '<![CDATA[') && false !== ($n = \strpos($chop, ']]>'))) {
-                    $from = \substr($from, \strlen($v = \substr($chop, 0, $n + 3)));
-                    $to .= $v;
-                    continue;
-                }
-                if (\preg_match('/^<(?>' . $r3 . '|[^>])++>/', $chop, $m)) {
-                    $from = \trim(\substr($from, \strlen($m[0])));
-                    $to = \trim($to);
-                    // <https://www.w3.org/TR/xml#dt-etag>
-                    if ('/' === ($chop[1] ?? 0) && '>' === \substr($to, -1) && \preg_match('/<' . \substr(\strtok($m[0], $c2 . '>'), 2) . '(\s(?>' . $r3 . '|[^\/>])++)?>$/', $to)) {
-                        // <https://www.w3.org/TR/xml#dt-empty>
-                        $to = \substr($to, 0, -1) . '/>';
-                        continue;
-                    }
-                    foreach (\preg_split('/(' . $r3 . '|[!\/<=>?]|\s+)/', $m[0], -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
-                        if (false !== \strpos('"\'', $v[0]) && false !== \strpos($v, '&')) {
-                            $v = \preg_replace_callback('/&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', static function ($m) use ($v) {
-                                $test = \html_entity_decode($m[0], \ENT_HTML5 | \ENT_QUOTES, 'UTF-8');
-                                if (false !== \strpos('&<>' . $v[0], $test)) {
-                                    return $m[0];
-                                }
-                                return $test;
-                            }, $v);
-                        }
-                        if (false !== \strpos('/>?', $v)) {
-                            $to = \rtrim($to) . $v;
-                            continue;
-                        }
-                        $to .= "" === ($v = \trim($v)) ? ' ' : $v;
-                    }
-                    continue;
-                }
-            }
-            // <https://www.w3.org/TR/xml#dt-charref>
-            // <https://www.w3.org/TR/xml#dt-entref>
-            if ('&' === $c && \strpos($chop, ';') > 1 && \preg_match('/^&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', $chop, $m)) {
-                $from = \substr($from, \strlen($m[0]));
-                $v = \html_entity_decode($m[0], \ENT_HTML5 | \ENT_QUOTES, 'UTF-8');
-                if (false !== \strpos('&<>', $v)) {
-                    $to .= $m[0];
-                    continue;
-                }
-                $to .= $v;
-                continue;
-            }
-            if ($n = \strspn($chop, $c2)) {
-                $from = \substr($from, $n);
-                $to .= ' ';
-                continue;
-            }
-            $from = \substr($from, 1);
-            $to .= $c;
-        }
-        if ("" !== $from) {
-            $to .= $from;
-        }
-        return "" !== ($to = \trim($to)) ? $to : null;
-    }
 }
 
 namespace x\minify\x\xml {
     const c1 = " \n\r\t";
-    const c2 = '&<';
-    const c3 = '"' . "'";
+    const c2 = '"' . "'";
+    const c3 = c1 . c2 . '=>';
     function a(string $s) {
         $r = [];
         if ("" === $s) {
@@ -103,30 +19,27 @@ namespace x\minify\x\xml {
         $limit = \strlen($s);
         while ($i < $limit) {
             $c = $s[$i += \strspn($s, c1, $i)];
-            if ('&' === $c && ';' === ($s[$i + ($eat = \strcspn($s, c1 . c2, $i + 1))])) {
-                $r[] = [2, \substr($s, $i, ++$eat)];
-                $i += $eat;
-                continue;
-            }
             if ('<' === $c) {
                 if ('!' === ($s[$i + 1] ?? 0)) {
+                    // <https://www.w3.org/TR/xml#NT-Comment>
                     if (0 === \substr_compare($s, '--', $i + 2, 2)) {
                         if (false !== ($end = \strpos($s, '-->', $i + 4))) {
                             $r[] = [0, \substr($s, $i, ($end += 3) - $i)];
                             $i = $end;
                             continue;
                         }
-                        // Broken comment
+                        // Broken
                         $r[] = [0, \substr($s, $i)];
                         break;
                     }
+                    // <https://www.w3.org/TR/xml#NT-CDSect>
                     if (0 === \substr_compare($s, '[CDATA[', $i + 2, 7)) {
                         if (false !== ($end = \strpos($s, ']]>', $i + 7))) {
-                            $r[] = [4, \substr($s, $i, ($end += 3) - $i)];
+                            $r[] = [3, \substr($s, $i, ($end += 3) - $i)];
                             $i = $end;
                             continue;
                         }
-                        // Broken data
+                        // Broken
                         $r[] = [0, \substr($s, $i)];
                         break;
                     }
@@ -134,26 +47,30 @@ namespace x\minify\x\xml {
                     ++$i;
                     continue;
                 }
+                // <https://www.w3.org/TR/xml#NT-PI>
                 if ('?' === ($s[$i + 1] ?? 0)) {
                     if (false !== ($end = \strpos($s, '?>', $i + 1))) {
-                        $r[] = [3, \substr($s, $i, ($end += 2) - $i)];
+                        $r[] = [2, \substr($s, $i, ($end += 2) - $i)];
                         $i = $end;
                         continue;
                     }
-                    // Broken processing instruction
-                    $r[] = [3, \substr($s, $i)];
+                    // Broken
+                    $r[] = [2, \substr($s, $i)];
                     break;
                 }
+                // <https://www.w3.org/TR/xml/#NT-ETag>
+                // <https://www.w3.org/TR/xml/#NT-EmptyElemTag>
+                // <https://www.w3.org/TR/xml/#NT-STag>
                 if (false !== ($end = \strpos($s, '>', $i + 2))) {
                     $r[] = [1, \substr($s, $i, ($end += 1) - $i)];
                     $i = $end;
                     continue;
                 }
-                // Broken element
+                // Broken
                 $r[] = [0, \substr($s, $i)];
                 break;
             }
-            if ($eat = \strcspn($s, c2, $i)) {
+            if ($eat = \strcspn($s, '<', $i)) {
                 $r[] = \substr($s, $i, $eat);
                 $i += $eat;
                 continue;
@@ -177,6 +94,37 @@ namespace x\minify\x\xml {
         }
         return \implode(' ', $r);
     }
+    function e(string $s, $w = "") {
+        $i = 0;
+        $limit = \strlen($s);
+        $r = "";
+        while ($i < $limit) {
+            $c = $s[$i];
+            // <https://www.w3.org/TR/xml#NT-Reference>
+            if ('&' === $c && ';' === ($s[$i + ($end = \strcspn($s, c1, $i + 1))] ?? 0)) {
+                $e = \substr($s, $i, ++$end);
+                $i += $end;
+                $r .= $e !== ($f = \html_entity_decode($e, \ENT_HTML5 | \ENT_QUOTES, 'UTF-8')) && false === \strpos('&<>' . $w, $f) ? $f : $e;
+                continue;
+            }
+            if ($eat = \strcspn($s, '&<', $i)) {
+                $r .= \substr($s, $i, $eat);
+                $i += $eat;
+                continue;
+            }
+            $r .= $c;
+            ++$i;
+        }
+        return $r;
+    }
+    function p2v(array $a, int $k, int &$at = 0) {
+        $r = $a[--$k] ?? 0;
+        while (\is_array($r) && 0 === $r[0]) {
+            $r = $a[--$k] ?? 0;
+        }
+        $at = $k;
+        return $r;
+    }
     function s(array $a) {
         if (!$a) {
             return null;
@@ -187,13 +135,94 @@ namespace x\minify\x\xml {
                 if (0 === $v[0]) {
                     continue;
                 }
-                if (1 === $v[0]) {}
-                if (3 === $v[0]) {}
+                if (1 === $v[0]) {
+                    $t = t($v[1]);
+                    // <https://www.w3.org/TR/xml#NT-ETag>
+                    if ('/' === $t[0][0]) {
+                        $s .= '<' . $t[0];
+                        if (\is_array($p = p2v($a, $k)) && 1 === $p[0] && '/' !== $p[1][1]) {
+                            if (\substr($t[0], 1) === ($o = t($p[1]))[0] && 0 === $o[2]) {
+                                $s = \substr($s, 0, -(\strlen($t[0]) + 2)) . '/>';
+                                continue;
+                            }
+                        }
+                        $s .= '>';
+                        continue;
+                    }
+                    // <https://www.w3.org/TR/xml#NT-EmptyElemTag>
+                    // <https://www.w3.org/TR/xml#NT-STag>
+                    $s .= '<' . $t[0];
+                    // <https://www.w3.org/TR/xml#NT-Attribute>
+                    if ($t[1]) {
+                        foreach ($t[1] as $kk => $vv) {
+                            $s .= ' ' . $kk . '=' . '"' . e($vv, '"') . '"';
+                        }
+                    }
+                    $s .= ($t[2] ? '/' : "") . '>';
+                    continue;
+                }
+                // <https://www.w3.org/TR/xml#NT-PI>
+                if (2 === $v[0]) {
+                    $t = t($v[1]);
+                    $s .= '<' . $t[0];
+                    if ($t[1]) {
+                        foreach ($t[1] as $kk => $vv) {
+                            $s .= ' ' . $kk . '=' . '"' . e($vv, '"') . '"';
+                        }
+                    }
+                    $s .= '?>';
+                    continue;
+                }
                 $s .= $v[1];
                 continue;
             }
-            $s .= c($v);
+            $s .= e(c($v));
         }
         return $s;
+    }
+    function t(string $s) {
+        $i = 1; // Skip `<`
+        $limit = \strlen($s);
+        $r = [null, [], 0];
+        if ($eat = \strcspn($s, c3, $i)) {
+            $r[0] = \substr($s, $i, $eat);
+            $i += $eat;
+        }
+        while ($i < $limit) {
+            if ('>' === ($c = $s[$i += \strspn($s, c1, $i)])) {
+                break;
+            }
+            if ($eat = \strcspn($s, c3, $i)) {
+                $key = \substr($s, $i, $eat);
+                $i += $eat + \strspn($s, c1, $i + $eat);
+                if ('=' === ($s[$i] ?? 0)) {
+                    ++$i;
+                    $i += \strspn($s, c1, $i);
+                    $c = $s[$i] ?? 0;
+                    if (false !== \strpos(c2, $c)) {
+                        $start = ++$i;
+                        $i += $eat = \strcspn($s, $c, $i);
+                        $value = \substr($s, $start, $eat);
+                        ++$i;
+                    } else {
+                        $start = $i;
+                        $i += $eat = \strcspn($s, c3, $i);
+                        $value = \substr($s, $start, $eat);
+                    }
+                    $r[1][$key] = $value;
+                    continue;
+                }
+                if ('?' === $key && '>' === $s[$i]) {
+                    break;
+                }
+                if ('/' === $key && '>' === $s[$i += \strspn($s, c1, $i)]) {
+                    $r[2] = 1;
+                    break;
+                }
+                continue;
+            }
+            ++$i;
+        }
+        return $r;
     }
 }

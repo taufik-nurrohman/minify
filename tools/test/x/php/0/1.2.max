@@ -1,2 +1,0 @@
-<?php echo 'asdf', 'asdf', 'asdf'; ?>
-<?php print 'asdf', 'asdf', 'asdf'; ?>

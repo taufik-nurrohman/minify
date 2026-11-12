@@ -1,0 +1,9 @@
+<?asdf
+
+asdf-1 = " asdf #1 "
+asdf-1 = " asdf #2 "
+
+asdf-2 = ' asdf #1 '
+asdf-2 = ' asdf #2 '
+
+?>

@@ -3,4 +3,5 @@
 array /* asdf */ (
     '1234' /* asdf */ => '1234' ,
     ( $asdf ** 2 ) => /* asdf */ ( fn ( $asdf ) => array ( '1234' , ( $asdf - 1234 ) ) ) ,
+    'asdf' => ( $asdf = new stdClass ( ) || NAN ) ,
 ) ;
