@@ -17,6 +17,7 @@ namespace x\minify\x\js {
     const c6 = c4 . '$`';
     const c7 = c4 . '!#%&*+-<=>?@^|~';
     const c8 = c2 . c7 . '(),/:;[]{}'; // Punctuation but `$`, `.`, and `_`
+    const c9 = '!%&(*+,-:;<=>?[^{|~';
     const m1 = '~^[\p{ID_Start}_$][\p{ID_Continue}_$\x{200c}\x{200d}]*$~u';
     function a(string $s) {
         $r = [];
@@ -56,7 +57,7 @@ namespace x\minify\x\js {
                 $r[] = [2, \substr($s, $start), false];
                 continue;
             }
-            $c = $s[$i += \strspn($s, c1, $i)];
+            $c = $s[$i += \strspn($s, c1, $i)] ?? 0;
             // <https://tc39.es/ecma262#prod-annexB-SingleLineHTMLCloseComment>
             if ('-' === $c && 0 === \substr_compare($s, '->', $i + 1, 2) && ($end = \strcspn($s, "\n\r", $i))) {
                 $r[] = [0, \substr($s, $i, $end)];
@@ -107,8 +108,8 @@ namespace x\minify\x\js {
                         ++$n;
                     }
                 }
-                $r[] = $c . \substr($s, ++$i, $eat = \strspn($s, c7, $i));
-                $i += $eat;
+                $r[] = $c . \substr($s, ++$i, $at = \strspn($s, c7, $i));
+                $i += $at;
                 continue;
             }
             // <https://tc39.es/ecma262#prod-annexB-SingleLineHTMLOpenComment>
@@ -158,27 +159,25 @@ namespace x\minify\x\js {
             // Punctuation but `$`, `.`, and `_`
             if (false !== \strpos(c8, $c)) {
                 // Some punctuation can indicate that the next `/` is the start of a pattern literal and not a division
-                // `!/asdf/.source`
-                // `${/asdf/.source}`
+                // `!/asdf/.asdf`
+                // `${/asdf/.asdf}`
                 // `,/asdf/`
-                // `1234%/asdf/.lastIndex`
-                // `1234*/asdf/.lastIndex`
-                // `1234+/asdf/.lastIndex`
-                // `1234-/asdf/.lastIndex`
+                // `1234%/asdf/.asdf`
+                // `1234*/asdf/.asdf`
+                // `1234+/asdf/.asdf`
+                // `1234-/asdf/.asdf`
+                // `1234</asdf/.asdf`
+                // `1234>/asdf/.asdf`
                 // `;/asdf/`
                 // `=/asdf/`
                 // `?/asdf/:/asdf/`
                 // `[/asdf/,`
                 // `asdf(/asdf/)`
-                // `asdf^/asdf/.lastIndex`
-                // `asdf~/asdf/.lastIndex`
-                $pat = false !== \strpos('!%&(*+,-:;=?[^{|~', $c);
-                $r[] = $c .= \substr($s, ++$i, $eat = \strspn($s, c7, $i));
-                // `asdf=>/asdf/.match(asdf);`
-                if (!$pat && '=>' === $c) {
-                    $pat = 1;
-                }
-                $i += $eat;
+                // `asdf^/asdf/.asdf`
+                // `asdf~/asdf/.asdf`
+                $pat = false !== \strpos(c9, $c);
+                $r[] = $c . \substr($s, ++$i, $at = \strspn($s, c7, $i));
+                $i += $at;
                 continue;
             }
             $c = \substr($s, $i, $n = \strcspn($s, c1 . c8, $i));

@@ -120,6 +120,9 @@ $s .= '</form>';
 
 $error_count = 0;
 foreach ($files as $v) {
+    if ('*' === $batch && '~' === basename(dirname($v))) {
+        continue;
+    }
     $raw = file_get_contents($v);
     $s .= '<h1 id="' . ($n = basename($v, '.max')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . \strtr($v, [PATH . D => ".\\", D => "\\"]) . '</h1>';
     $s .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
