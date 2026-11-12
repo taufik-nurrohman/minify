@@ -18,7 +18,13 @@ namespace x\minify\x\xml {
         $i = 0;
         $limit = \strlen($s);
         while ($i < $limit) {
-            $c = $s[$i += \strspn($s, c1, $i)];
+            $c = $s[$i];
+            if ($at = \strspn($s, c1, $i)) {
+                if ('<' === $s[$i + $at]) {
+                    $i += $at;
+                    continue;
+                }
+            }
             if ('<' === $c) {
                 if ('!' === ($s[$i + 1] ?? 0)) {
                     // <https://www.w3.org/TR/xml#NT-Comment>
@@ -70,29 +76,15 @@ namespace x\minify\x\xml {
                 $r[] = [0, \substr($s, $i)];
                 break;
             }
-            if ($eat = \strcspn($s, '<', $i)) {
-                $r[] = \substr($s, $i, $eat);
-                $i += $eat;
+            if ($at = \strcspn($s, '<', $i)) {
+                $r[] = \substr($s, $i, $at);
+                $i += $at;
                 continue;
             }
             $r[] = $c;
             ++$i;
         }
         return $r;
-    }
-    function c(string $s) {
-        $i = 0;
-        $limit = \strlen($s);
-        $r = [];
-        while ($i < $limit) {
-            $i += \strspn($s, c1, $i);
-            if ($i >= $limit) {
-                break;
-            }
-            $r[] = \substr($s, $i, $n = \strcspn($s, c1, $i));
-            $i += $n;
-        }
-        return \implode(' ', $r);
     }
     function e(string $s, $w = "") {
         $i = 0;
@@ -107,9 +99,9 @@ namespace x\minify\x\xml {
                 $r .= $e !== ($f = \html_entity_decode($e, \ENT_HTML5 | \ENT_QUOTES, 'UTF-8')) && false === \strpos('&<>' . $w, $f) ? $f : $e;
                 continue;
             }
-            if ($eat = \strcspn($s, '&<', $i)) {
-                $r .= \substr($s, $i, $eat);
-                $i += $eat;
+            if ($at = \strcspn($s, '&<', $i)) {
+                $r .= \substr($s, $i, $at);
+                $i += $at;
                 continue;
             }
             $r .= $c;
@@ -133,6 +125,7 @@ namespace x\minify\x\xml {
         foreach ($a as $k => $v) {
             if (\is_array($v)) {
                 if (0 === $v[0]) {
+                    $w = 0;
                     continue;
                 }
                 if (1 === $v[0]) {
@@ -140,6 +133,7 @@ namespace x\minify\x\xml {
                     // <https://www.w3.org/TR/xml#NT-ETag>
                     if ('/' === $t[0][0]) {
                         $s .= '<' . $t[0];
+                        $w = 0;
                         if (\is_array($p = p2v($a, $k)) && 1 === $p[0] && '/' !== $p[1][1]) {
                             if (\substr($t[0], 1) === ($o = t($p[1]))[0] && 0 === $o[2]) {
                                 $s = \substr($s, 0, -(\strlen($t[0]) + 2)) . '/>';
@@ -154,6 +148,9 @@ namespace x\minify\x\xml {
                     $s .= '<' . $t[0];
                     // <https://www.w3.org/TR/xml#NT-Attribute>
                     if ($t[1]) {
+                        // <https://www.w3.org/TR/SVG2/text.html#TextLayoutPreMultiline>
+                        // <https://www.w3.org/TR/xml#sec-white-space>
+                        $w = $t[1]['xml:space'] ?? $t[1]['white-space'] ?? 0;
                         foreach ($t[1] as $kk => $vv) {
                             $s .= ' ' . $kk . '=' . '"' . e($vv, '"') . '"';
                         }
@@ -176,7 +173,7 @@ namespace x\minify\x\xml {
                 $s .= $v[1];
                 continue;
             }
-            $s .= e(c($v));
+            $s .= e(w($v, $w));
         }
         return $s;
     }
@@ -184,35 +181,31 @@ namespace x\minify\x\xml {
         $i = 1; // Skip `<`
         $limit = \strlen($s);
         $r = [null, [], 0];
-        if ($eat = \strcspn($s, c3, $i)) {
-            $r[0] = \substr($s, $i, $eat);
-            $i += $eat;
+        if ($at = \strcspn($s, c3, $i)) {
+            $r[0] = \substr($s, $i, $at);
+            $i += $at;
         }
         while ($i < $limit) {
             if ('>' === ($c = $s[$i += \strspn($s, c1, $i)])) {
                 break;
             }
-            if ($eat = \strcspn($s, c3, $i)) {
-                $key = \substr($s, $i, $eat);
-                $i += $eat + \strspn($s, c1, $i + $eat);
-                if ('=' === ($s[$i] ?? 0)) {
+            if ($at = \strcspn($s, c3, $i)) {
+                $key = \substr($s, $i, $at);
+                $i += $at;
+                if ('=' === $s[$i += \strspn($s, c1, $i)]) {
                     ++$i;
                     $i += \strspn($s, c1, $i);
-                    $c = $s[$i] ?? 0;
-                    if (false !== \strpos(c2, $c)) {
-                        $start = ++$i;
-                        $i += $eat = \strcspn($s, $c, $i);
-                        $value = \substr($s, $start, $eat);
-                        ++$i;
+                    if (false !== \strpos(c2, $c = $s[$i])) {
+                        $value = \substr($s, ++$i, $at = \strcspn($s, $c, $i));
+                        $i += $at + 1;
                     } else {
-                        $start = $i;
-                        $i += $eat = \strcspn($s, c3, $i);
-                        $value = \substr($s, $start, $eat);
+                        $value = \substr($s, $i, $at = \strcspn($s, c3, $i));
+                        $i += $at;
                     }
                     $r[1][$key] = $value;
                     continue;
                 }
-                if ('?' === $key && '>' === $s[$i]) {
+                if ('?' === $r[0][0] && '?' === $key && '>' === $s[$i]) {
                     break;
                 }
                 if ('/' === $key && '>' === $s[$i += \strspn($s, c1, $i)]) {
@@ -224,5 +217,24 @@ namespace x\minify\x\xml {
             ++$i;
         }
         return $r;
+    }
+    function w(string $s, $w = 0) {
+        if ('pre' === $w || 'preserve' === $w) {
+            return $s;
+        }
+        $i = 0;
+        $limit = \strlen($s);
+        $r = [];
+        $x = 'pre-line' === $w ? " \t" : c1;
+        while ($i < $limit) {
+            $i += \strspn($s, $x, $i);
+            if ($i >= $limit) {
+                break;
+            }
+            $r[] = \substr($s, $i, $n = \strcspn($s, $x, $i));
+            $i += $n;
+        }
+        $r = \implode(' ', $r);
+        return 'pre-line' === $w ? \strtr($r, ["\n " => "\n"]) : $r;
     }
 }
