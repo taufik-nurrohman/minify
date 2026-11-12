@@ -1,6 +1,9 @@
 <?php
 
 namespace x\minify\x {
+    function css(?string $value): ?string {
+        return css\s(css\a($value ?? ""));
+    }
     function css2(?string $from): ?string {
         if ("" === ($from = \trim($from ?? ""))) {
             return null;
@@ -218,5 +221,40 @@ namespace x\minify\x {
             $to .= $from;
         }
         return "" !== ($to = \trim($to)) ? $to : null;
+    }
+}
+
+namespace x\minify\x\css {
+    const c1 = " \n\r\t";
+    function a(string $s) {
+        $r = [];
+        if ("" === $s) {
+            return $r;
+        }
+        $i = 0;
+        $limit = \strlen($s);
+        while ($i < $limit) {
+            // TODO
+            $c = $s[$i += \strspn($s, c1, $i)];
+            if ($at = \strcspn($s, c1, $i)) {
+                $r[] = \substr($s, $i, $at);
+                $i += $at;
+                continue;
+            }
+            $r[] = $c;
+            ++$i;
+        }
+        return $r;
+    }
+    function s(array $a) {
+        if (!$a) {
+            return null;
+        }
+        $s = "";
+        foreach ($a as $k => $v) {
+            // TODO
+            $s .= $v;
+        }
+        return $s;
     }
 }
