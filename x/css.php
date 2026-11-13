@@ -270,42 +270,42 @@ namespace x\minify\x\css {
                 $r[] = [2, \substr($s, $start, ++$i - $start)];
                 continue;
             }
-            if ($at = \strcspn($s, c1 . '(),/:;[]{}', $i)) {
+            if ($at = \strcspn($s, c1 . c2 . '(),/:;[]{}', $i)) {
                 $c = \substr($s, $i, $at);
                 $i += $at;
                 if ($i >= $limit) {
                     break;
                 }
                 if (':' === $s[$i]) {
-                    $j = $i + 1;
-                    while ($j < $limit) {
-                        $j += \strspn($s, c1, $j);
-                        if ('/' === ($s[$j] ?? 0) && '*' === ($s[$j + 1] ?? 0)) {
-                            if (false === ($at = \strpos($s, '*/', $j + 2))) {
-                                $j = $limit;
+                    $n = $i + 1;
+                    while ($n < $limit) {
+                        if ('/' === $s[$n += \strspn($s, c1, $n)] && '*' === ($s[$n + 1] ?? 0)) {
+                            if (false === ($at = \strpos($s, '*/', $n + 2))) {
+                                $n = $limit;
                                 break;
                             }
-                            $j = $at + 2;
+                            $n = $at + 2;
                             continue;
                         }
-                        if (false !== \strpos(c2, $s[$j] ?? 0)) {
-                            $q = $s[$j++];
-                            while ($j < $limit) {
-                                $j += \strcspn($s, c3 . $q, $j);
-                                if ($q === ($s[$j] ?? 0)) {
-                                    ++$j;
+                        if (false !== \strpos(c2, $s[$n] ?? 0)) {
+                            $q = $s[$n++];
+                            while ($n < $limit) {
+                                $n += \strcspn($s, c3 . $q, $n);
+                                if ($q === ($s[$n] ?? 0)) {
+                                    ++$n;
                                     break;
                                 }
-                                $j += 2;
+                                $n += 2;
                             }
                             continue;
                         }
                         break;
                     }
-                    $at = \strcspn($s, ';}{', $j); // `{` must come last
-                    if (false !== \strpos(';}', $s[$j + $at] ?? 0)) {
+                    // Must be a declaration
+                    if (false !== \strpos(';}', $s[$n + \strcspn($s, ';}{', $n)] ?? 0)) {
                         $r[] = $c;
                         $c = $s[$i++];
+                    // Must be a selector
                     } else {
                         $c .= \substr($s, $i, $at = \strcspn($s, c1 . ',{', $i));
                         if ('(' === ($s[$i += $at] ?? 0)) {
@@ -324,13 +324,56 @@ namespace x\minify\x\css {
         }
         return $r;
     }
+    function n2t(array $a, int $k, int &$at = 0) {
+        $r = $a[++$k] ?? 0;
+        while (\is_array($r) && 0 === $r[0]) {
+            $r = $a[++$k] ?? 0;
+        }
+        $at = $k;
+        return $r;
+    }
     function s(array $a) {
         if (!$a) {
             return null;
         }
+        $calc = 0;
         $s = "";
         foreach ($a as $k => $v) {
-            // TODO
+            if (\is_array($v)) {
+                if (0 === $v[0]) {
+                    continue;
+                }
+                $s .= $v[1];
+                continue;
+            }
+            $calc = $calc || 'calc(' === $v;
+            if (';' === $v) {
+                $calc = 0;
+                if (\is_string($p = n2t($a, $k)) && '}' === $p) {
+                    continue;
+                }
+                $s .= $v;
+                continue;
+            }
+            if (':' === $v) {
+                $s .= $v;
+                continue;
+            }
+            if (false !== \strpos('$*^|~', $v) && '=' === ($a[$k + 1] ?? 0)) {
+                $s .= $v;
+                continue;
+            }
+            $t = c2 . '{;<>,}~/])=' . ($calc ? '(*' : '+');
+            if (false === \strpos($t, $v[0]) && $s && false === \strpos($t . '([:', $s[-1])) {
+                $s .= ' ';
+            }
+            if ('}' === $v) {
+                $calc = 0;
+                if ($s && '{' === $s[-1]) {
+                    // echo json_encode('empty selector');
+                    // echo '<br>';
+                }
+            }
             $s .= $v;
         }
         return $s;
