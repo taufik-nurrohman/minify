@@ -326,6 +326,35 @@ namespace x\minify\x\css {
                 // `asdf[`
                 } else if (false !== \strpos('(:[', $s[$i])) {
                     $c .= $s[$i++];
+                    $i += \strspn($s, c1, $i);
+                    // <https://www.w3.org/TR/css-syntax-3#consume-url-token>
+                    if ('url(' === $c && false === \strpos(c2, $s[$i] ?? "\0")) {
+                        $start = $i;
+                        while ($i < $limit) {
+                            if (c3 === $s[$i]) {
+                                if (false !== \strpos("\f\n\r\v", $s[$i + 1] ?? "\0")) {
+                                    break;
+                                }
+                                ++$i;
+                                if (false !== \strpos('0123456789ABCDEFabcdef', $s[$i] ?? "\0")) {
+                                    $i += \strspn($s, '0123456789ABCDEFabcdef', $i, 6);
+                                    $i += \strspn($s, c1, $i, 1);
+                                } else {
+                                    ++$i;
+                                }
+                                continue;
+                            }
+                            if (false !== \strpos(c1 . ')', $s[$i])) {
+                                break;
+                            }
+                            ++$i;
+                        }
+                        $c .= \substr($s, $start, $i - $start);
+                        if (')' === ($s[$i += \strspn($s, c1, $i)] ?? 0)) {
+                            $c .= ')';
+                            ++$i;
+                        }
+                    }
                 }
                 $r[] = $c;
                 continue;
@@ -349,6 +378,14 @@ namespace x\minify\x\css {
         $r = $a[++$k] ?? 0;
         while (\is_array($r) && 0 === $r[0]) {
             $r = $a[++$k] ?? 0;
+        }
+        $at = $k;
+        return $r;
+    }
+    function p2v(array $a, int $k, int &$at = 0) {
+        $r = $a[--$k] ?? 0;
+        while (\is_array($r) && 0 === $r[0]) {
+            $r = $a[--$k] ?? 0;
         }
         $at = $k;
         return $r;
@@ -405,20 +442,47 @@ namespace x\minify\x\css {
                 continue;
             }
             if (false !== \strpos('),:;]{}', $v[0])) {
-                if ('}' === $v) {
+                if (')' === $v) {
+                    // `(asdf,asdf,)` → `(asdf,asdf)`
+                    $s = \rtrim($s, ',');
+                } else if ('}' === $v) {
+                    // `{asdf:asdf;}` → `{asdf:asdf}`
                     $s = \rtrim($s, ';');
                 }
+                // `asdf)`
+                // `asdf,`
+                // `asdf:`
+                // `asdf;`
+                // `asdf]`
+                // `asdf{`
+                // `asdf}`
                 $s .= $v;
                 continue;
             }
-            if ("" !== $s) {
-                if (false !== \strpos('(+,:;<>[{}~', $s[-1])) {} else {
-                    if (false !== \strpos('+<>~', $v)) {} else {
-                        $s .= ' ';
-                    }
-                }
+            if ("" !== $s && false !== \strpos('(+,:;<>[{}~', $s[-1])) {
+                // `(asdf`
+                // `+asdf`
+                // `,asdf`
+                // `:asdf`
+                // `;asdf`
+                // `<asdf`
+                // `>asdf`
+                // `[asdf`
+                // `{asdf`
+                // `}asdf`
+                // `~asdf`
+                $s .= $v;
+                continue;
             }
-            $s .= $v;
+            if (false !== \strpos('+<>~', $v)) {
+                // `asdf+`
+                // `asdf<`
+                // `asdf>`
+                // `asdf~`
+                $s .= $v;
+                continue;
+            }
+            $s .= ("" !== $s ? ' ' : "") . $v;
         }
         return $s;
     }
