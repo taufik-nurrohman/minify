@@ -404,7 +404,7 @@ namespace x\minify\x\css {
                 $s .= $v[1];
                 continue;
             }
-            if (false !== \strpos('),:;]{}', $v)) {
+            if (false !== \strpos('),:;]{}', $v[0])) {
                 if ('}' === $v) {
                     $s = \rtrim($s, ';');
                 }
