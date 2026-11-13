@@ -404,50 +404,44 @@ namespace x\minify\x\css {
                 $s .= $v[1];
                 continue;
             }
-            $calc = $calc || 'calc(' === $v;
-            if (';' === $v) {
-                $calc = 0;
-                if (\is_string($p = n2t($a, $k)) && '}' === $p) {
-                    continue;
-                }
+            if ('{' === $v) {
                 $s .= $v;
                 continue;
             }
-            if (false !== \strpos('(),:<>{}~]/' . ($calc ? '*' : '+'), $v[0])) {
+            if (')' === $v) {
                 $s .= $v;
                 continue;
             }
-            /*
-            // `:asdf(asdf) #asdf`
-            // `:asdf(asdf) .asdf`
-            // `:asdf(asdf) :asdf`
-            // `:asdf(asdf) [asdf]`
-            // `[asdf] #asdf`
-            // `[asdf] .asdf`
-            // `[asdf] :asdf`
-            // `[asdf] [asdf]`
-            if (false !== \strpos('#.:[', $v[0]) && $s && false !== \strpos(')]', $s[-1])) {
-                $s .= ' ' . $v;
-                continue;
-            }
-            */
-            if (false !== \strpos('$*^|~', $v[0]) && '=' === ($v[1] ?? 0)) {
+            if (']' === $v) {
                 $s .= $v;
                 continue;
             }
-            // $t = c2 . '{;<>,}~/])=!' . ($calc ? '(*' : '+');
-            // if (false === \strpos($t, $v[0]) && $s && false === \strpos($t . '([:', $s[-1])) {
-            //     $s .= ' ';
-            // }
             if ('}' === $v) {
-                $calc = 0;
-                if ($s && '{' === $s[-1]) {
-                    // echo json_encode('empty selector');
-                    // echo '<br>';
-                }
+                $s = \rtrim($s, c1 . ';') . $v;
+                continue;
             }
-            if ($s && false === \strpos('<>~{}:;,([/' . ($calc ? '*' : '+'), $s[-1])) {
-                $s .= ' ';
+            if (':' === $v) {
+                $s .= $v;
+                continue;
+            }
+            if ("" !== $s) {
+                if ('}' === $s[-1]) {
+                } else if ('{' === $s[-1]) {
+                } else if ('[' === $s[-1]) {
+                } else if ('(' === $s[-1]) {
+                } else if (':' === $s[-1]) {
+                } else if ('+' === $s[-1]) {
+                } else if ('>' === $s[-1]) {
+                } else if ('~' === $s[-1]) {
+                } else {
+                    if ('+' === $v || '>' === $v || '~' === $v) {
+
+                    } else {
+                        $s .= ' ';
+                    }
+                }
+                $s .= $v;
+                continue;
             }
             $s .= $v;
         }
