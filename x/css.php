@@ -321,12 +321,24 @@ namespace x\minify\x\css {
                             ++$i;
                         }
                     }
-                // `asdf(` or `asdf[`
-                } else if (false !== \strpos('([', $s[$i])) {
+                // `asdf(`
+                // `asdf:`
+                // `asdf[`
+                } else if (false !== \strpos('(:[', $s[$i])) {
                     $c .= $s[$i++];
                 }
                 $r[] = $c;
                 continue;
+            }
+            // `:asdf():`
+            // `:asdf()[`
+            // `[asdf]:`
+            // `[asdf][`
+            // `asdf(`
+            // `asdf:`
+            // `asdf[`
+            if (false !== \strpos(':[', $s[$i + 1] ?? "\0")) {
+                $c .= $s[++$i];
             }
             $r[] = $c;
             ++$i;
@@ -401,24 +413,41 @@ namespace x\minify\x\css {
                 $s .= $v;
                 continue;
             }
-            if (':' === $v) {
+            if (false !== \strpos('(),:<>{}~]/' . ($calc ? '*' : '+'), $v[0])) {
                 $s .= $v;
                 continue;
             }
+            /*
+            // `:asdf(asdf) #asdf`
+            // `:asdf(asdf) .asdf`
+            // `:asdf(asdf) :asdf`
+            // `:asdf(asdf) [asdf]`
+            // `[asdf] #asdf`
+            // `[asdf] .asdf`
+            // `[asdf] :asdf`
+            // `[asdf] [asdf]`
+            if (false !== \strpos('#.:[', $v[0]) && $s && false !== \strpos(')]', $s[-1])) {
+                $s .= ' ' . $v;
+                continue;
+            }
+            */
             if (false !== \strpos('$*^|~', $v[0]) && '=' === ($v[1] ?? 0)) {
                 $s .= $v;
                 continue;
             }
-            $t = c2 . '{;<>,}~/])=!' . ($calc ? '(*' : '+');
-            if (false === \strpos($t, $v[0]) && $s && false === \strpos($t . '([:', $s[-1])) {
-                $s .= ' ';
-            }
+            // $t = c2 . '{;<>,}~/])=!' . ($calc ? '(*' : '+');
+            // if (false === \strpos($t, $v[0]) && $s && false === \strpos($t . '([:', $s[-1])) {
+            //     $s .= ' ';
+            // }
             if ('}' === $v) {
                 $calc = 0;
                 if ($s && '{' === $s[-1]) {
                     // echo json_encode('empty selector');
                     // echo '<br>';
                 }
+            }
+            if ($s && false === \strpos('<>~{}:;,([/' . ($calc ? '*' : '+'), $s[-1])) {
+                $s .= ' ';
             }
             $s .= $v;
         }
