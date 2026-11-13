@@ -363,7 +363,7 @@ namespace x\minify\x\css {
                 $s .= $v;
                 continue;
             }
-            $t = c2 . '{;<>,}~/])=' . ($calc ? '(*' : '+');
+            $t = c2 . '{;<>,}~/])=!' . ($calc ? '(*' : '+');
             if (false === \strpos($t, $v[0]) && $s && false === \strpos($t . '([:', $s[-1])) {
                 $s .= ' ';
             }
