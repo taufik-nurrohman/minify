@@ -404,44 +404,19 @@ namespace x\minify\x\css {
                 $s .= $v[1];
                 continue;
             }
-            if ('{' === $v) {
-                $s .= $v;
-                continue;
-            }
-            if (')' === $v) {
-                $s .= $v;
-                continue;
-            }
-            if (']' === $v) {
-                $s .= $v;
-                continue;
-            }
-            if ('}' === $v) {
-                $s = \rtrim($s, c1 . ';') . $v;
-                continue;
-            }
-            if (':' === $v) {
+            if (false !== \strpos('),:;]{}', $v)) {
+                if ('}' === $v) {
+                    $s = \rtrim($s, ';');
+                }
                 $s .= $v;
                 continue;
             }
             if ("" !== $s) {
-                if ('}' === $s[-1]) {
-                } else if ('{' === $s[-1]) {
-                } else if ('[' === $s[-1]) {
-                } else if ('(' === $s[-1]) {
-                } else if (':' === $s[-1]) {
-                } else if ('+' === $s[-1]) {
-                } else if ('>' === $s[-1]) {
-                } else if ('~' === $s[-1]) {
-                } else {
-                    if ('+' === $v || '>' === $v || '~' === $v) {
-
-                    } else {
+                if (false !== \strpos('(+,:;<>[{}~', $s[-1])) {} else {
+                    if (false !== \strpos('+<>~', $v)) {} else {
                         $s .= ' ';
                     }
                 }
-                $s .= $v;
-                continue;
             }
             $s .= $v;
         }
