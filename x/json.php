@@ -7,7 +7,7 @@ namespace x\minify\x {
 }
 
 namespace x\minify\x\json {
-    const c1 = " \n\r\t";
+    const c1 = " \f\n\r\t\v";
     const c2 = '"';
     const c3 = "\\";
     const c4 = c2 . c3;

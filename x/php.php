@@ -7,12 +7,11 @@ namespace x\minify\x {
 }
 
 namespace x\minify\x\php {
-    const c111 = " \n\r\t";
+    const c111 = " \f\n\r\t\v";
     const c1 = '!"#$%&()*+,-./:;<=>?@[\]^_`{|}~' . "' \n\r\t";
     const c2 = '"' . "'";
     const m1 = '~[\w\x80-\xff)}\]]\[([' . c2 . '])([+-]?\d+)\1$~';
     const m2 = '~->\{([' . c2 . '])([a-zA-Z_\x80-\xff][\w\x80-\xff]*)\1$~';
-    const m3 = '~([' . c2 . '])([+-]?\d+)\1$~';
     function a(string $s) {
         $r = [];
         if ("" === $s) {
@@ -89,7 +88,7 @@ namespace x\minify\x\php {
         foreach ($a as $k => $v) {
             if (\is_array($v)) {
                 if (0 === $v[0]) {
-                    if (false === \strpos('!*', $v[1][2] ?? "\n") && false === \strpos($v[1], '@license')) {
+                    if (false === \strpos('!*', $v[1][2] ?? "\0") && false === \strpos($v[1], '@license')) {
                         continue;
                     }
                     if ('/' === $v[1][1]) {

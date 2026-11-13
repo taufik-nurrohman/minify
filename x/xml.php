@@ -7,7 +7,7 @@ namespace x\minify\x {
 }
 
 namespace x\minify\x\xml {
-    const c1 = " \n\r\t";
+    const c1 = " \f\n\r\t\v";
     const c2 = '"' . "'";
     const c3 = c1 . c2 . '=>';
     const c4 = c1 . '/>?';
@@ -56,26 +56,40 @@ namespace x\minify\x\xml {
                 }
                 // <https://www.w3.org/TR/xml#NT-PI>
                 if ('?' === ($s[$i + 1] ?? 0)) {
-                    if (false !== ($end = \strpos($s, '?>', $i + 1))) {
-                        $r[] = [2, \substr($s, $i, ($end += 2) - $i)];
-                        $i = $end;
-                        continue;
+                    $at = $i + 2;
+                    while ($at < $limit) {
+                        if (false !== \strpos(c2, $c = $s[$at])) {
+                            $at += \strcspn($s, $c, ++$at) + 1;
+                            continue;
+                        }
+                        if ('?' === $c && '>' === ($s[$at + 1] ?? 0)) {
+                            $at += 2;
+                            break;
+                        }
+                        ++$at;
                     }
-                    // Broken
-                    $r[] = [2, \substr($s, $i)];
-                    break;
+                    $r[] = [2, \substr($s, $i, $at - $i)];
+                    $i = $at;
+                    continue;
                 }
                 // <https://www.w3.org/TR/xml/#NT-ETag>
                 // <https://www.w3.org/TR/xml/#NT-EmptyElemTag>
                 // <https://www.w3.org/TR/xml/#NT-STag>
-                if (false !== ($end = \strpos($s, '>', $i + 2))) {
-                    $r[] = [1, \substr($s, $i, ($end += 1) - $i)];
-                    $i = $end;
-                    continue;
+                $at = $i + 1;
+                while ($at < $limit) {
+                    if (false !== \strpos(c2, $c = $s[$at])) {
+                        $at += \strcspn($s, $c, ++$at) + 1;
+                        continue;
+                    }
+                    if ('>' === ($s[$at] ?? 0)) {
+                        ++$at;
+                        break;
+                    }
+                    ++$at;
                 }
-                // Broken
-                $r[] = [0, \substr($s, $i)];
-                break;
+                $r[] = [1, \substr($s, $i, $at - $i)];
+                $i = $at;
+                continue;
             }
             if ($at = \strcspn($s, '<', $i)) {
                 $r[] = \substr($s, $i, $at);
@@ -118,7 +132,10 @@ namespace x\minify\x\xml {
         $at = $k;
         return $r;
     }
-    function s(array $a) {
+    function q(string $s) {
+        return $s && '"' === $s[0] ? '"' : "'";
+    }
+    function s(array $a, $bool = 0, $void = 1) {
         if (!$a) {
             return null;
         }
@@ -134,13 +151,16 @@ namespace x\minify\x\xml {
                     $t = t($v[1]);
                     // <https://www.w3.org/TR/xml#NT-ETag>
                     if ('/' === $t[0][0]) {
+                        $m = \substr($t[0], 1);
                         $s .= '<' . $t[0];
                         $w = 0;
-                        if (\is_array($p = p2v($a, $k)) && 1 === $p[0] && '/' !== $p[1][1]) {
-                            // `<asdf asdf="asdf"></asdf>` → `<asdf asdf="asdf"/>`
-                            if (\substr($t[0], 1) === ($o = t($p[1]))[0] && 0 === $o[2]) {
-                                $s = \substr($s, 0, -(\strlen($t[0]) + 2)) . '/>';
-                                continue;
+                        if (\is_array($void) && ($void[$m] ?? 0) || $void) {
+                            if (\is_array($p = p2v($a, $k)) && 1 === $p[0] && '/' !== $p[1][1]) {
+                                // `<asdf asdf="asdf"></asdf>` → `<asdf asdf="asdf"/>`
+                                if ($m === ($o = t($p[1]))[0] && 0 === $o[2]) {
+                                    $s = \substr($s, 0, -(\strlen($m) + 3)) . '/>';
+                                    continue;
+                                }
                             }
                         }
                         $s .= '>';
@@ -151,13 +171,23 @@ namespace x\minify\x\xml {
                     $s .= '<' . $t[0];
                     // <https://www.w3.org/TR/xml#NT-Attribute>
                     if ($t[1]) {
-                        foreach ($t[1] as $m) {
+                        foreach ($t[1] as $vv) {
+                            [$kk, $vv] = $vv;
                             // <https://www.w3.org/TR/SVG2/text.html#TextLayoutPreMultiline>
                             // <https://www.w3.org/TR/xml#sec-white-space>
-                            if ('white-space' === $m[0] || 'xml:space' === $m[0]) {
-                                $w = [$m[0], $m[1] ? \trim($m[1], c2) : 0];
+                            if ('white-space' === $kk || 'xml:space' === $kk) {
+                                $w = [$kk, $vv ? v($vv) : 0];
                             }
-                            $s .= ' ' . $m[0] . ($m[1] ? '=' . e($m[1], '"' === $m[1][0] ? '"' : "'") : "");
+                            $s .= ' ' . $kk;
+                            if ($vv) {
+                                $s .= '=';
+                                if (\is_array($bool) && ($bool[$kk] ?? 0)) {
+                                    if ("" === v($vv) || $kk === v($vv)) {
+                                        continue;
+                                    }
+                                }
+                                $s .= e($vv, q($vv));
+                            }
                         }
                     }
                     $s .= ($t[2] ? '/' : "") . '>';
@@ -168,8 +198,18 @@ namespace x\minify\x\xml {
                     $t = t($v[1]);
                     $s .= '<' . $t[0];
                     if ($t[1]) {
-                        foreach ($t[1] as $m) {
-                            $s .= ' ' . $m[0] . ($m[1] ? '=' . e($m[1], '"' === $m[1][0] ? '"' : "'") : "");
+                        foreach ($t[1] as $vv) {
+                            [$kk, $vv] = $vv;
+                            $s .= ' ' . $kk;
+                            if ($vv) {
+                                $s .= '=';
+                                if (\is_array($bool) && ($bool[$kk] ?? 0)) {
+                                    if ("" === v($vv) || $kk === v($vv)) {
+                                        continue;
+                                    }
+                                }
+                                $s .= e($vv, q($vv));
+                            }
                         }
                     }
                     $s .= '?>';
@@ -230,6 +270,12 @@ namespace x\minify\x\xml {
             ++$i;
         }
         return $r;
+    }
+    function v(string $s) {
+        if (\strlen($s) > 1 && ("'" === $s[0] && "'" === $s[-1] || '"' === $s[0] && '"' === $s[-1])) {
+            return \substr($s, 1, -1);
+        }
+        return $s;
     }
     function w(string $s, $w = 0) {
         if ($w && ('white-space' === $w[0] && 'pre' === $w[1] || 'xml:space' === $w[0] && 'preserve' === $w[1])) {

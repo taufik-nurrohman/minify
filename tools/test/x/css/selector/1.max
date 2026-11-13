@@ -1,11 +1,13 @@
 element:pseudo ,
+element:pseudo( arg , arg , arg , ) ,
 element :pseudo ,
-element :pseudo( args ) {
+element :pseudo( arg , arg , arg , ) {
   key : value ;
   key: value ;
   element:pseudo ,
+  element:pseudo( arg , arg , arg , ) ,
   element :pseudo ,
-  element :pseudo( args ) {
+  element :pseudo( arg , arg , arg , ) {
     key : value ;
     key: value ;
     key:value ;

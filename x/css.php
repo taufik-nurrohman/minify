@@ -225,10 +225,10 @@ namespace x\minify\x {
 }
 
 namespace x\minify\x\css {
-    const c1 = " \n\r\t";
+    const c1 = " \f\n\r\t\v";
     const c2 = "'" . '"';
     const c3 = "\\";
-    const c99 = c3 . c2;
+    const c4 = c1 . c2 . '(),/:;[]{}';
     function a(string $s) {
         $r = [];
         if ("" === $s) {
@@ -237,32 +237,38 @@ namespace x\minify\x\css {
         $i = 0;
         $limit = \strlen($s);
         while ($i < $limit) {
-            // TODO
             $c = $s[$i += \strspn($s, c1, $i)];
+            // <https://www.w3.org/TR/css-syntax-3#consume-comment>
             if ('/' === $c && '*' === ($s[$i + 1] ?? 0)) {
                 if (false !== ($at = \strpos($s, '*/', $i + 2))) {
                     $r[] = [0, \substr($s, $i, ($at += 2) - $i)];
                     $i = $at;
                     continue;
                 }
-                // Broken comment
+                // Broken
                 $r[] = [0, \substr($s, $i)];
                 break;
             }
-            if (':' === $c) {
-                $c = \substr($s, $i, $at = \strcspn($s, c1 . ',{', $i));
-                if ('(' === ($s[$i += $at] ?? 0)) {
-                    $c .= '(';
-                    ++$i;
+            // Maybe a pseudo-class selector
+            if (':' === $c && false === \strpos(c1, $s[$i + 1] ?? "\0")) {
+                if ($at = \strcspn($s, c1 . ',{', $i + 1)) {
+                    $c .= \substr($s, ++$i, $at);
+                    if ('(' === ($s[$i += $at] ?? 0)) {
+                        $c .= '(';
+                        ++$i;
+                    }
+                    $r[] = $c;
+                    continue;
                 }
                 $r[] = $c;
+                ++$i;
                 continue;
             }
+            // <https://www.w3.org/TR/css-syntax-3#consume-string-token>
             if (false !== \strpos(c2, $c)) {
                 $start = $i++;
                 while ($i < $limit) {
-                    $i += \strcspn($s, c3 . $c, $i);
-                    if ($c === ($s[$i] ?? 0)) {
+                    if ($c === ($s[$i += \strcspn($s, c3 . $c, $i)] ?? 0)) {
                         break;
                     }
                     $i += 2;
@@ -270,13 +276,16 @@ namespace x\minify\x\css {
                 $r[] = [2, \substr($s, $start, ++$i - $start)];
                 continue;
             }
-            if ($at = \strcspn($s, c1 . c2 . '(),/:;[]{}', $i)) {
+            if ($at = \strcspn($s, c4, $i)) {
                 $c = \substr($s, $i, $at);
                 $i += $at;
                 if ($i >= $limit) {
                     break;
                 }
+                // Maybe a declaration or a pseudo-class selector at the start of nested selector syntax
                 if (':' === $s[$i]) {
+                    // Skip past the comment and string token, and check to see if `;` or `}` token exists before the
+                    // next `{`. In that case, the current position must be a declaration syntax.
                     $n = $i + 1;
                     while ($n < $limit) {
                         if ('/' === $s[$n += \strspn($s, c1, $n)] && '*' === ($s[$n + 1] ?? 0)) {
@@ -290,8 +299,7 @@ namespace x\minify\x\css {
                         if (false !== \strpos(c2, $s[$n] ?? 0)) {
                             $q = $s[$n++];
                             while ($n < $limit) {
-                                $n += \strcspn($s, c3 . $q, $n);
-                                if ($q === ($s[$n] ?? 0)) {
+                                if ($q === ($s[$n += \strcspn($s, c3 . $q, $n)] ?? 0)) {
                                     ++$n;
                                     break;
                                 }
@@ -301,11 +309,11 @@ namespace x\minify\x\css {
                         }
                         break;
                     }
-                    // Must be a declaration
+                    // Must be a declaration syntax
                     if (false !== \strpos(';}', $s[$n + \strcspn($s, ';}{', $n)] ?? 0)) {
                         $r[] = $c;
                         $c = $s[$i++];
-                    // Must be a selector
+                    // Must be a nested selector syntax
                     } else {
                         $c .= \substr($s, $i, $at = \strcspn($s, c1 . ',{', $i));
                         if ('(' === ($s[$i += $at] ?? 0)) {
@@ -313,6 +321,7 @@ namespace x\minify\x\css {
                             ++$i;
                         }
                     }
+                // `asdf(` or `asdf[`
                 } else if (false !== \strpos('([', $s[$i])) {
                     $c .= $s[$i++];
                 }
@@ -341,7 +350,44 @@ namespace x\minify\x\css {
         foreach ($a as $k => $v) {
             if (\is_array($v)) {
                 if (0 === $v[0]) {
+                    if (false === \strpos('!*', $v[1][2] ?? "\0") && false === \strpos($v[1], '@cc_on') && false === \strpos($v[1], '@license')) {
+                        continue;
+                    }
+                    if ('/' === $v[1][1]) {
+                        $c = \ltrim(\substr($v[1], 2));
+                        if ("" !== $c) {
+                            $s .= '//' . $c . (isset($a[$k + 1]) ? "\n" : "");
+                        }
+                        continue;
+                    }
+                    $c = '/*' . \strtr(\substr($v[1], 3), ["\r\n" => "\n", "\r" => "\n"]);
+                    if (false === \strpos($c, "\n")) {
+                        $at = '*/' === \substr($c, -2);
+                        if ("" !== ($c = \trim(\substr($c, 2, $at ? -2 : null)))) {
+                            $s .= '/*' . $c . ($at ? '*/' : "");
+                        }
+                    } else {
+                        $s .= $c;
+                    }
                     continue;
+                }
+                if (2 === $v[0]) {
+                    if ($s && '=' === $s[-1]) {
+                        $q = 0;
+                        $w = v($v[1]);
+                        // <https://mothereff.in/unquoted-attributes>
+                        if ("" === $w || '-' === $w || 0 === \strpos($w, '--') || '-' === $w[0] && \strspn($w, '0123456789', 1) || \strspn($w, '0123456789')) {
+                            $q = 1;
+                        } else if (\strcspn($w, c3 . c4) !== \strlen($w)) {
+                            $q = 1;
+                        } else if (\preg_match('~^[-_\x{00a0}-\x{10ffff}]+$~u', $w)) {
+                            $q = 0;
+                        }
+                        if (!$q) {
+                            $s .= $w;
+                            continue;
+                        }
+                    }
                 }
                 $s .= $v[1];
                 continue;
@@ -359,7 +405,7 @@ namespace x\minify\x\css {
                 $s .= $v;
                 continue;
             }
-            if (false !== \strpos('$*^|~', $v) && '=' === ($a[$k + 1] ?? 0)) {
+            if (false !== \strpos('$*^|~', $v[0]) && '=' === ($v[1] ?? 0)) {
                 $s .= $v;
                 continue;
             }
@@ -375,6 +421,12 @@ namespace x\minify\x\css {
                 }
             }
             $s .= $v;
+        }
+        return $s;
+    }
+    function v(string $s) {
+        if (\strlen($s) > 1 && ("'" === $s[0] && "'" === $s[-1] || '"' === $s[0] && '"' === $s[-1])) {
+            return \substr($s, 1, -1);
         }
         return $s;
     }
